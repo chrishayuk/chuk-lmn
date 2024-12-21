@@ -1,0 +1,15 @@
+// Computes n! recursively
+function factorial(n)
+  // If n <= 1, return 1
+  if (n <= 1)
+    return 1
+  else
+    // Otherwise, n * factorial(n - 1)
+    return n * factorial(n - 1)
+  end
+end
+
+function main()
+  set x 5
+  print "Factorial of" x "is" factorial(x)
+end
