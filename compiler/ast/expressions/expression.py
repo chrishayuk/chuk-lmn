@@ -1,12 +1,13 @@
 # compiler/ast/expressions/expression.py
+from typing import Literal
 from compiler.ast.ast_node import ASTNode
+from compiler.ast.expressions.expression_kind import ExpressionKind
 
 class Expression(ASTNode):
     """
     Base class for all expression nodes in the LMN AST.
+    We store a 'type' field indicating which expression subclass we are.
     """
-    def __repr__(self):
-        return (
-            f"{self.__class__.__name__}"
-            f"({', '.join([f'{k}={repr(v)}' for k, v in self.__dict__.items()])})"
-        )
+    type: Literal[ExpressionKind.EXPRESSION] = ExpressionKind.EXPRESSION
+
+    

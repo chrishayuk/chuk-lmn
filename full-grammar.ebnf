@@ -17,9 +17,9 @@ STATEMENT
    | RETURN_STATEMENT
    | CALL_STATEMENT
    | BREAK_STATEMENT
-   | EXPRESSION  (optional if you allow bare expressions)
+   | EXPRESSION        # (optional if you allow bare expressions)
    | NEWLINE
-   | COMMENT     (if not ignoring them entirely)
+   | COMMENT           # (if you're not discarding them)
 
 SET_STATEMENT
   := SET IDENTIFIER EXPRESSION
@@ -41,8 +41,8 @@ FOR_STATEMENT
      END
 
 FOR_CLAUSE
-  := ( NUMBER TO NUMBER )   # e.g.  for i 1 to 10
-   | ( IN EXPRESSION )      # e.g.  for city in myList
+  := ( NUMBER TO NUMBER )      # e.g. "for i 1 to 10"
+   | ( IN EXPRESSION )         # e.g. "for city in myList"
 
 RETURN_STATEMENT
   := RETURN EXPRESSION
@@ -93,7 +93,7 @@ PRIMARY
    | TRUE
    | FALSE
    | NIL
-   | IDENTIFIER FUNCTION_CALL_ARGS?  # variable or call
+   | IDENTIFIER FUNCTION_CALL_ARGS?  # variable or function call
    | LPAREN EXPRESSION RPAREN
    | ARRAY_LITERAL
 
