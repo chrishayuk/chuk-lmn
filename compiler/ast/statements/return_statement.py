@@ -1,25 +1,15 @@
 # compiler/ast/statements/return_statement.py
-from compiler.ast.statements.statement import Statement
+from __future__ import annotations
+from typing import Optional, Literal
+from pydantic import Field
 
-class ReturnStatement(Statement):
-    """
-    Represents 'return <expression>' in LMN.
-    Example:
-      return n * fact(n - 1)
-    """
-    def __init__(self, expression):
-        super().__init__()
-        self.expression = expression
+from compiler.ast.ast_node import ASTNode
+from compiler.ast.node_kind import NodeKind
+from compiler.ast.mega_union import MegaUnion
+
+class ReturnStatement(ASTNode):
+    type: Literal[NodeKind.RETURN] = NodeKind.RETURN
+    expression: Optional[MegaUnion] = None
 
     def __str__(self):
         return f"return {self.expression}"
-
-    def to_dict(self):
-        return {
-            "type": "ReturnStatement",
-            "expression": (
-                self.expression.to_dict()
-                if hasattr(self.expression, "to_dict")
-                else str(self.expression)
-            ),
-        }

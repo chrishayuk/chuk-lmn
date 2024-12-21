@@ -1,14 +1,16 @@
 # compiler/ast/expressions/binary_expression.py
+from __future__ import annotations
 from typing import Literal
-from compiler.ast.expressions.expression import Expression
-from compiler.ast.expressions.expression_kind import ExpressionKind
-from compiler.ast.expressions.expression_union import ExpressionUnion
 
-class BinaryExpression(Expression):
-    type: Literal[ExpressionKind.BINARY] = ExpressionKind.BINARY
+from compiler.ast.ast_node import ASTNode
+from compiler.ast.node_kind import NodeKind
+from compiler.ast.mega_union import MegaUnion
+
+class BinaryExpression(ASTNode):
+    type: Literal[NodeKind.BINARY] = NodeKind.BINARY
     operator: str
-    left: ExpressionUnion
-    right: ExpressionUnion
+    left: MegaUnion
+    right: MegaUnion
 
     def __str__(self):
         return f"({self.left} {self.operator} {self.right})"

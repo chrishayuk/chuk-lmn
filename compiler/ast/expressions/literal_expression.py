@@ -1,17 +1,17 @@
 # compiler/ast/expressions/literal_expression.py
+from __future__ import annotations
 import decimal
 from typing import Union, Literal
 from pydantic import model_validator
-from compiler.ast.expressions.expression import Expression
-from compiler.ast.expressions.expression_kind import ExpressionKind
 
-class LiteralExpression(Expression):
+from compiler.ast.ast_node import ASTNode
+from compiler.ast.node_kind import NodeKind
+
+class LiteralExpression(ASTNode):
     """
-    Pydantic-based literal node.
-    - If parse as decimal => int or float
-    - Else => str
+    A literal value node (int, float, or string).
     """
-    type: Literal[ExpressionKind.LITERAL] = ExpressionKind.LITERAL
+    type: Literal[NodeKind.LITERAL] = NodeKind.LITERAL
     value: Union[int, float, str]
 
     @model_validator(mode="before")

@@ -1,13 +1,15 @@
 # compiler/ast/expressions/unary_expression.py
+from __future__ import annotations
 from typing import Literal
-from compiler.ast.expressions.expression import Expression
-from compiler.ast.expressions.expression_kind import ExpressionKind
-from compiler.ast.expressions.expression_union import ExpressionUnion
 
-class UnaryExpression(Expression):
-    type: Literal[ExpressionKind.UNARY] = ExpressionKind.UNARY
+from compiler.ast.ast_node import ASTNode
+from compiler.ast.node_kind import NodeKind
+from compiler.ast.mega_union import MegaUnion
+
+class UnaryExpression(ASTNode):
+    type: Literal[NodeKind.UNARY] = NodeKind.UNARY
     operator: str
-    operand: ExpressionUnion
+    operand: MegaUnion
 
     def __str__(self):
         return f"({self.operator} {self.operand})"

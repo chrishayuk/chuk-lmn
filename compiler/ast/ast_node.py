@@ -15,4 +15,5 @@ class ASTNode(BaseModel):
 
 
     def to_dict(self) -> dict:
-        return self.model_dump(mode="python")
+        # Force usage of the alias-based keys
+        return self.model_dump(by_alias=True)

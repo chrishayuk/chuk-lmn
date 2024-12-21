@@ -1,3 +1,12 @@
+# python
 __pycache__/
 .pytest_cache/
+
+# macOS
 .DS_Store
+
+# environment
+.venv
+
+# environment files
+.env
