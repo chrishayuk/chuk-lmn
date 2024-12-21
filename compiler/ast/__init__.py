@@ -22,6 +22,9 @@ from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
 from .statements.set_statement import SetStatement
 
+# Program
+from compiler.ast.program import Program
+
 # Rebuild them all
 LiteralExpression.model_rebuild()
 VariableExpression.model_rebuild()
@@ -36,3 +39,5 @@ IfStatement.model_rebuild()
 PrintStatement.model_rebuild()
 ReturnStatement.model_rebuild()
 SetStatement.model_rebuild()
+
+Program.model_rebuild()
