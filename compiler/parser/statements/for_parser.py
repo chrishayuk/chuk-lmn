@@ -1,7 +1,8 @@
 # compiler/parser/statements/for_parser.py
 from compiler.lexer.token_type import LmnTokenType
 from compiler.ast.statements.for_statement import ForStatement
-from compiler.ast.variable import Variable
+from compiler.ast.expressions.variable_expression import VariableExpression
+
 from compiler.parser.parser_utils import expect_token, parse_block
 
 class ForParser:
@@ -9,12 +10,17 @@ class ForParser:
         self.parser = parent_parser
 
     def parse(self):
-        # current_token == FOR, consume
+        # current_token == FOR, consume it
         self.parser.advance()
 
-        # expect identifier
-        var_token = expect_token(self.parser, LmnTokenType.IDENTIFIER, "Expected loop variable after 'for'")
-        loop_var = Variable(var_token.value)
+        # expect identifier for loop variable
+        var_token = expect_token(
+            self.parser, 
+            LmnTokenType.IDENTIFIER, 
+            "Expected loop variable after 'for'"
+        )
+        # Instead of old 'Variable(...)', do 'VariableExpression(name=...)'
+        loop_var = VariableExpression(name=var_token.value)
         self.parser.advance()
 
         start_expr = None
@@ -24,7 +30,7 @@ class ForParser:
         # check for 'in'
         if (self.parser.current_token
             and self.parser.current_token.token_type == LmnTokenType.IN):
-            self.parser.advance()  # skip 'in'
+            self.parser.advance()  # consume 'in'
             # for i in expression
             start_expr = self.parser.expression_parser.parse_expression()
         else:
@@ -34,12 +40,17 @@ class ForParser:
             self.parser.advance()
             end_expr = self.parser.expression_parser.parse_expression()
 
-        # parse body
+        # parse the block until 'end'
         body = parse_block(self.parser, [LmnTokenType.END])
 
-        expect_token(self.parser, LmnTokenType.END, "Expected 'end' after for")
+        expect_token(self.parser, LmnTokenType.END, "Expected 'end' after for block")
         self.parser.advance()
 
-        # ********* IMPORTANT *********
-        # Return the ForStatement node instead of None:
-        return ForStatement(loop_var, start_expr, end_expr, step_expr, body)
+        # Return a ForStatement with the new field structure
+        return ForStatement(
+            variable=loop_var,
+            start_expr=start_expr,
+            end_expr=end_expr,
+            step_expr=step_expr,
+            body=body
+        )

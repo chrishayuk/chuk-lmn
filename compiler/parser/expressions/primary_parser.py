@@ -1,9 +1,10 @@
 # compiler/parser/expressions/primary_parser.py
-
 from compiler.lexer.token_type import LmnTokenType
-from compiler.ast.expressions.literal import Literal
-from compiler.ast.expressions.fn_expression import FnExpression
-from compiler.ast.variable import Variable
+from compiler.ast import (
+    LiteralExpression,
+    FnExpression,
+    VariableExpression,
+)
 
 class PrimaryParser:
     def __init__(self, parent_parser, expr_parser):
@@ -18,43 +19,55 @@ class PrimaryParser:
         ttype = token.token_type
 
         if ttype == LmnTokenType.NUMBER:
+            # 'NUMBER' => parse as LiteralExpression (numeric)
             self.parser.advance()
-            return Literal(str(token.value))
+            # If the token.value is numeric-like, your LiteralExpression validator
+            # will parse it as int or float.
+            return LiteralExpression(value=str(token.value))
 
         elif ttype == LmnTokenType.STRING:
+            # 'STRING' => parse as a string literal
             self.parser.advance()
-            return Literal(token.value)
+            return LiteralExpression(value=token.value)
 
         elif ttype == LmnTokenType.IDENTIFIER:
-            # Could be var or a function call
+            # Could be a variable or a function call
             var_name = token.value
-            self.parser.advance()
+            self.parser.advance()  # consume the identifier token
 
             # check if next is '(' => function call
-            if self.parser.current_token and self.parser.current_token.token_type == LmnTokenType.LPAREN:
+            if (self.parser.current_token
+                and self.parser.current_token.token_type == LmnTokenType.LPAREN):
                 self.parser.advance()  # consume '('
                 args = []
+                # parse arguments until we see ')'
                 while (self.parser.current_token
                        and self.parser.current_token.token_type != LmnTokenType.RPAREN):
                     arg_expr = self.expr_parser.parse_expression()
                     args.append(arg_expr)
                     if (self.parser.current_token
                         and self.parser.current_token.token_type == LmnTokenType.COMMA):
-                        self.parser.advance()
+                        self.parser.advance()  # consume comma, keep parsing args
+
                 # expect ')'
-                self._expect(LmnTokenType.RPAREN, "Expected ')' after function call")
+                self._expect(LmnTokenType.RPAREN, "Expected ')' after function call arguments")
                 self.parser.advance()  # consume ')'
-                return FnExpression(Variable(var_name), args)
+
+                # Construct FnExpression with a 'VariableExpression' as the 'name'
+                return FnExpression(
+                    name=VariableExpression(name=var_name),
+                    arguments=args
+                )
             else:
                 # just a variable
-                return Variable(var_name)
+                return VariableExpression(name=var_name)
 
         elif ttype == LmnTokenType.LPAREN:
-            # grouping
+            # grouping: ( expr )
             self.parser.advance()  # consume '('
             expr = self.expr_parser.parse_expression()
-            self._expect(LmnTokenType.RPAREN, "Expected ')' in grouping")
-            self.parser.advance()
+            self._expect(LmnTokenType.RPAREN, "Expected ')' to close grouping")
+            self.parser.advance()  # consume ')'
             return expr
 
         else:

@@ -1,6 +1,8 @@
 # compiler/parser/expressions/binary_parser.py
 from compiler.lexer.token_type import LmnTokenType
-from compiler.ast.expressions.binary_expression import BinaryExpression
+# Instead of importing from compiler.ast.expressions.binary_expression,
+# import from compiler.ast (the new mega-union approach):
+from compiler.ast import BinaryExpression
 
 class BinaryParser:
     def __init__(self, parent_parser, expr_parser):
@@ -10,12 +12,12 @@ class BinaryParser:
     def parse_binary_expr(self):
         """
         Example approach:
-          left = parse_unary_expr
+          left = parse_unary_expr()
           while current_token is a binary operator:
-            op_token = current_token
-            advance()
-            right = parse_unary_expr
-            left = BinaryExpression(left, op_token, right)
+              op_token = current_token
+              advance()
+              right = parse_unary_expr()
+              left = BinaryExpression(operator=op_token.value, left=left, right=right)
           return left
         """
         left = self.expr_parser.parse_unary_expr()
@@ -23,14 +25,23 @@ class BinaryParser:
         while self._is_binary_operator(self.parser.current_token):
             op_token = self.parser.current_token
             self.parser.advance()
+
             right = self.expr_parser.parse_unary_expr()
-            left = BinaryExpression(left, op_token, right)
+
+            # old code was: left = BinaryExpression(left, op_token, right)
+            # new approach uses named fields => 'operator=op_token.value'
+            left = BinaryExpression(
+                operator=op_token.value,  # or op_token.lexeme if that's how you store it
+                left=left,
+                right=right
+            )
 
         return left
 
     def _is_binary_operator(self, token):
         if not token:
             return False
+        # Keep the same checks for recognized binary operators
         return token.token_type in [
             LmnTokenType.PLUS, LmnTokenType.MINUS, LmnTokenType.MUL, LmnTokenType.DIV,
             LmnTokenType.EQ, LmnTokenType.NE, LmnTokenType.LT, LmnTokenType.LE,

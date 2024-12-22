@@ -1,7 +1,11 @@
 # compiler/parser/function_definition_parser.py
 
 from compiler.lexer.token_type import LmnTokenType
-from compiler.ast.statements.function_definition import FunctionDefinition
+# In the new mega-union approach, you likely re-export FunctionDefinition in compiler.ast.__init__
+# So do either:
+# from compiler.ast import FunctionDefinition
+# or if not re-exported, from compiler.ast.statements.function_definition import FunctionDefinition
+from compiler.ast import FunctionDefinition
 
 class FunctionDefinitionParser:
     """
@@ -36,12 +40,16 @@ class FunctionDefinitionParser:
         # 3) Parse parameter list
         parameters = []
         while self.parser.current_token and self.parser.current_token.token_type != LmnTokenType.RPAREN:
-            param_token = self._expect(LmnTokenType.IDENTIFIER, "Expected parameter name in function definition")
+            param_token = self._expect(
+                LmnTokenType.IDENTIFIER, 
+                "Expected parameter name in function definition"
+            )
             parameters.append(param_token.value)
             self.parser.advance()  # consume param name
 
             # If we see a COMMA, continue parsing more parameters
-            if self.parser.current_token and self.parser.current_token.token_type == LmnTokenType.COMMA:
+            if (self.parser.current_token
+                and self.parser.current_token.token_type == LmnTokenType.COMMA):
                 self.parser.advance()  # consume comma
             else:
                 break
@@ -58,7 +66,12 @@ class FunctionDefinitionParser:
         self.parser.advance()  # consume 'end'
 
         # Return the constructed FunctionDefinition
-        return FunctionDefinition(func_name, parameters, body_stmts)
+        # In the new approach, we do named fields:
+        return FunctionDefinition(
+            name=func_name,
+            parameters=parameters,
+            body=body_stmts
+        )
 
     # --------------------------------------
     # Helper Methods
@@ -84,7 +97,8 @@ class FunctionDefinitionParser:
         return statements
 
     def _expect(self, ttype, message):
-        """ Utility to check current token matches `ttype`. """
-        if not self.parser.current_token or self.parser.current_token.token_type != ttype:
+        """Utility to check current token matches `ttype`."""
+        if (not self.parser.current_token 
+            or self.parser.current_token.token_type != ttype):
             raise SyntaxError(message)
         return self.parser.current_token
