@@ -140,7 +140,7 @@ print_colored_dictionaries(for_stmt)
 print(f"{Fore.BLUE}==== Debugging FunctionDefinition ===={Style.RESET_ALL}")
 func_def = FunctionDefinition(
     name="doSomething",
-    parameters=["x", "y"],
+    params=["x", "y"],
     body=[
         SetStatement(
             variable=VariableExpression(name="x"),

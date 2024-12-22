@@ -38,13 +38,13 @@ class FunctionDefinitionParser:
         self.parser.advance()  # consume '('
 
         # 3) Parse parameter list
-        parameters = []
+        params = []
         while self.parser.current_token and self.parser.current_token.token_type != LmnTokenType.RPAREN:
             param_token = self._expect(
                 LmnTokenType.IDENTIFIER, 
                 "Expected parameter name in function definition"
             )
-            parameters.append(param_token.value)
+            params.append(param_token.value)
             self.parser.advance()  # consume param name
 
             # If we see a COMMA, continue parsing more parameters
@@ -69,7 +69,7 @@ class FunctionDefinitionParser:
         # In the new approach, we do named fields:
         return FunctionDefinition(
             name=func_name,
-            parameters=parameters,
+            params=params,
             body=body_stmts
         )
 

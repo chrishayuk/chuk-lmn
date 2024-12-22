@@ -1,0 +1,120 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "FunctionDefinition",
+      "name": "factorial",
+      "params": [
+        "n"
+      ],
+      "body": [
+        {
+          "type": "IfStatement",
+          "condition": {
+            "type": "BinaryExpression",
+            "operator": "<=",
+            "left": {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            "right": {
+              "type": "LiteralExpression",
+              "value": 1
+            }
+          },
+          "thenBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "LiteralExpression",
+                "value": 1
+              }
+            }
+          ],
+          "elseBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "n"
+                },
+                "right": {
+                  "type": "FnExpression",
+                  "name": {
+                    "type": "VariableExpression",
+                    "name": "factorial"
+                  },
+                  "arguments": [
+                    {
+                      "type": "BinaryExpression",
+                      "operator": "-",
+                      "left": {
+                        "type": "VariableExpression",
+                        "name": "n"
+                      },
+                      "right": {
+                        "type": "LiteralExpression",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "x"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 5
+          }
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "Factorial of"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": "is"
+            },
+            {
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "type": "VariableExpression",
+                  "name": "x"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

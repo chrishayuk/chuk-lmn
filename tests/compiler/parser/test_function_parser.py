@@ -38,7 +38,7 @@ def test_empty_function():
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "empty"
     # No parameters
-    assert func_def.parameters == []
+    assert func_def.params == []
     # Empty body
     assert len(func_def.body) == 0
 
@@ -63,7 +63,7 @@ def test_function_one_param():
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "greet"
     # 1 parameter: name
-    assert func_def.parameters == ["name"]
+    assert func_def.params == ["name"]
     # Body has 1 statement
     assert len(func_def.body) == 1
     stmt = func_def.body[0]
@@ -99,7 +99,7 @@ def test_function_two_params_and_return():
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "add"
-    assert func_def.parameters == ["a", "b"]
+    assert func_def.params == ["a", "b"]
     assert len(func_def.body) == 1
 
     stmt = func_def.body[0]
@@ -137,7 +137,7 @@ def test_function_if_statement():
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "check"
-    assert func_def.parameters == ["x"]
+    assert func_def.params == ["x"]
     # Body has 1 statement: if-statement
     assert len(func_def.body) == 1
     if_stmt = func_def.body[0]
@@ -184,7 +184,7 @@ def test_function_with_recursion():
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "factorial"
     # check param "n"
-    assert func_def.parameters == ["n"]
+    assert func_def.params == ["n"]
     # body has 1 if-statement
     assert len(func_def.body) == 1
     if_stmt = func_def.body[0]
@@ -241,7 +241,7 @@ def test_function_multiple_statements_body():
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "doStuff"
-    assert func_def.parameters == ["a"]
+    assert func_def.params == ["a"]
     # body has 3 statements: set x a, print x, return x * 2
     assert len(func_def.body) == 3
     stmt1, stmt2, stmt3 = func_def.body

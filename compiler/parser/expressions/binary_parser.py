@@ -1,7 +1,5 @@
 # compiler/parser/expressions/binary_parser.py
 from compiler.lexer.token_type import LmnTokenType
-# Instead of importing from compiler.ast.expressions.binary_expression,
-# import from compiler.ast (the new mega-union approach):
 from compiler.ast import BinaryExpression
 
 class BinaryParser:
