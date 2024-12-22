@@ -1,10 +1,5 @@
 # compiler/parser/function_definition_parser.py
-
 from compiler.lexer.token_type import LmnTokenType
-# In the new mega-union approach, you likely re-export FunctionDefinition in compiler.ast.__init__
-# So do either:
-# from compiler.ast import FunctionDefinition
-# or if not re-exported, from compiler.ast.statements.function_definition import FunctionDefinition
 from compiler.ast import FunctionDefinition
 
 class FunctionDefinitionParser:
