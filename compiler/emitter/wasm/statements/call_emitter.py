@@ -1,4 +1,3 @@
-# compiler/emitter/wasm/statements/call_emitter.py
 class CallEmitter:
     def __init__(self, controller):
         self.controller = controller
@@ -9,27 +8,41 @@ class CallEmitter:
           {
             "type": "CallStatement",
             "name": "myFunction",
-            "arguments": [ expr1, expr2, ... ]
+            "arguments": [ expr1, expr2, ... ],
+            "discardReturn": true or false (optional)
+              # If true, we'll 'drop' the return value
           }
 
         We'll:
-          1. Emit each argument to push it on the WASM stack,
+          1. Emit each argument to push it on the WASM stack.
           2. Emit 'call $myFunction'.
-          3. If the function returns a value, we might want to drop it if it's not used.
+          3. If the function returns a value but the language semantics say
+             we don't need it, optionally emit 'drop'.
         """
 
         # 1) Emit each argument
         for arg in node["arguments"]:
             self.controller.emit_expression(arg, out_lines)
 
-        # 2) Call the function by name
+        # 2) Normalize the function name if your IR might have double '$'
         func_name = node["name"]
-        out_lines.append(f'  call ${func_name}')
+        func_name = self._normalize_function_name(func_name)
 
-        # 3) If the function returns a value but you don't need it,
-        #    you might optionally emit 'drop' here:
-        #
-        # out_lines.append('  drop')
-        #
-        # That depends on whether your function actually returns something,
-        # and whether your language semantics require discarding that return value.
+        out_lines.append(f"  call {func_name}")
+
+        # 3) If the function returns a value but we don't need it, 'drop' it
+        #    This depends on your language semantics or AST flags.
+        if node.get("discardReturn", False):
+            out_lines.append("  drop")
+
+    def _normalize_function_name(self, name: str) -> str:
+        """
+        If you want to handle cases like 'myFunction' -> '$myFunction'
+        or '$$myFunction' -> '$myFunction', use this helper.
+        If you don't need it, you can remove or simplify.
+        """
+        if name.startswith("$$"):
+            return "$" + name[2:]
+        elif not name.startswith("$"):
+            return f"${name}"
+        return name

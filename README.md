@@ -25,3 +25,8 @@ python wasm_emitter_cli.py ./samples/ast/sample_program_ast.json
 ```bash
 wat2wasm ./samples/wat/factorial.wat -o ./samples/wasm/factorial.wasm
 ```
+
+# run wasm
+```bash
+./run_wasm.py ./samples/wasm/factorial.wasm
+```

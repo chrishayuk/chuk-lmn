@@ -123,3 +123,20 @@ class WasmEmitter:
         else:
             # Fallback or unknown expression
             out_lines.append('  i32.const 0')
+    
+    def _normalize_local_name(self, name: str) -> str:
+        """
+        Ensures local variable has exactly one '$' prefix:
+            - 'x'    -> '$x'
+            - '$$x'  -> '$x'
+            - '$x'   -> '$x' (unchanged)
+        """
+        if name.startswith('$$'):
+            # Replace leading '$$' with single '$'
+            return '$' + name[2:]
+        elif not name.startswith('$'):
+            # Prepend '$'
+            return f'${name}'
+        else:
+            # Already starts with single '$', do nothing
+            return name
