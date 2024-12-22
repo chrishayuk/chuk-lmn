@@ -1,4 +1,5 @@
 # tests/emitter/wasm/statements/test_if_emitter.py
+import pytest
 from compiler.emitter.wasm.statements.if_emitter import IfEmitter
 
 class MockController:
@@ -28,17 +29,17 @@ def test_if_no_else():
     combined = "\n".join(out)
 
     # We expect:
-    #   i32.const 1        # condition
-    #   if
-    #     (then
-    #       i32.const 999  # the statement body
-    #     )
+    #   i32.const 1   # condition
+    #   if            # start of blockless if
+    #   i32.const 999 # the statement body
     #   end
     assert 'i32.const 1' in combined
     assert 'if' in combined
-    assert '  end' in combined
-    # We should NOT see any 'else' in the output
-    assert '(else' not in combined
+    assert 'i32.const 999' in combined
+    # Ensure there's an 'end'
+    assert 'end' in combined
+    # We should NOT see 'else'
+    assert 'else' not in combined
 
 def test_if_with_else():
     emitter = IfEmitter(MockController())
@@ -56,9 +57,15 @@ def test_if_with_else():
     emitter.emit_if(node, out)
     combined = "\n".join(out)
 
-    # We expect an 'else' section
+    # We expect:
+    #   i32.const 1   # condition (mocked)
+    #   if
+    #     i32.const 999  # then statement
+    #   else
+    #     i32.const 999  # else statement
+    #   end
     assert 'i32.const 1' in combined  # from the mock condition
     assert 'if' in combined
-    assert '(then' in combined
-    assert '(else' in combined
+    assert 'else' in combined
+    assert 'i32.const 999' in combined
     assert 'end' in combined

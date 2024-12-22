@@ -1,4 +1,5 @@
 # compiler/emitter/wasm/statements/for_emitter.py
+
 class ForEmitter:
     def __init__(self, controller):
         self.controller = controller
@@ -7,67 +8,90 @@ class ForEmitter:
         """
         node = {
           "type": "ForStatement",
-          "variable": { "type": "VariableExpression", "name": "i" },
-          "start_expr": {...},
-          "end_expr": {...},
-          "step_expr": None or {...},
-          "body": [ ... statements ... ]
+          "variable":  { "type": "VariableExpression", "name": "i" },
+          "start_expr": <expression node>,
+          "end_expr":   <expression node>,
+          "step_expr":  <expression node> or None,
+          "body":       [ ... statements ... ]
         }
+        
+        We'll compile this into WAT roughly as:
+        
+          (local.set $i start_expr)
+
+          block $for_exit
+            loop $for_loop
+              local.get $i
+              ... end_expr ...
+              i32.lt_s      ;; or i32.le_s, etc.
+              if
+                ;; Then branch => loop body + step => br $for_loop
+                ...body...
+                local.get $i
+                i32.const 1
+                i32.add
+                local.set $i
+                br $for_loop
+              else
+                ;; do nothing, exit loop
+              end
+            end
+          end
         """
+
+        # 1) Extract the variable name
         var_name = node["variable"]["name"]
 
-        # 1) Ensure var_name is in local map
-        if var_name not in self.controller.func_local_map:
-            index = self.controller.local_counter
-            self.controller.func_local_map[var_name] = index
-            self.controller.local_counter += 1
-            # Optionally declare the local (depends on your WASM text approach)
-            out_lines.append(f'  (local $${var_name} i32)')
+        # 2) Tell the controller we need a local for 'i'
+        #    Instead of emitting "(local $i i32)" immediately, we rely on
+        #    a function-level collector that will declare all locals upfront.
+        self.controller.collect_local_declaration(var_name)
 
-        # 2) Emit start_expr => local.set $i
+        # 3) Emit code to initialize i = start_expr
         self.controller.emit_expression(node["start_expr"], out_lines)
-        out_lines.append(f'  local.set $${var_name}')
+        out_lines.append(f'  local.set ${var_name}')
 
-        # We'll label the loop blocks
-        # block => for exit
-        # loop => for repeating
+        # 4) Emit the block/loop structure
         out_lines.append('  block $for_exit')
         out_lines.append('    loop $for_loop')
 
-        # 3) Condition check
-        #    - push i, push end_expr, compare => if condition is true, then go to body
+        # 5) Condition check => i < end_expr (or <=, etc.)
         self.controller.emit_expression({"type": "VariableExpression", "name": var_name}, out_lines)
         self.controller.emit_expression(node["end_expr"], out_lines)
+        out_lines.append('  i32.lt_s')   # Adjust if you want <=, e.g. "i32.le_s"
 
-        # For simplicity, assume we want i < end_expr (strict less)
-        out_lines.append('  i32.lt_s')  # or i32.le_s if your language uses <=
+        # 6) Use the blockless if
+        out_lines.append('  if')  # Condition is on stack already
 
-        # If condition is false => skip body => end of if => break
-        # If condition is true  => run body => step => br $for_loop => repeat
-        out_lines.append('  if')
-        out_lines.append('    (then')
-
-        # 4) Emit the loop body statements
+        # 6a) Then branch => loop body + step + br $for_loop
+        #     Emit the statements in the body
         for st in node["body"]:
             self.controller.emit_statement(st, out_lines)
 
-        # 5) Increment i (or use step_expr if present)
+        # 6b) Handle step => i += (step_expr or 1)
         if node["step_expr"] is None:
-            # Default step => i += 1
-            # push i, push 1, add => local.set $i
+            # default step => i += 1
             self.controller.emit_expression({"type": "VariableExpression", "name": var_name}, out_lines)
             out_lines.append('  i32.const 1')
             out_lines.append('  i32.add')
-            out_lines.append(f'  local.set $${var_name}')
+            out_lines.append(f'  local.set ${var_name}')
         else:
-            # Evaluate "i = i + step_expr"
+            # i += step_expr
             self.controller.emit_expression({"type": "VariableExpression", "name": var_name}, out_lines)
             self.controller.emit_expression(node["step_expr"], out_lines)
             out_lines.append('  i32.add')
-            out_lines.append(f'  local.set $${var_name}')
+            out_lines.append(f'  local.set ${var_name}')
 
         # Jump back to start of loop
-        out_lines.append('      br $for_loop')
-        out_lines.append('    )')  # end then
-        out_lines.append('  end')   # end if
-        out_lines.append('  end')   # end block
+        out_lines.append('  br $for_loop')
+
+        # 6c) Else branch => do nothing, exit loop
+        out_lines.append('  else')
+        # No statements => we just allow the loop to end
+
+        # 6d) End the if
+        out_lines.append('  end')
+
+        # 7) End the loop and block
+        out_lines.append('  end')     # loop $for_loop
+        out_lines.append('  end')     # block $for_exit
