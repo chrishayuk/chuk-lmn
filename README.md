@@ -26,7 +26,17 @@ python wasm_emitter_cli.py ./samples/ast/sample_program_ast.json
 wat2wasm ./samples/wat/factorial.wat -o ./samples/wasm/factorial.wasm
 ```
 
+# WASMTIME
+brew install wasmtime
+
+```bash
+wasmtime ./samples/wasm/factorial.wasm
+```
+
 # run wasm
 ```bash
-./run_wasm.py ./samples/wasm/factorial.wasm
+./run_wasm_debug.py ./samples/wasm/factorial.wasm
 ```
+
+brew install wasm-tools
+wasm-tools print ./samples/wasm/factorial.wasm
