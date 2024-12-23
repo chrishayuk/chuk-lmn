@@ -9,7 +9,7 @@ from colorama import init as colorama_init, Fore, Style
 # Initialize colorama
 colorama_init(autoreset=True)
 
-from compiler.ast import (
+from lmn.compiler.ast import (
     # Expressions
     LiteralExpression,
     VariableExpression,

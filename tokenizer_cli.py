@@ -2,7 +2,7 @@
 # tokenizer_cli.py
 import argparse
 import sys
-from compiler.lexer.tokenizer import Tokenizer
+from lmn.compiler.lexer.tokenizer import Tokenizer
 
 def main():
     # setup the parser

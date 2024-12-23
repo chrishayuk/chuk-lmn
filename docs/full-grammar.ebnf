@@ -40,9 +40,10 @@ FOR_STATEMENT
        (STATEMENT | COMMENT)*
      END
 
+# Updated here to allow expressions on both sides of 'to'
 FOR_CLAUSE
-  := ( NUMBER TO NUMBER )      # e.g. "for i 1 to 10"
-   | ( IN EXPRESSION )         # e.g. "for city in myList"
+  := ( EXPRESSION TO EXPRESSION )  # e.g. "for i 1 to n"
+   | ( IN EXPRESSION )             # e.g. "for city in myList"
 
 RETURN_STATEMENT
   := RETURN EXPRESSION

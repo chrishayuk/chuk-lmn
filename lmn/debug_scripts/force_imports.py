@@ -1,10 +1,10 @@
 # force_imports.py
 print("=== Forcibly importing expression classes in a known order ===")
-import compiler.ast.expressions.literal_expression
-import compiler.ast.expressions.variable_expression
-import compiler.ast.expressions.binary_expression
-import compiler.ast.expressions.unary_expression
-import compiler.ast.expressions.fn_expression
+import lmn.compiler.ast.expressions.literal_expression
+import lmn.compiler.ast.expressions.variable_expression
+import lmn.compiler.ast.expressions.binary_expression
+import lmn.compiler.ast.expressions.unary_expression
+import lmn.compiler.ast.expressions.fn_expression
 
 print("=== Forcibly importing them from the package to call model_rebuild ===")
 from compiler.ast import (
@@ -48,4 +48,4 @@ ReturnStatement.model_rebuild()
 SetStatement.model_rebuild()
 
 print("=== Now everything should be fully defined. Running debug_fields.py. ===")
-import debug_fields
+import lmn.debug_scripts.debug_fields as debug_fields
