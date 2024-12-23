@@ -93,12 +93,12 @@ You can use the `ast_to_wat.py` script to convert the JSON AST into WebAssembly 
 
 **Print WAT to the screen:**
 ```bash
-python ast_to_wat.py ./samples/ast/sample_program_ast.json
+uv run ast-to-wat ./samples/ast/sample_program_ast.json
 ```
 
 **Write WAT to a file:**
 ```bash
-python ast_to_wat.py ./samples/ast/sample_program_ast.json --output ./samples/wat/
+uv run ast-to-wat ./samples/ast/sample_program_ast.json --output ./samples/wat/
 ```
 
 If the `--output` flag is specified, the WAT file will be saved in the given directory with the same name as the input JSON file, but with a `.wat` extension. If not specified, the WAT will be printed to the screen.  

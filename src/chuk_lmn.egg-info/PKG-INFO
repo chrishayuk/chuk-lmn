@@ -86,7 +86,7 @@ This command will output the tokens found in the provided `.lmn` source file.
 The **parser** converts the stream of tokens into an abstract syntax tree (AST).
 
 ```bash
-uv run parser_cli.py ./samples/lmn/factorial.lmn
+uv run parser-cli ./samples/lmn/factorial.lmn
 ```
 
 This will print or save the AST representation for the `.lmn` source.

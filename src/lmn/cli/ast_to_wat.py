@@ -3,7 +3,7 @@ import os
 import json
 import sys
 import argparse
-from compiler.emitter.wasm.wasm_emitter import WasmEmitter
+from lmn.compiler.emitter.wasm.wasm_emitter import WasmEmitter
 
 def main():
     # Setup argument parser
@@ -15,7 +15,9 @@ def main():
     args = parser.parse_args()
 
     # Input path
-    json_file = args.input
+    # Resolve the file path relative to this script’s directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    json_file = os.path.join(script_dir, args.input)
 
     # Determine if output is specified
     output_dir = args.output
