@@ -9,3 +9,12 @@ dependencies = [
     "pydantic>=2.10.4",
     "wasmtime>=28.0.0",
 ]
+
+[tool.uv]
+package = true
+
+[project.scripts]
+# This key tells uv the name of the command (`tokenizer-cli`) 
+# and the function to execute (`lmn.debug_scripts.tokenizer_cli:main`)
+tokenizer-cli = "lmn.cli.tokenizer_cli:main"
+parser-cli = "lmn.cli.parser_cli:main"

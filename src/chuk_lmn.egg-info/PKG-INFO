@@ -1,3 +1,13 @@
+Metadata-Version: 2.1
+Name: chuk-lmn
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: colorama>=0.4.6
+Requires-Dist: pydantic>=2.10.4
+Requires-Dist: wasmtime>=28.0.0
+
 # LMN Compiler Pipeline
 This repository demonstrates a sample pipeline for compiling **LMN** code into **WebAssembly (WASM)**. 
 
@@ -76,7 +86,7 @@ This command will output the tokens found in the provided `.lmn` source file.
 The **parser** converts the stream of tokens into an abstract syntax tree (AST).
 
 ```bash
-uv run parser-cli ./samples/lmn/factorial.lmn
+uv run parser_cli.py ./samples/lmn/factorial.lmn
 ```
 
 This will print or save the AST representation for the `.lmn` source.

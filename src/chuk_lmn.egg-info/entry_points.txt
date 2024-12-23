@@ -1,0 +1,3 @@
+[console_scripts]
+parser-cli = lmn.cli.parser_cli:main
+tokenizer-cli = lmn.cli.tokenizer_cli:main
