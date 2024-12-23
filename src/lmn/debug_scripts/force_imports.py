@@ -7,7 +7,7 @@ import lmn.compiler.ast.expressions.unary_expression
 import lmn.compiler.ast.expressions.fn_expression
 
 print("=== Forcibly importing them from the package to call model_rebuild ===")
-from compiler.ast import (
+from lmn.compiler.ast import (
     LiteralExpression,
     VariableExpression,
     BinaryExpression,
@@ -21,16 +21,16 @@ UnaryExpression.model_rebuild()
 FnExpression.model_rebuild()
 
 print("=== Now forcibly importing statement classes in a known order ===")
-import compiler.ast.statements.call_statement
-import compiler.ast.statements.for_statement
-import compiler.ast.statements.function_definition
-import compiler.ast.statements.if_statement
-import compiler.ast.statements.print_statement
-import compiler.ast.statements.return_statement
-import compiler.ast.statements.set_statement
+import lmn.compiler.ast.statements.call_statement
+import lmn.compiler.ast.statements.for_statement
+import lmn.compiler.ast.statements.function_definition
+import lmn.compiler.ast.statements.if_statement
+import lmn.compiler.ast.statements.print_statement
+import lmn.compiler.ast.statements.return_statement
+import lmn.compiler.ast.statements.set_statement
 
 print("=== Forcibly importing them from the package to call model_rebuild ===")
-from compiler.ast import (
+from lmn.compiler.ast import (
     CallStatement,
     ForStatement,
     FunctionDefinition,
