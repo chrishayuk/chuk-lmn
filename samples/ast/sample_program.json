@@ -1,0 +1,90 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "a"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 5.3
+          }
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "b"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 3.2
+          }
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "sum"
+          },
+          "expression": {
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            "right": {
+              "type": "VariableExpression",
+              "name": "b"
+            }
+          }
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "product"
+          },
+          "expression": {
+            "type": "BinaryExpression",
+            "operator": "*",
+            "left": {
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            "right": {
+              "type": "VariableExpression",
+              "name": "b"
+            }
+          }
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "sum"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "product"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

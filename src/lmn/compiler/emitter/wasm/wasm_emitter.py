@@ -140,3 +140,43 @@ class WasmEmitter:
         else:
             # Already starts with single '$', do nothing
             return name
+        
+    def infer_type(self, expr_node):
+        """
+        A naive approach to determine if expr_node is i32, i64, f32, or f64.
+        This can read from expr_node data or from a symbol table if you store that info.
+        """
+        # 1) If it’s a literal expression with a decimal => f32
+        # 2) If the literal is large => i64
+        # 3) Otherwise => i32
+        # 4) Or, if expr_node is a BinaryExpression, unify left/right ...
+        #    you'd need to recursively call self.infer_type(left), self.infer_type(right).
+        # For now, here's a trivial example that always returns i32:
+        
+        if expr_node["type"] == "LiteralExpression":
+            val_str = str(expr_node.get("value", "0"))
+            if "." in val_str:
+                return "f32"
+            try:
+                int_val = int(val_str)
+                # If it’s bigger than 2^31-1, treat as i64
+                if abs(int_val) > 2147483647:
+                    return "i64"
+                else:
+                    return "i32"
+            except ValueError:
+                return "f32"
+        
+        elif expr_node["type"] == "BinaryExpression":
+            left = expr_node["left"]
+            right = expr_node["right"]
+            left_t = self.infer_type(left)
+            right_t = self.infer_type(right)
+            return self._unify_types(left_t, right_t)
+        
+        # fallback
+        return "i32"
+
+    def _unify_types(self, t1, t2):
+        priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
+        return t1 if priority[t1] >= priority[t2] else t2
