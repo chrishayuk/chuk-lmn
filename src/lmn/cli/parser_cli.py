@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# parser_cli.py
-
+# src/lmn/cli/parser_cli.py
 import argparse
 import sys
 import os

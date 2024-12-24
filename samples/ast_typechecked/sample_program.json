@@ -1,0 +1,104 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "a"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 5.3,
+            "inferred_type": "f64"
+          },
+          "inferred_type": "f64"
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "b"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 3.2,
+            "inferred_type": "f64"
+          },
+          "inferred_type": "f64"
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "sum"
+          },
+          "expression": {
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+              "type": "VariableExpression",
+              "name": "a",
+              "inferred_type": "f64"
+            },
+            "right": {
+              "type": "VariableExpression",
+              "name": "b",
+              "inferred_type": "f64"
+            },
+            "inferred_type": "f64"
+          },
+          "inferred_type": "f64"
+        },
+        {
+          "type": "SetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "product"
+          },
+          "expression": {
+            "type": "BinaryExpression",
+            "operator": "*",
+            "left": {
+              "type": "VariableExpression",
+              "name": "a",
+              "inferred_type": "f64"
+            },
+            "right": {
+              "type": "VariableExpression",
+              "name": "b",
+              "inferred_type": "f64"
+            },
+            "inferred_type": "f64"
+          },
+          "inferred_type": "f64"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "sum",
+              "inferred_type": "f64"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "product",
+              "inferred_type": "f64"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

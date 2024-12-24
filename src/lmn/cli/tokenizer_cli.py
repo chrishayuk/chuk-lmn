@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# lmn/cli/tokenizer_cli.py
+# src/lmn/cli/tokenizer_cli.py
 import argparse
 import sys
 import os

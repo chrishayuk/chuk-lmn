@@ -10,6 +10,7 @@ src/lmn/__init__.py
 src/lmn/cli/ast_to_wat.py
 src/lmn/cli/parser_cli.py
 src/lmn/cli/tokenizer_cli.py
+src/lmn/cli/type_checker.py
 src/lmn/compiler/__init__.py
 src/lmn/compiler/ast/__init__.py
 src/lmn/compiler/ast/ast_node.py
@@ -69,6 +70,8 @@ src/lmn/compiler/parser/statements/print_parser.py
 src/lmn/compiler/parser/statements/return_parser.py
 src/lmn/compiler/parser/statements/set_parser.py
 src/lmn/compiler/parser/statements/statement_parser.py
+src/lmn/compiler/typechecker/__init__.py
+src/lmn/compiler/typechecker/ast_type_checker.py
 src/lmn/debug_scripts/__init__.py
 src/lmn/debug_scripts/debug_fields.py
 src/lmn/debug_scripts/force_imports.py

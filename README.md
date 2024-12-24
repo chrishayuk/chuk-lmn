@@ -86,6 +86,12 @@ uv run parser-cli ./samples/lmn/sample_program.lmn --output ./samples/ast/sample
 
 ---
 
+### 2.A Typechecker
+
+```bash
+uv run typechecker  ./samples/ast/sample_program.json
+```
+
 ### 3. WASM Emitter
 
 After parsing, you can emit a WebAssembly-compatible JSON AST or intermediate code. Then, you can convert that JSON AST into a `.wat` or `.wasm`.  
@@ -101,7 +107,7 @@ uv run ast-to-wat ./samples/ast/sample_program.json
 
 **Write WAT to a file:**
 ```bash
-uv run ast-to-wat ./samples/ast/sample_program.json --output ./samples/wat/factorial.wat
+uv run ast-to-wat ./samples/ast/sample_program.json --output ./samples/wat/sample_program.wat
 ```
 
 If the `--output` flag is specified, the WAT file will be saved in the given directory with the same name as the input JSON file, but with a `.wat` extension. If not specified, the WAT will be printed to the screen.  

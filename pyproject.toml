@@ -18,4 +18,5 @@ package = true
 # and the function to execute (`lmn.debug_scripts.tokenizer_cli:main`)
 tokenizer-cli = "lmn.cli.tokenizer_cli:main"
 parser-cli = "lmn.cli.parser_cli:main"
+typechecker = "lmn.cli.typechecker:main"
 ast-to-wat = "lmn.cli.ast_to_wat:main"

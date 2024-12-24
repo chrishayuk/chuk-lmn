@@ -1,5 +1,4 @@
 # lmn/compiler/ast/ast_node.py
-
 from pydantic import BaseModel
 from typing import Any, Dict
 
@@ -17,3 +16,7 @@ class ASTNode(BaseModel):
     def to_dict(self) -> dict:
         # Force usage of the alias-based keys
         return self.model_dump(by_alias=True)
+    
+    def to_json(self):
+        import json
+        return json.dumps(self.to_dict(), indent=2)

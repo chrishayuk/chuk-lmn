@@ -1,19 +1,23 @@
-# compiler/ast/__init__.py
+# file: lmn/compiler/ast/__init__.py
 from __future__ import annotations
 
 # Common
 from .ast_node import ASTNode
 from .node_kind import NodeKind
-from .mega_union import MegaUnion
 
-# Expressions
+# Mega Union (where Expression, Statement, Node are defined)
+# We'll re-export them from here for convenience.
+from .mega_union import Expression, Statement, Node
+
+# Expressions - submodels
+from .expressions.expression_base import ExpressionBase
 from .expressions.literal_expression import LiteralExpression
 from .expressions.variable_expression import VariableExpression
 from .expressions.binary_expression import BinaryExpression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.fn_expression import FnExpression
 
-# Statements
+# Statements - submodels
 from .statements.call_statement import CallStatement
 from .statements.for_statement import ForStatement
 from .statements.function_definition import FunctionDefinition
@@ -25,13 +29,18 @@ from .statements.set_statement import SetStatement
 # Program
 from lmn.compiler.ast.program import Program
 
-# Rebuild them all
+#
+# Rebuild calls
+#
+
+# Expressions
 LiteralExpression.model_rebuild()
 VariableExpression.model_rebuild()
 BinaryExpression.model_rebuild()
 UnaryExpression.model_rebuild()
 FnExpression.model_rebuild()
 
+# Statements
 CallStatement.model_rebuild()
 ForStatement.model_rebuild()
 FunctionDefinition.model_rebuild()
@@ -40,4 +49,5 @@ PrintStatement.model_rebuild()
 ReturnStatement.model_rebuild()
 SetStatement.model_rebuild()
 
+# Program
 Program.model_rebuild()

@@ -1,11 +1,11 @@
-# lmn/compiler/ast/statements/call_statement.py
+# file: lmn/compiler/ast/statements/call_statement.py
 from __future__ import annotations
 from typing import List, Literal
 from pydantic import Field
 
+# ast nodes
 from lmn.compiler.ast.ast_node import ASTNode
 from lmn.compiler.ast.node_kind import NodeKind
-from lmn.compiler.ast.mega_union import MegaUnion
 
 class CallStatement(ASTNode):
     """
@@ -13,8 +13,9 @@ class CallStatement(ASTNode):
     """
     type: Literal[NodeKind.CALL] = NodeKind.CALL
     tool_name: str
-    # arguments can hold expressions or other nodes => MegaUnion
-    arguments: List[MegaUnion] = Field(default_factory=list)
+
+    # arguments
+    arguments: List["Expression"] = Field(default_factory=list)
 
     def __str__(self):
         args_str = " ".join(str(arg) for arg in self.arguments)

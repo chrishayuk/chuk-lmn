@@ -1,23 +1,26 @@
-# lmn/compiler/ast/statements/if_statement.py
+# file: lmn/compiler/ast/statements/if_statement.py
 from __future__ import annotations
 from typing import List, Literal
 from pydantic import Field
 
 from lmn.compiler.ast.ast_node import ASTNode
 from lmn.compiler.ast.node_kind import NodeKind
-from lmn.compiler.ast.mega_union import MegaUnion
 
 class IfStatement(ASTNode):
+    """
+    Represents an 'if' statement with optional else body.
+    e.g.:
+      if (condition) { thenBody... } else { elseBody... }
+    """
     type: Literal[NodeKind.IF] = NodeKind.IF
+    condition: "Expression"
+    then_body: List["Statement"] = Field(default_factory=list, alias="thenBody")
+    else_body: List["Statement"] = Field(default_factory=list, alias="elseBody")
 
-    condition: MegaUnion
-    then_body: List[MegaUnion] = Field(default_factory=list, alias="thenBody")
-    else_body: List[MegaUnion] = Field(default_factory=list, alias="elseBody")
-
+    # Pydantic config to handle aliases
     model_config = {
         "populate_by_name": True,  # allow specifying either then_body= or thenBody=
         "use_enum_values": True    # store NodeKind.IF as "IfStatement"
-        # If you still see "then_body" in your dict output, try `by_alias=True` explicitly
     }
 
     def __str__(self):

@@ -1,16 +1,26 @@
-# lmn/compiler/ast/expressions/binary_expression.py
+# file: lmn/compiler/ast/expressions/binary_expression.py
 from __future__ import annotations
-from typing import Literal
+from typing import Literal, Optional
 
-from lmn.compiler.ast.ast_node import ASTNode
+# import ast's
 from lmn.compiler.ast.node_kind import NodeKind
-from lmn.compiler.ast.mega_union import MegaUnion
+from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 
-class BinaryExpression(ASTNode):
+class BinaryExpression(ExpressionBase):
+    """
+    A binary expression node, e.g. (a + b).
+    Inherits from ExpressionBase, which is your ASTNode + inferred_type logic.
+    """
     type: Literal[NodeKind.BINARY] = NodeKind.BINARY
     operator: str
-    left: MegaUnion
-    right: MegaUnion
+
+    # We reference the 'Expression' union as a **string** (forward ref),
+    # so we do NOT import mega_union here. That avoids circular import.
+    left: "Expression"  
+    right: "Expression"
+
+    # This field is optional if ExpressionBase doesn't already have it.
+    inferred_type: Optional[str] = None
 
     def __str__(self):
         return f"({self.left} {self.operator} {self.right})"

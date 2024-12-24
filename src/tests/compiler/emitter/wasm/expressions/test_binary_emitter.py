@@ -2,57 +2,35 @@ import pytest
 from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
 
 #
-# 1) A universal MockController that can return different types for left/right.
-#    - By default, it can unify the first call to 'emit_expression'/'infer_type'
-#      as the 'left_type' and the second call as the 'right_type'.
-#    - This lets us parametrize and test i32, i64, f32, f64, plus mixes.
+# 1) A universal MockController that now just emits a single line per operand
+#    but does NOT unify or infer type. We'll do that in the test's node creation.
 #
 
 class MockController:
-    def __init__(self, left_type="i32", right_type="i32"):
-        self.left_type = left_type
-        self.right_type = right_type
+    def __init__(self):
         self.emit_count = 0
-        self.infer_count = 0
 
     def emit_expression(self, expr, out_lines):
         """
-        First call => left_type.const 777
-        Second call => right_type.const 777
+        We simply look at expr["inferred_type"] to decide which const to emit.
         """
-        if self.emit_count == 0:
-            t = self.left_type
-        else:
-            t = self.right_type
+        inferred_t = expr.get("inferred_type", "i32")
         self.emit_count += 1
 
-        if t == "i32":
+        if inferred_t == "i32":
             out_lines.append("  i32.const 777")
-        elif t == "i64":
+        elif inferred_t == "i64":
             out_lines.append("  i64.const 777")
-        elif t == "f32":
+        elif inferred_t == "f32":
             out_lines.append("  f32.const 777")
-        elif t == "f64":
+        elif inferred_t == "f64":
             out_lines.append("  f64.const 777")
         else:
-            raise ValueError(f"Unknown mock type: {t}")
-
-    def infer_type(self, expr):
-        """
-        Similarly, first call => left_type, second => right_type.
-        """
-        if self.infer_count == 0:
-            self.infer_count += 1
-            return self.left_type
-        else:
-            self.infer_count += 1
-            return self.right_type
-
+            raise ValueError(f"Unknown inferred type: {inferred_t}")
 
 #
-# 2) We'll define a helper dict that indicates the expected final Wasm opcode
+# 2) A helper dict that indicates the expected final Wasm opcode
 #    for each operator + final type, matching your _map_operator() logic.
-#    Then we'll unify the left/right to figure out the final type, and compare.
 #
 
 OPERATOR_MAP = {
@@ -69,24 +47,18 @@ OPERATOR_MAP = {
 }
 
 #
-# 3) We'll define a small function to unify types like your emitter does:
-#      i32 < i64 < f32 < f64
+# 3) We'll define a small function to unify types *just for the test*, to verify final lines.
 #
 
 def unify_types(t1, t2):
     priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
-    # return the higher
     return t1 if priority[t1] >= priority[t2] else t2
 
-
 #
-# 4) We'll gather all operators that your emitter recognizes, plus a "fallback" op.
-#    For each operator, we test multiple type pairs:
-#      (i32,i32), (i64,i64), (f32,f32), (f64,f64),
-#      plus a few mixes: (i32,f64), (f32,i64), etc.
+# 4) The set of operators and type pairs to test.
 #
 
-ALL_OPERATORS = list(OPERATOR_MAP.keys())  # +, -, *, /, <, <=, >, >=, ==, !=
+ALL_OPERATORS = list(OPERATOR_MAP.keys())  # +, -, etc.
 ALL_TYPE_PAIRS = [
     ("i32", "i32"),
     ("i64", "i64"),
@@ -101,68 +73,84 @@ ALL_TYPE_PAIRS = [
 ]
 
 #
-# 5) Parametrize operator + (left_type,right_type). We'll check the final line.
+# 5) Parametrize over operator + (left_type, right_type).
+#    We'll manually store 'inferred_type' in the AST node
+#    so the emitter doesn't need to unify again.
 #
+
 @pytest.mark.parametrize("op", ALL_OPERATORS)
 @pytest.mark.parametrize("left_t,right_t", ALL_TYPE_PAIRS)
 def test_binary_all_ops(left_t, right_t, op):
+    # 1) Create the emitter with a basic controller
     from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
-
-    # 1) Build the emitter with the mock
-    controller = MockController(left_t, right_t)
+    controller = MockController()
     be = BinaryExpressionEmitter(controller)
 
-    # 2) Create a sample node
+    # 2) Determine final type by unifying left_t, right_t
+    final_type = unify_types(left_t, right_t)
+
+    # 3) Build a node that ALREADY has 'inferred_type' => final_type
     node = {
         "type": "BinaryExpression",
         "operator": op,
-        "left":  {"type": "LiteralExpression", "value": 1},
-        "right": {"type": "LiteralExpression", "value": 2},
+        "inferred_type": final_type,
+        "left": {
+            "type": "LiteralExpression",
+            "value": 1,
+            "inferred_type": left_t
+        },
+        "right": {
+            "type": "LiteralExpression",
+            "value": 2,
+            "inferred_type": right_t
+        },
     }
 
     out = []
     be.emit(node, out)
 
-    # 3) The last line in out should be the final op.
+    # The last line in out is the final Wasm op
     last_line = out[-1].strip()
 
-    # 4) Determine the "unified" type => expected Wasm opcode from OPERATOR_MAP
-    final_type = unify_types(left_t, right_t)
+    # The opcode we expect
     expected_op = OPERATOR_MAP[op][final_type]
 
-    # 5) Compare
     assert last_line == expected_op, (
-        f"Operator '{op}' with left={left_t} and right={right_t} should produce '{expected_op}', "
-        f"but got '{last_line}'.\nFull out={out}"
+        f"For operator={op}, left={left_t}, right={right_t}, expected '{expected_op}' "
+        f"but got '{last_line}'\nFull out: {out}"
     )
 
 
 #
-# 6) Finally, test the fallback case: an unknown operator, e.g. "&"
+# 6) Test the fallback case (unknown operator => 'op_type.add')
 #
 
 @pytest.mark.parametrize("left_t,right_t", [("i32", "i32"), ("f64", "i32"), ("f32", "f64")])
 def test_binary_fallback(left_t, right_t):
-    """
-    If we pass in an unknown operator, the emitter does 'op_type.add' as fallback.
-    For i32 => i32.add, i64 => i64.add, f32 => f32.add, f64 => f64.add.
-    """
     from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
-    controller = MockController(left_t, right_t)
+    controller = MockController()
     be = BinaryExpressionEmitter(controller)
+
+    final_type = unify_types(left_t, right_t)
 
     node = {
         "type": "BinaryExpression",
-        "operator": "&",  # not recognized in the map
-        "left":  {"type": "LiteralExpression", "value": 1},
-        "right": {"type": "LiteralExpression", "value": 2},
+        "operator": "&",  # not recognized
+        "inferred_type": final_type,
+        "left":  {
+            "type": "LiteralExpression",
+            "value": 1,
+            "inferred_type": left_t
+        },
+        "right": {
+            "type": "LiteralExpression",
+            "value": 2,
+            "inferred_type": right_t
+        },
     }
     out = []
     be.emit(node, out)
 
-    # The last line should be "i32.add" or "i64.add" or "f32.add" or "f64.add"
-    final_type = unify_types(left_t, right_t)
-    expected = f"{final_type}.add"
-    assert out[-1].strip() == expected, (
-        f"Fallback operator => expecting {expected}, got {out[-1].strip()}"
+    assert out[-1].strip() == f"{final_type}.add", (
+        f"Fallback => expecting '{final_type}.add', got '{out[-1].strip()}'\n{out}"
     )

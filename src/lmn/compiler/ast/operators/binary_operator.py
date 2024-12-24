@@ -1,4 +1,4 @@
-# lmn/compiler/ast/expressions/binry_operator.py
+# lmn/compiler/ast/operators/binry_operator.py
 from __future__ import annotations
 from enum import Enum
 

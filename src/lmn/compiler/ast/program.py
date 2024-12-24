@@ -1,30 +1,25 @@
-# lmn/compiler/ast/program.py
-import json
+# file: lmn/compiler/ast/program.py
+print("[DEBUG] Loading program.py...")
+
+from typing import List, Literal
+from pydantic import Field
+
+# ast's
 from lmn.compiler.ast.ast_node import ASTNode
+from lmn.compiler.ast.node_kind import NodeKind
+
+print("[DEBUG] program.py: Imported ASTNode, NodeKind successfully.")
 
 class Program(ASTNode):
-    """
-    LMN Program node that contains a list of top-level statements
-    (which might include function definitions).
-    """
-    def __init__(self, body=None):
-        # call the parent constructor
-        super().__init__()
+    print("[DEBUG] Defining Program class...")
 
-        # We'll store all top-level statements in a list
-        self.body = body if body else []
+    type: Literal["Program"] = "Program"
 
-    def add_statement(self, stmt):
+    # Use a string-based forward reference for 'Node':
+    # so we do not import the union directly (which can cause circular imports).
+    body: List["Node"] = Field(default_factory=list)
+
+    def add_statement(self, stmt: "Node") -> None:
         self.body.append(stmt)
 
-    def to_dict(self):
-        return {
-            "type": "Program",
-            "body": [
-                stmt.to_dict() if hasattr(stmt, "to_dict") else str(stmt)
-                for stmt in self.body
-            ]
-        }
-
-    def to_json(self):
-        return json.dumps(self.to_dict(), indent=2)
+print("[DEBUG] Finished loading Program class in program.py.")
