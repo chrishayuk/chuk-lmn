@@ -1,6 +1,5 @@
 # file: lmn/compiler/ast/expressions/literal_expression.py
 from __future__ import annotations
-import decimal
 from typing import Optional, Union, Literal
 from pydantic import model_validator
 
@@ -9,9 +8,7 @@ from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 from lmn.compiler.ast.node_kind import NodeKind
 
 class LiteralExpression(ExpressionBase):
-    """
-    A literal value node (int, float, or string).
-    """
+    """ A literal value node (int, float, or string). """
     type: Literal[NodeKind.LITERAL] = NodeKind.LITERAL
     value: Union[int, float, str]
     inferred_type: Optional[str] = None
@@ -27,7 +24,6 @@ class LiteralExpression(ExpressionBase):
                 # If '3.14' => float(3.14) => 3.14
                 # If '42' => int(42)
                 # If '42.0' => float(42.0) => 42.0
-                # up to you whether to do .is_integer() or not
                 possible_float = float(raw_val)
                 if '.' in raw_val or 'e' in raw_val:
                     values["value"] = possible_float

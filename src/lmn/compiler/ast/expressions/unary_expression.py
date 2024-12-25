@@ -14,7 +14,6 @@ class UnaryExpression(ExpressionBase):
     type: Literal[NodeKind.UNARY] = NodeKind.UNARY
     operator: str
     operand: "Expression"
-
     inferred_type: Optional[str] = None
 
     def __str__(self):
