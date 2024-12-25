@@ -63,7 +63,7 @@ On Windows or other operating systems, refer to [Wasmtime installation docs](htt
 The **tokenizer** breaks down an LMN source file into tokens.
 
 ```bash
-uv run tokenizer-cli --file samples/lmn/fibonacci.lmn
+uv run tokenizer-cli samples/lmn/sample_program.lmn
 ```
 
 This command will output the tokens found in the provided `.lmn` source file.
@@ -90,6 +90,12 @@ uv run parser-cli ./samples/lmn/sample_program.lmn --output ./samples/ast/sample
 
 ```bash
 uv run typechecker  ./samples/ast/sample_program.json
+```
+
+**Write AST to a file:**
+
+```bash
+uv run typechecker  ./samples/ast/sample_program.json --output ./samples/ast_typechecked/sample_program.json
 ```
 
 ### 3. WASM Emitter

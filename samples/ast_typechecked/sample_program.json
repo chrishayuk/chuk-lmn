@@ -9,72 +9,76 @@
         {
           "type": "SetStatement",
           "variable": {
+            "inferred_type": null,
             "type": "VariableExpression",
             "name": "a"
           },
           "expression": {
+            "inferred_type": "f64",
             "type": "LiteralExpression",
-            "value": 5.3,
-            "inferred_type": "f64"
+            "value": 5.3
           },
           "inferred_type": "f64"
         },
         {
           "type": "SetStatement",
           "variable": {
+            "inferred_type": null,
             "type": "VariableExpression",
             "name": "b"
           },
           "expression": {
+            "inferred_type": "f64",
             "type": "LiteralExpression",
-            "value": 3.2,
-            "inferred_type": "f64"
+            "value": 3.2
           },
           "inferred_type": "f64"
         },
         {
           "type": "SetStatement",
           "variable": {
+            "inferred_type": null,
             "type": "VariableExpression",
             "name": "sum"
           },
           "expression": {
+            "inferred_type": "f64",
             "type": "BinaryExpression",
             "operator": "+",
             "left": {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "a",
-              "inferred_type": "f64"
+              "name": "a"
             },
             "right": {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "b",
-              "inferred_type": "f64"
-            },
-            "inferred_type": "f64"
+              "name": "b"
+            }
           },
           "inferred_type": "f64"
         },
         {
           "type": "SetStatement",
           "variable": {
+            "inferred_type": null,
             "type": "VariableExpression",
             "name": "product"
           },
           "expression": {
+            "inferred_type": "f64",
             "type": "BinaryExpression",
             "operator": "*",
             "left": {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "a",
-              "inferred_type": "f64"
+              "name": "a"
             },
             "right": {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "b",
-              "inferred_type": "f64"
-            },
-            "inferred_type": "f64"
+              "name": "b"
+            }
           },
           "inferred_type": "f64"
         },
@@ -82,9 +86,9 @@
           "type": "PrintStatement",
           "expressions": [
             {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "sum",
-              "inferred_type": "f64"
+              "name": "sum"
             }
           ]
         },
@@ -92,9 +96,9 @@
           "type": "PrintStatement",
           "expressions": [
             {
+              "inferred_type": "f64",
               "type": "VariableExpression",
-              "name": "product",
-              "inferred_type": "f64"
+              "name": "product"
             }
           ]
         }

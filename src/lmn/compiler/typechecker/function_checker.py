@@ -1,14 +1,13 @@
-# file: lmn/compiler/typechecker/function_checker.py
-from lmn.compiler.typechecker.statement_checker import check_statement
+# function_checker.py
+from .statement_checker import check_statement
+from lmn.compiler.ast.statements.function_definition import FunctionDefinition
 
-def check_function_definition(func_def, symbol_table: dict) -> None:
-    """
-    If a function def has .name, .params, .body, etc.,
-    we create a local symbol table for it and check each statement.
-    """
+def check_function_definition(func_def_dict: dict, symbol_table: dict) -> None:
+    func_def = FunctionDefinition.model_validate(func_def_dict)
+
     local_symbols = {}
-    # If you have parameters, record them in local_symbols
-    # e.g.: for param in func_def.params: local_symbols[param.name] = param.type
-
+    for param in func_def.params:
+        local_symbols[param["name"]] = param.get("type")
+    
     for stmt in func_def.body:
         check_statement(stmt, local_symbols)

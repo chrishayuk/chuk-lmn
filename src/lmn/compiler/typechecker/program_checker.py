@@ -1,23 +1,36 @@
-# src/lmn/compiler/typechecker/program_checker.py
-from .function_checker import check_function_definition
+# file: src/lmn/compiler/typechecker/program_checker.py
 
-def check_program(program_ast):
-    # ensure the top level node is a program
-    if program_ast.get("type") != "Program":
-        raise TypeError("Top-level AST node must be 'Program'.")
-    
-    # get the body
-    body = program_ast.get("body", [])
+class ProgramChecker:
+    """
+    Checks a top-level 'PROGRAM' AST node for required fields:
+      - "globals" must exist
+      - "functions" must exist
+      - each function must have a "body"
+    Returns True if all checks pass, otherwise raises errors that match your tests.
+    """
 
-    # loop through each node in the body
-    for node in body:
-        # get the node
-        node_type = node.get("type")
+    def validate_program(self, program_ast: dict) -> bool:
+        # 1) Check top-level type is 'PROGRAM'
+        if program_ast.get("type") != "PROGRAM":
+            raise ValueError("Expected top-level 'PROGRAM'")
 
-        # chck it's a function definition
-        if node_type == "FunctionDefinition":
-            # Check the function definition
-            check_function_definition(node)
-        else:
-            # Potentially handle global variables or other top-level nodes
-            raise NotImplementedError(f"Unsupported top-level node: {node_type}")
+        # 2) Check that 'globals' field exists
+        if "globals" not in program_ast:
+            raise KeyError("globals")
+
+        # 3) Check that 'functions' field exists
+        if "functions" not in program_ast:
+            raise KeyError("functions")
+
+        # 4) Validate each function in the 'functions' list
+        for func_def in program_ast["functions"]:
+            # If "body" is missing, raise ValueError
+            if "body" not in func_def:
+                raise ValueError("Function body is missing")
+
+            # (Optional) If you want to ensure the function's "type" is 'FUNCTION_DEF':
+            # if func_def.get("type") != "FUNCTION_DEF":
+            #     raise ValueError("Expected 'FUNCTION_DEF' in functions array")
+
+        # If all checks pass, return True
+        return True

@@ -8,10 +8,14 @@ from lmn.compiler.emitter.wasm.wasm_emitter import WasmEmitter
 def main():
     # Setup argument parser
     parser = argparse.ArgumentParser(description="Convert AST JSON to WAT format.")
+
+    # set the input file
     parser.add_argument(
         "input",
         help="Path to the input AST JSON file (checked in CWD first, then script directory)."
     )
+
+    # set the output file
     parser.add_argument(
         "--output",
         help="Path to the output WAT file. Overwrites if exists. If omitted, prints WAT to stdout."
