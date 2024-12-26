@@ -10,6 +10,26 @@
           "value": 42
         }
       ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i64",
+          "type": "LiteralExpression",
+          "value": 4294967296
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "f64",
+          "type": "LiteralExpression",
+          "value": 3.14
+        }
+      ]
     }
   ]
 }

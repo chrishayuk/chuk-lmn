@@ -1,4 +1,5 @@
 # compiler/emitter/wasm/statements/print_emitter.py
+
 class PrintEmitter:
     def __init__(self, controller):
         self.controller = controller
@@ -6,25 +7,45 @@ class PrintEmitter:
     def emit_print(self, node, out_lines):
         """
         node structure example:
-          {
-            "type": "PrintStatement",
-            "expressions": [
-              { "type": "LiteralExpression", "value": "Hello, World!" },
-              { "type": "VariableExpression", "name": "x" },
-              ...
-            ]
-          }
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": 42,
+              "inferred_type": "i32"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": 4294967296,
+              "inferred_type": "i64"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": 3.14,
+              "inferred_type": "f64"
+            },
+            ...
+          ]
+        }
         """
+
         exprs = node["expressions"]
         for ex in exprs:
-            # If it's a literal string => skip or handle separately
+            # 1) If it's a string literal, handle or skip
             if ex["type"] == "LiteralExpression" and isinstance(ex["value"], str):
                 # ignoring strings for simplicity
                 continue
 
-            # Otherwise, assume it's a numeric expression
-            # 1) Emit the expression => pushes an i32 on stack
+            # 2) Emit code for the numeric expression
             self.controller.emit_expression(ex, out_lines)
 
-            # 2) Print using imported 'print_i32' function
-            out_lines.append('  call $print_i32')
+            # 3) Based on inferred type, call the matching print function
+            inferred_type = ex.get("inferred_type", "i32")  # fallback to i32 if missing
+            if inferred_type == "i64":
+                out_lines.append("  call $print_i64")
+            elif inferred_type == "f64":
+                out_lines.append("  call $print_f64")
+            else:
+                # default or i32
+                out_lines.append("  call $print_i32")

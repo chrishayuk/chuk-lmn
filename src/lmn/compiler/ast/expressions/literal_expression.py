@@ -22,18 +22,18 @@ class LiteralExpression(ExpressionBase):
             try:
                 possible_float = float(raw_val)
                 if possible_float.is_integer():
-                    # e.g. 42.0 -> 42
-                    values["value"] = int(possible_float)
+                    int_val = int(possible_float)
+                    if int_val > 2147483647 or int_val < -2147483648:
+                        # It's beyond 32-bit range, so set inferred_type to i64
+                        values["inferred_type"] = "i64"
+                    values["value"] = int_val
                 else:
-                    # e.g. 3.14 -> 3.14
                     values["value"] = possible_float
             except ValueError:
                 # not numeric, leave as string
                 pass
 
         return values
-
-
 
     def __str__(self):
         return str(self.value)

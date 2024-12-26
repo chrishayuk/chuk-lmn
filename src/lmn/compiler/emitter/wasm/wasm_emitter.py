@@ -86,15 +86,20 @@ class WasmEmitter:
         self.functions.append(func_lines)
 
     def build_module(self):
-        """
-        Wrap the collected functions (and imports, exports) in a single WASM (module ...) string.
-        Exports any function names recorded in self.function_names.
-        """
         lines = []
         lines.append('(module')
 
-        # Example import for printing an i32
+        # Import for printing 32-bit integers
         lines.append('  (import "env" "print_i32" (func $print_i32 (param i32)))')
+
+        # Import for printing 64-bit integers
+        lines.append('  (import "env" "print_i64" (func $print_i64 (param i64)))')
+
+        # Import for printing 64-bit floats
+        lines.append('  (import "env" "print_f64" (func $print_f64 (param f64)))')
+
+        # (Optionally import a print_f32 if you handle 32-bit floats separately)
+        # lines.append('  (import "env" "print_f32" (func $print_f32 (param f32)))')
 
         # Insert each function
         for f in self.functions:
@@ -107,6 +112,7 @@ class WasmEmitter:
 
         lines.append(')')
         return "\n".join(lines) + "\n"
+
 
     def emit_function_definition(self, node):
         """

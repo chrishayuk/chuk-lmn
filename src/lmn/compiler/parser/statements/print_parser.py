@@ -11,12 +11,11 @@ class PrintParser:
         # current_token == PRINT, consume
         self.parser.advance()
 
-        # empry list to store the expressions
+        # empty list to store the expressions
         expressions = []
 
         # parse expressions until we see the start of another statement or we reach end/else
         while (
-            # check if current token is not None and its type is not one of the following
             self.parser.current_token
             and self.parser.current_token.token_type
             not in [
@@ -33,7 +32,12 @@ class PrintParser:
         ):
             # parse the expression
             expr = self.parser.expression_parser.parse_expression()
+
+            # If parse_expression() returned None, break out 
+            # (this indicates a statement boundary or invalid expression)
+            if expr is None:
+                break
+
             expressions.append(expr)
 
-        # 
         return PrintStatement(expressions=expressions)

@@ -20,14 +20,37 @@ def main():
     # Create a Linker
     linker = wasmtime.Linker(engine)
 
-    # Define a host function for (import "env" "print_i32" (func (param i32))).
-    # Wasmtime < 3.0 only passes 1 argument, so we define it with a single param.
+    #--------------------------
+    # 1. Define host functions
+    #--------------------------
     def host_print_i32(x):
-        print(x)
+        print(f"i32: {x}")
 
-    # Provide the import to the linker
-    func_type = wasmtime.FuncType([wasmtime.ValType.i32()], [])
-    linker.define(store, "env", "print_i32", wasmtime.Func(store, func_type, host_print_i32))
+    def host_print_i64(x):
+        print(f"i64: {x}")
+
+    def host_print_f32(x):
+        # Python doesn't have a direct float32 type, but wasmtime will pass it as Python float
+        print(f"f32: {x}")
+
+    def host_print_f64(x):
+        print(f"f64: {x}")
+
+    #----------------------------------------------
+    # 2. Create matching function signatures/types
+    #----------------------------------------------
+    func_type_i32 = wasmtime.FuncType([wasmtime.ValType.i32()], [])
+    func_type_i64 = wasmtime.FuncType([wasmtime.ValType.i64()], [])
+    func_type_f32 = wasmtime.FuncType([wasmtime.ValType.f32()], [])
+    func_type_f64 = wasmtime.FuncType([wasmtime.ValType.f64()], [])
+
+    #--------------------------------------------------
+    # 3. Link each import to the corresponding function
+    #--------------------------------------------------
+    linker.define(store, "env", "print_i32", wasmtime.Func(store, func_type_i32, host_print_i32))
+    linker.define(store, "env", "print_i64", wasmtime.Func(store, func_type_i64, host_print_i64))
+    linker.define(store, "env", "print_f32", wasmtime.Func(store, func_type_f32, host_print_f32))
+    linker.define(store, "env", "print_f64", wasmtime.Func(store, func_type_f64, host_print_f64))
 
     # Instantiate the module
     instance = linker.instantiate(store, module)

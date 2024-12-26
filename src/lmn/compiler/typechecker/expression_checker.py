@@ -34,17 +34,36 @@ def check_expression(expr: Expression, symbol_table: dict) -> str:
 
 def check_literal_expression(lit_expr: LiteralExpression) -> str:
     """
-    For a literal, if the value is a Python float => inferred_type = "f64".
-    Else => "i32".
-    Adjust if your language needs different rules (like int range -> i64).
+    Determines the final type of a literal by:
+      - If expr.inferred_type is already set, keep it.
+      - Else if it's a float, use "f64".
+      - Else if it's an int within 32-bit range, "i32", otherwise "i64".
     """
+    # If this literal already has an inferred_type (e.g. from the parser),
+    # honor it and return early.
+    if lit_expr.inferred_type is not None:
+        return lit_expr.inferred_type
+
     val = lit_expr.value
+
+    # 1) Floats => f64
     if isinstance(val, float):
         lit_expr.inferred_type = "f64"
         return "f64"
-    else:
-        lit_expr.inferred_type = "i32"
-        return "i32"
+
+    # 2) Integers => check range
+    elif isinstance(val, int):
+        if -2147483648 <= val <= 2147483647:
+            lit_expr.inferred_type = "i32"
+            return "i32"
+        else:
+            lit_expr.inferred_type = "i64"
+            return "i64"
+
+    # 3) If it's not int/float (e.g. a string?), default to i32 or handle differently
+    lit_expr.inferred_type = "i32"
+    return "i32"
+
 
 
 
