@@ -15,9 +15,9 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": "i64",
+          "inferred_type": "i32",
           "type": "LiteralExpression",
-          "value": 4294967296
+          "value": 10
         }
       ]
     },
@@ -28,6 +28,151 @@
           "inferred_type": "f64",
           "type": "LiteralExpression",
           "value": 3.14
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": "+",
+          "left": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": "-",
+          "left": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": "*",
+          "left": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": "/",
+          "left": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "UnaryExpression",
+          "operator": "-",
+          "operand": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": "*",
+          "left": {
+            "inferred_type": "i32",
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 42
+            },
+            "right": {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 10
+            }
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "BinaryExpression",
+          "operator": ">",
+          "left": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 42
+          },
+          "right": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          }
         }
       ]
     }
