@@ -5,7 +5,7 @@ import wasmtime
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run a WebAssembly module with Wasmtime and call its 'main' export."
+        description="Run a WebAssembly module with Wasmtime and call its 'main' or '__top_level__' export."
     )
     parser.add_argument("wasm_file", help="Path to the .wasm file.")
     args = parser.parse_args()
@@ -32,15 +32,21 @@ def main():
     # Instantiate the module
     instance = linker.instantiate(store, module)
 
-    # Find the "main" export
+    # Try to find 'main'
     main_func = instance.exports(store).get("main")
-    if main_func is None:
-        print("Error: No 'main' function found in module exports.")
-        return
+    # If no 'main', try '__top_level__'
+    top_level_func = instance.exports(store).get("__top_level__")
 
-    # Call "main" and print the return value
-    result = main_func(store)
-    print(f"'main' returned: {result}")
+    if main_func is not None:
+        print("Found 'main' export, calling it now.")
+        result = main_func(store)
+        print(f"'main' returned: {result}")
+    elif top_level_func is not None:
+        print("No 'main' found, calling '__top_level__' instead.")
+        result = top_level_func(store)
+        print(f"'__top_level__' returned: {result}")
+    else:
+        print("Error: Neither 'main' nor '__top_level__' was found in module exports.")
 
 if __name__ == "__main__":
     main()

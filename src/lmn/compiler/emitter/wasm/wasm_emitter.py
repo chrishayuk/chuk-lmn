@@ -1,4 +1,4 @@
-# compiler/emitter/wasm/wasm_emitter.py
+# file: compiler/emitter/wasm/wasm_emitter.py
 
 # STATEMENT EMITTERS
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
@@ -47,20 +47,48 @@ class WasmEmitter:
     def emit_program(self, ast):
         """
         Build a complete WASM module from the top-level AST.
+        Gathers any top-level statements (non-function) into a special function so they can be executed.
         """
         if ast["type"] != "Program":
             raise ValueError("AST root must be a Program")
 
+        # Gather top-level statements
+        top_level_statements = []
+
         for node in ast["body"]:
             if node["type"] == "FunctionDefinition":
                 self.emit_function_definition(node)
-            # If other top-level statements exist, handle them
+            else:
+                # Treat as a top-level statement
+                top_level_statements.append(node)
+
+        # If we have any top-level statements, emit them in a special function
+        if top_level_statements:
+            self.emit_top_level_statements_function(top_level_statements)
 
         return self.build_module()
+
+    def emit_top_level_statements_function(self, statements):
+        """
+        Wraps top-level statements in a special function so they are valid in WASM.
+        We append the name "__top_level__" to function_names so it gets exported.
+        """
+        func_name = "__top_level__"
+        self.function_names.append(func_name)
+
+        func_lines = []
+        func_lines.append(f'(func ${func_name}')
+
+        for stmt in statements:
+            self.emit_statement(stmt, func_lines)
+
+        func_lines.append(')')
+        self.functions.append(func_lines)
 
     def build_module(self):
         """
         Wrap the collected functions (and imports, exports) in a single WASM (module ...) string.
+        Exports any function names recorded in self.function_names.
         """
         lines = []
         lines.append('(module')
@@ -73,10 +101,9 @@ class WasmEmitter:
             for line in f:
                 lines.append(f"  {line}")
 
-        # Export "main" if present
+        # Export each named function
         for fname in self.function_names:
-            if fname == "main":
-                lines.append(f'  (export "main" (func ${fname}))')
+            lines.append(f'  (export "{fname}" (func ${fname}))')
 
         lines.append(')')
         return "\n".join(lines) + "\n"
@@ -84,9 +111,14 @@ class WasmEmitter:
     def emit_function_definition(self, node):
         """
         Delegates the function definition to FunctionEmitter.
+        Also adds the function name to self.function_names so it is exported.
         """
+        func_name = node.get("name", f"fn_{self.function_counter}")
+        self.function_counter += 1
+
+        self.function_names.append(func_name)
+
         func_lines = []
-        # The function emitter handles param locals, body statements, etc.
         self.function_emitter.emit_function(node, func_lines)
         self.functions.append(func_lines)
 
@@ -105,7 +137,7 @@ class WasmEmitter:
         elif stype == "CallStatement":
             self.call_emitter.emit_call(stmt, out_lines)
         else:
-            # Other statements
+            # No emitter for this statement => do nothing or raise an error
             pass
 
     def emit_expression(self, expr, out_lines):
@@ -123,7 +155,7 @@ class WasmEmitter:
         else:
             # Fallback or unknown expression
             out_lines.append('  i32.const 0')
-    
+
     def _normalize_local_name(self, name: str) -> str:
         """
         Ensures local variable has exactly one '$' prefix:
@@ -132,34 +164,22 @@ class WasmEmitter:
             - '$x'   -> '$x' (unchanged)
         """
         if name.startswith('$$'):
-            # Replace leading '$$' with single '$'
             return '$' + name[2:]
         elif not name.startswith('$'):
-            # Prepend '$'
             return f'${name}'
         else:
-            # Already starts with single '$', do nothing
             return name
         
     def infer_type(self, expr_node):
         """
         A naive approach to determine if expr_node is i32, i64, f32, or f64.
-        This can read from expr_node data or from a symbol table if you store that info.
         """
-        # 1) If it’s a literal expression with a decimal => f32
-        # 2) If the literal is large => i64
-        # 3) Otherwise => i32
-        # 4) Or, if expr_node is a BinaryExpression, unify left/right ...
-        #    you'd need to recursively call self.infer_type(left), self.infer_type(right).
-        # For now, here's a trivial example that always returns i32:
-        
         if expr_node["type"] == "LiteralExpression":
             val_str = str(expr_node.get("value", "0"))
             if "." in val_str:
                 return "f32"
             try:
                 int_val = int(val_str)
-                # If it’s bigger than 2^31-1, treat as i64
                 if abs(int_val) > 2147483647:
                     return "i64"
                 else:

@@ -2,18 +2,18 @@ import pytest
 from lmn.compiler.typechecker.program_checker import ProgramChecker
 
 def test_valid_program():
+    """
+    A 'valid' program has:
+      - "type": "Program"
+      - "body": a list of top-level nodes (or can be empty).
+    """
     program_ast = {
-        "type": "PROGRAM",
-        "globals": [
-            {"type": "VAR_DECL", "name": "globalCount", "value": 0}
-        ],
-        "functions": [
+        "type": "Program",
+        "body": [
             {
-                "type": "FUNCTION_DEF",
-                "name": "increment",
-                "params": [],
-                "body": [
-                    {"type": "ASSIGN", "name": "globalCount", "value": {"type": "BINARY_EXPR", "op": "+", "lhs": "globalCount", "rhs": 1}}
+                "type": "PrintStatement",
+                "expressions": [
+                    {"type": "LiteralExpression", "value": 42}
                 ]
             }
         ]
@@ -23,33 +23,32 @@ def test_valid_program():
     result = checker.validate_program(program_ast)
     assert result is True, "Expected a valid program"
 
-def test_program_missing_globals():
+
+def test_program_missing_body():
+    """
+    The checker defaults 'body' to [] if it's missing, 
+    so this should still pass without an error.
+    """
     program_ast = {
-        "type": "PROGRAM",
-        # 'globals' missing
-        "functions": []
+        "type": "Program"
+        # No 'body' field
     }
 
     checker = ProgramChecker()
-    with pytest.raises(KeyError) as excinfo:
-        checker.validate_program(program_ast)
-    assert "globals" in str(excinfo.value)
+    result = checker.validate_program(program_ast)
+    assert result is True, "Expected a valid program even if 'body' is missing"
 
-def test_program_invalid_function():
+
+def test_program_body_not_a_list():
+    """
+    If 'body' is present but not a list, the checker should raise a ValueError.
+    """
     program_ast = {
-        "type": "PROGRAM",
-        "globals": [],
-        "functions": [
-            {
-                "type": "FUNCTION_DEF",
-                "name": "badFunc",
-                "params": ["x"],
-                # Missing 'body'
-            }
-        ]
+        "type": "Program",
+        "body": {"not": "a list"}
     }
 
     checker = ProgramChecker()
     with pytest.raises(ValueError) as excinfo:
         checker.validate_program(program_ast)
-    assert "Function body is missing" in str(excinfo.value)
+    assert "'body' must be a list" in str(excinfo.value)

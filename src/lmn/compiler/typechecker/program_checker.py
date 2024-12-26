@@ -2,35 +2,22 @@
 
 class ProgramChecker:
     """
-    Checks a top-level 'PROGRAM' AST node for required fields:
-      - "globals" must exist
-      - "functions" must exist
-      - each function must have a "body"
-    Returns True if all checks pass, otherwise raises errors that match your tests.
+    Checks a top-level 'Program' AST node for required fields:
+      - 'type' must be 'Program'
+      - 'body' is used for top-level nodes
     """
 
     def validate_program(self, program_ast: dict) -> bool:
-        # 1) Check top-level type is 'PROGRAM'
-        if program_ast.get("type") != "PROGRAM":
-            raise ValueError("Expected top-level 'PROGRAM'")
+        # 1) Ensure 'type' == 'Program'
+        if program_ast.get("type") != "Program":
+            raise ValueError("Expected top-level 'Program'")
 
-        # 2) Check that 'globals' field exists
-        if "globals" not in program_ast:
-            raise KeyError("globals")
+        # 2) 'body' should be a list; if missing, default to empty list
+        body_field = program_ast.get("body")
+        if body_field is not None and not isinstance(body_field, list):
+            raise ValueError("'body' must be a list if present")
 
-        # 3) Check that 'functions' field exists
-        if "functions" not in program_ast:
-            raise KeyError("functions")
+        if body_field is None:
+            program_ast["body"] = []
 
-        # 4) Validate each function in the 'functions' list
-        for func_def in program_ast["functions"]:
-            # If "body" is missing, raise ValueError
-            if "body" not in func_def:
-                raise ValueError("Function body is missing")
-
-            # (Optional) If you want to ensure the function's "type" is 'FUNCTION_DEF':
-            # if func_def.get("type") != "FUNCTION_DEF":
-            #     raise ValueError("Expected 'FUNCTION_DEF' in functions array")
-
-        # If all checks pass, return True
         return True

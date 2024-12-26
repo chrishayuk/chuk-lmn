@@ -17,22 +17,22 @@ class LiteralExpression(ExpressionBase):
     @classmethod
     def convert_value(cls, values: dict) -> dict:
         raw_val = values.get("value")
-        # If raw_val is already int or float, leave it alone.
-        # If raw_val is a string that might be '3.14' or '42', parse:
+
         if isinstance(raw_val, str):
             try:
-                # If '3.14' => float(3.14) => 3.14
-                # If '42' => int(42)
-                # If '42.0' => float(42.0) => 42.0
                 possible_float = float(raw_val)
-                if '.' in raw_val or 'e' in raw_val:
-                    values["value"] = possible_float
+                if possible_float.is_integer():
+                    # e.g. 42.0 -> 42
+                    values["value"] = int(possible_float)
                 else:
-                    values["value"] = int(raw_val)
+                    # e.g. 3.14 -> 3.14
+                    values["value"] = possible_float
             except ValueError:
-                # not numeric
+                # not numeric, leave as string
                 pass
+
         return values
+
 
 
     def __str__(self):

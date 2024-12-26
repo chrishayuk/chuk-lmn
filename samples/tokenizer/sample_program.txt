@@ -1,0 +1,3 @@
+Token(LmnTokenType.COMMENT,  prints the literal 42)
+Token(LmnTokenType.PRINT, print)
+Token(LmnTokenType.NUMBER, 42.0)

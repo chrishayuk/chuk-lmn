@@ -2,101 +2,12 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "SetStatement",
-          "variable": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "a"
-          },
-          "expression": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 5.3
-          }
-        },
-        {
-          "type": "SetStatement",
-          "variable": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "b"
-          },
-          "expression": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 3.2
-          }
-        },
-        {
-          "type": "SetStatement",
-          "variable": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "sum"
-          },
-          "expression": {
-            "inferred_type": null,
-            "type": "BinaryExpression",
-            "operator": "+",
-            "left": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "a"
-            },
-            "right": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "b"
-            }
-          }
-        },
-        {
-          "type": "SetStatement",
-          "variable": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "product"
-          },
-          "expression": {
-            "inferred_type": null,
-            "type": "BinaryExpression",
-            "operator": "*",
-            "left": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "a"
-            },
-            "right": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "b"
-            }
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "sum"
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "product"
-            }
-          ]
+          "inferred_type": null,
+          "type": "LiteralExpression",
+          "value": 42
         }
       ]
     }

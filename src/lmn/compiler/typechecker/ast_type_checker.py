@@ -3,7 +3,7 @@ from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.function_checker import check_function_definition
 from lmn.compiler.typechecker.statement_checker import check_statement
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     # If you want type hints for these classes, you can import them.
@@ -13,10 +13,15 @@ if TYPE_CHECKING:
 def type_check_program(program_node: Program) -> None:
     """
     The main entry point for type checking the entire AST.
-    We assume program_node is an instance of Program with a .body of MegaUnion nodes.
+    We assume program_node is an instance of Program with a .body that is a list of MegaUnion nodes.
+    Each MegaUnion node has a .type (string) and other fields depending on the node type.
     Raises TypeError or NotImplementedError on mismatch.
     """
-    symbol_table = {}
+
+    # You can keep a single symbol table or multiple scopes if your language requires.
+    symbol_table: Dict[str, str] = {}
+
+    # Iterate over all top-level nodes
     for node in program_node.body:
         check_top_level_node(node, symbol_table)
 
@@ -24,14 +29,14 @@ def type_check_program(program_node: Program) -> None:
 def check_top_level_node(node: Node, symbol_table: dict) -> None:
     """
     A top-level node might be a FunctionDefinition or a statement 
-    (if you allow statements at top-level). We'll dispatch accordingly.
+    (if your language allows statements at top-level). We'll dispatch accordingly.
     """
-    node_type = node.type  # The 'type' from Pydantic
+    # get the node type
+    node_type = node.type  # 'FunctionDefinition', 'PrintStatement', etc.
 
     if node_type == "FunctionDefinition":
+        # Dispatch to function checker
         check_function_definition(node, symbol_table)
     else:
-        # If your language allows top-level statements:
-        # check_statement(node, symbol_table)
-        # or else:
-        raise NotImplementedError(f"Top-level node {node_type} not supported.")
+        # Any other node type is treated as a statement at top-level
+        check_statement(node, symbol_table)

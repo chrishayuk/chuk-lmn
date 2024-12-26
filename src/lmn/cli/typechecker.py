@@ -6,6 +6,7 @@ import argparse
 
 from lmn.compiler.ast.program import Program
 from lmn.compiler.typechecker.ast_type_checker import type_check_program
+from lmn.compiler.typechecker.program_checker import ProgramChecker
 
 def main():
     # setup the parser
@@ -34,27 +35,34 @@ def main():
         print(f"Error loading/parsing JSON: {e}")
         sys.exit(1)
 
-    # 3) Parse as Program
+    # 3) Validate the "raw" JSON structure with ProgramChecker
+    program_checker = ProgramChecker()
     try:
-        # For Pydantic v2: model_validate(...)
+        # validate the program structure
+        program_checker.validate_program(data)
+    except Exception as e:
+        print(f"Program structure error: {e}")
+        sys.exit(1)
+
+    # 4) Parse as Program (if the JSON structure is valid)
+    try:
+        # validate the program
         program_node = Program.model_validate(data)
     except Exception as e:
         # error parsing the JSON into a Program node
         print(f"Error parsing JSON into Program: {e}")
         sys.exit(1)
 
-    # 4) Type check
+    # 5) Type check the fully parsed Program node
     try:
-        # run your type checker
         type_check_program(program_node)
     except Exception as e:
-        # type error
         print(f"Type error: {e}")
         sys.exit(1)
 
     print("No type errors found.")
 
-    # 5) If output is specified, write the (possibly annotated) AST
+    # 6) If output is specified, write the (possibly annotated) AST
     if args.output:
         output_path = os.path.abspath(args.output)
         with open(output_path, "w", encoding="utf-8") as out_f:
