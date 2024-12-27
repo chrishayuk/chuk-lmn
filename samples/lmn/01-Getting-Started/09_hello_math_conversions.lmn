@@ -1,0 +1,29 @@
+// Demonstrates typed declarations, assignments, and conversions.
+
+// 1) Declare a 32-bit float variable (no immediate initializer)
+let float.32 flt
+flt = 2.5          // literal => 2.5 => f32
+
+// 2) Declare and initialize a 64-bit float
+let float.64 dbl = 3.14159
+
+// 3) Declare and initialize a 64-bit int
+let int.64 i64var = 100000
+i64var = i64var + 500
+
+// 4) Declare a 32-bit int (no initializer)
+let int.32 i32var
+i32var = 42
+
+// 5) Assign a 64-bit float to a 32-bit float => demotion (f64 -> f32)
+flt = dbl
+
+// 6) Print them all
+print flt        // likely demoted dbl => 3.14159 => ~3.14159f
+print dbl        // 3.14159
+print i64var     // 100500
+print i32var     // 42
+
+// 7) Use a binary expression mixing i64 (i64var) and flt (f32) => 
+//    i64 + f32 => unify => f32 (or f64), depending on your language's rules:
+print i64var + flt   // might require i64 -> f32 or f32 -> f64, then an add
