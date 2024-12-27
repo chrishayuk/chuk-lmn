@@ -5,6 +5,9 @@ from pydantic import TypeAdapter
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.expression_checker import check_expression
 
+# If you have a ConversionExpression node, import it here:
+# from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
+
 # Create a single TypeAdapter for the `Node` union
 node_adapter = TypeAdapter(Node)
 
@@ -16,7 +19,6 @@ def test_literal_expression_int():
         "type": "LiteralExpression",
         "value": 42
     }
-    # Instead of Node.model_validate(dict_expr), do:
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
     inferred = check_expression(expr_obj, symbol_table)
@@ -178,3 +180,89 @@ def test_fn_expression_simple():
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "f64"
     assert expr_obj.inferred_type == "f64"
+
+
+# -------------------------------------------------------------------
+# Additional Mixed-Type Tests (Optional)
+# -------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "left_value,left_inferred,right_value,right_inferred,expected_result",
+    [
+        # f32 + f64 => final f64
+        (2.5, "f32", 3.14, "f64", "f64"),
+        # i32 + f64 => final f64
+        (42, "i32", 3.14, "f64", "f64"),
+        # i32 + i64 => final i64
+        (100, "i32", 9999999999, "i64", "i64"),
+        # f64 + f64 => final f64
+        (2.71, "f64", 3.14, "f64", "f64"),
+        # i32 + i32 => final i32
+        (7, "i32", 13, "i32", "i32"),
+    ]
+)
+def test_binary_expression_mixed_types(
+    left_value, left_inferred,
+    right_value, right_inferred,
+    expected_result
+):
+    """
+    Checks that check_expression unifies subexpressions with different numeric types.
+    If your code inserts a ConversionExpression, you can check for that here.
+    """
+    dict_expr = {
+        "type": "BinaryExpression",
+        "operator": "+",
+        "left": {
+            "type": "LiteralExpression",
+            "value": left_value,
+            "inferred_type": left_inferred
+        },
+        "right": {
+            "type": "LiteralExpression",
+            "value": right_value,
+            "inferred_type": right_inferred
+        }
+    }
+
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {}
+    final_type = check_expression(expr_obj, symbol_table)
+
+    assert final_type == expected_result
+    assert expr_obj.inferred_type == expected_result
+
+
+@pytest.mark.skip(reason="Requires typechecker rewriting to insert ConversionExpression.")
+def test_binary_expression_f32_plus_f64_inserts_conversion():
+    """
+    Example: If left is f32, right is f64 => result f64,
+    typechecker might wrap the left side in a ConversionExpression(f32->f64).
+    Uncomment if your typechecker does AST rewriting.
+    """
+    dict_expr = {
+        "type": "BinaryExpression",
+        "operator": "+",
+        "left": {
+            "type": "LiteralExpression",
+            "value": 2.5,
+            "inferred_type": "f32"
+        },
+        "right": {
+            "type": "LiteralExpression",
+            "value": 3.14,
+            "inferred_type": "f64"
+        }
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {}
+
+    final_type = check_expression(expr_obj, symbol_table)
+    assert final_type == "f64"
+    assert expr_obj.inferred_type == "f64"
+
+    # If your typechecker rewrote the left side:
+    # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
+    # assert isinstance(expr_obj.left, ConversionExpression)
+    # assert expr_obj.left.from_type == "f32"
+    # assert expr_obj.left.to_type == "f64"

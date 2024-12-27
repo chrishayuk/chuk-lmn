@@ -1,3 +1,4 @@
+# file: lmn/compiler/typechecker/ast_type_checker.py
 from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.function_checker import check_function_definition

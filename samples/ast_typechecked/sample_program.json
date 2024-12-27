@@ -2,7 +2,7 @@
   "type": "Program",
   "body": [
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": "f32",
         "type": "VariableExpression",
@@ -22,7 +22,7 @@
       "inferred_type": "f32"
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": "f64",
         "type": "VariableExpression",
@@ -37,7 +37,7 @@
       "inferred_type": "f64"
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": "i32",
         "type": "VariableExpression",
@@ -57,7 +57,7 @@
       "inferred_type": "i32"
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": "i64",
         "type": "VariableExpression",
@@ -84,15 +84,21 @@
           "name": "i64var"
         },
         "right": {
-          "inferred_type": "i32",
-          "type": "LiteralExpression",
-          "value": 500
+          "type": "ConversionExpression",
+          "from_type": "i32",
+          "to_type": "i64",
+          "source_expr": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 500
+          },
+          "inferred_type": null
         }
       },
       "inferred_type": "i64"
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": "f64",
         "type": "VariableExpression",
@@ -109,9 +115,15 @@
         "type": "BinaryExpression",
         "operator": "+",
         "left": {
-          "inferred_type": "f32",
-          "type": "VariableExpression",
-          "name": "flt"
+          "type": "ConversionExpression",
+          "from_type": "f32",
+          "to_type": "f64",
+          "source_expr": {
+            "inferred_type": "f32",
+            "type": "VariableExpression",
+            "name": "flt"
+          },
+          "inferred_type": null
         },
         "right": {
           "inferred_type": "f64",

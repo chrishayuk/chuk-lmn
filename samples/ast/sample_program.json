@@ -2,7 +2,7 @@
   "type": "Program",
   "body": [
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
@@ -35,7 +35,7 @@
       "type_annotation": "float.64"
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
@@ -54,7 +54,7 @@
       }
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
@@ -87,7 +87,7 @@
       }
     },
     {
-      "type": "SetStatement",
+      "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",

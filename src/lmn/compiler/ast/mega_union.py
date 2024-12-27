@@ -11,6 +11,7 @@ from lmn.compiler.ast.expressions.variable_expression import VariableExpression
 from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
 from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
+from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
 # set the expression union type
 Expression = Annotated[
@@ -20,6 +21,7 @@ Expression = Annotated[
         BinaryExpression,
         UnaryExpression,
         FnExpression,
+        ConversionExpression
     ],
     Field(discriminator="type")
 ]
@@ -30,6 +32,7 @@ VariableExpression.model_rebuild()
 BinaryExpression.model_rebuild()
 UnaryExpression.model_rebuild()
 FnExpression.model_rebuild()
+ConversionExpression.model_rebuild() 
 
 #
 # 2) Import statement submodels

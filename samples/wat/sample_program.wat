@@ -3,20 +3,34 @@
   (import "env" "print_i64" (func $print_i64 (param i64)))
   (import "env" "print_f64" (func $print_f64 (param f64)))
   (func $__top_level__
-    (local $dbl2 f64)
     (local $flt f32)
     (local $i32var i32)
-    (local $dbl f64)
     (local $i64var i64)
+    (local $dbl2 f64)
+    (local $dbl f64)
     f32.const 0
+    local.set $flt
+    f32.const 2.718
     local.set $flt
     f64.const 3.14159
     local.set $dbl
     i32.const 0
     local.set $i32var
+    i32.const 42
+    local.set $i32var
     i64.const 10000000000
     local.set $i64var
+    local.get $i64var
+    i32.const 500
+    i64.extend_i32_s
+    i64.add
+    local.set $i64var
     f64.const 0
+    local.set $dbl2
+    local.get $flt
+    f64.promote_f32
+    local.get $dbl
+    f64.add
     local.set $dbl2
     local.get $flt
     f64.promote_f32

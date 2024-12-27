@@ -11,6 +11,7 @@ from lmn.compiler.ast import (
 
 # get the expression checkers
 from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
+from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
 from lmn.compiler.ast.expressions.literal_expression import LiteralExpression
 from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
@@ -56,24 +57,46 @@ def check_expression(expr: Expression, symbol_table: dict, target_type: Optional
         # not supported
         raise NotImplementedError(f"Unsupported expression type: {expr.type}")
 
-
 def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> str:
     """
     Type check left and right sub-expressions, unify, store in 'inferred_type'.
+    If we discover a mismatch that requires up/down-casting (e.g. f32 + f64 => f64),
+    we insert a ConversionExpression on the side that needs promotion/demotion.
     """
-    
-    # Check the types of both sub-expressions
+
+    # 1) Check the types of both sub-expressions
     left_type = check_expression(bin_expr.left, symbol_table)
     right_type = check_expression(bin_expr.right, symbol_table)
 
-    # Unify the types of both sub-expressions
-    result_type = unify_types(left_type, right_type)
+    # 2) Unify to get the final result type
+    result_type = unify_types(left_type, right_type, for_assignment=False)
+    # ^ unify_types might produce 'f64' if one side is f64, the other f32, etc.
 
-    # Store the inferred type in the binary expression
+    # 3) Insert a conversion node if needed for the left side
+    if left_type != result_type:
+        # Example: if left_type=f32, result_type=f64 => promote
+        conv = ConversionExpression(
+            source_expr=bin_expr.left,      # <--- keyword argument
+            from_type=left_type,
+            to_type=result_type
+        )
+        bin_expr.left = conv  # wrap left side
+
+    # Similarly for the right side
+    if right_type != result_type:
+        conv = ConversionExpression(
+            source_expr=bin_expr.right,     # <--- keyword argument
+            from_type=right_type,
+            to_type=result_type
+        )
+        bin_expr.right = conv
+
+    # 4) Assign the final type to this binary expression
     bin_expr.inferred_type = result_type
 
-    # Return the unified type
+    # return the final type
     return result_type
+
 
 def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
     """

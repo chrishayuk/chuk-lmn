@@ -1,8 +1,10 @@
 # file: compiler/emitter/wasm/wasm_emitter.py
 
 # STATEMENT EMITTERS
+from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
 from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
+from lmn.compiler.emitter.wasm.statements.assignment_emitter import AssignmentEmitter
 from lmn.compiler.emitter.wasm.statements.print_emitter import PrintEmitter
 from lmn.compiler.emitter.wasm.statements.return_emitter import ReturnEmitter
 from lmn.compiler.emitter.wasm.statements.for_emitter import ForEmitter
@@ -34,6 +36,7 @@ class WasmEmitter:
         # Statement emitters
         self.if_emitter = IfEmitter(self)
         self.let_emitter = LetEmitter(self)
+        self.assignment_emitter = AssignmentEmitter(self)
         self.print_emitter = PrintEmitter(self)
         self.return_emitter = ReturnEmitter(self)
         self.for_emitter = ForEmitter(self)
@@ -46,6 +49,7 @@ class WasmEmitter:
         self.unary_expr_emitter = UnaryExpressionEmitter(self)
         self.literal_expr_emitter = LiteralExpressionEmitter(self)
         self.variable_expr_emitter = VariableExpressionEmitter(self)
+        self.conversion_expr_emitter = ConversionExpressionEmitter(self)
 
     def emit_program(self, ast):
         """
@@ -164,6 +168,8 @@ class WasmEmitter:
             self.for_emitter.emit_for(stmt, out_lines)
         elif stype == "CallStatement":
             self.call_emitter.emit_call(stmt, out_lines)
+        elif stype == "AssignmentStatement":
+            self.assignment_emitter.emit_assignment(stmt, out_lines)
         else:
             # No emitter for this statement => do nothing or raise an error
             pass
@@ -180,6 +186,8 @@ class WasmEmitter:
             self.literal_expr_emitter.emit(expr, out_lines)
         elif etype == "VariableExpression":
             self.variable_expr_emitter.emit(expr, out_lines)
+        elif etype == "ConversionExpression":
+            self.conversion_expr_emitter.emit(expr, out_lines)
         else:
             # Fallback or unknown expression
             out_lines.append('  i32.const 0')
