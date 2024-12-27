@@ -17,3 +17,4 @@ class NodeKind(str, Enum):
     PRINT = "PrintStatement"
     RETURN = "ReturnStatement"
     SET = "SetStatement"
+    ASSIGNMENT = "AssignmentStatement"

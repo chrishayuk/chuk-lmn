@@ -1,4 +1,5 @@
 # file: lmn/compiler/typechecker/expression_checker.py
+from typing import Optional
 from lmn.compiler.ast import (
     Expression,
     LiteralExpression,
@@ -7,19 +8,24 @@ from lmn.compiler.ast import (
     BinaryExpression,
     FnExpression
 )
-from lmn.compiler.typechecker.utils import unify_types
+from lmn.compiler.typechecker.utils import unify_types, infer_literal_type  # Import infer_literal_type
 
-def check_expression(expr: Expression, symbol_table: dict) -> str:
+def check_expression(expr: Expression, symbol_table: dict, target_type: Optional[str] = None) -> str:
     """
     Return the type of the expression (e.g. "i32", "f64", etc.).
     We'll store the final type in expr.inferred_type as well.
 
     'expr' is a Pydantic-based node, so we can do dot access like expr.operator,
     expr.left, etc. rather than dictionary lookups.
+
+    Args:
+        expr: The expression to check.
+        symbol_table: The current symbol table.
+        target_type (Optional[str]): The expected type of the expression,
+                                     especially relevant for literals in assignments.
     """
-    # We rely on isinstance(...) for clarity, though you could dispatch on expr.type as well.
     if isinstance(expr, LiteralExpression):
-        return check_literal_expression(expr)
+        return check_literal_expression(expr, target_type)  # Pass target_type
     elif isinstance(expr, VariableExpression):
         return check_variable_expression(expr, symbol_table)
     elif isinstance(expr, BinaryExpression):
@@ -31,41 +37,17 @@ def check_expression(expr: Expression, symbol_table: dict) -> str:
     else:
         raise NotImplementedError(f"Unsupported expression type: {expr.type}")
 
-
-def check_literal_expression(lit_expr: LiteralExpression) -> str:
+def check_literal_expression(lit_expr: LiteralExpression, target_type: Optional[str] = None) -> str:
     """
-    Determines the final type of a literal by:
+    Determines the final type of a literal by considering the target type:
       - If expr.inferred_type is already set, keep it.
-      - Else if it's a float, use "f64".
-      - Else if it's an int within 32-bit range, "i32", otherwise "i64".
+      - Otherwise, use the infer_literal_type utility, passing the target_type.
     """
-    # If this literal already has an inferred_type (e.g. from the parser),
-    # honor it and return early.
     if lit_expr.inferred_type is not None:
         return lit_expr.inferred_type
 
-    val = lit_expr.value
-
-    # 1) Floats => f64
-    if isinstance(val, float):
-        lit_expr.inferred_type = "f64"
-        return "f64"
-
-    # 2) Integers => check range
-    elif isinstance(val, int):
-        if -2147483648 <= val <= 2147483647:
-            lit_expr.inferred_type = "i32"
-            return "i32"
-        else:
-            lit_expr.inferred_type = "i64"
-            return "i64"
-
-    # 3) If it's not int/float (e.g. a string?), default to i32 or handle differently
-    lit_expr.inferred_type = "i32"
-    return "i32"
-
-
-
+    lit_expr.inferred_type = infer_literal_type(lit_expr.value, target_type)
+    return lit_expr.inferred_type
 
 def check_variable_expression(var_expr: VariableExpression, symbol_table: dict) -> str:
     """
@@ -78,7 +60,6 @@ def check_variable_expression(var_expr: VariableExpression, symbol_table: dict) 
     var_expr.inferred_type = vtype
     return vtype
 
-
 def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> str:
     """
     Type check left and right sub-expressions, unify, store in 'inferred_type'.
@@ -88,7 +69,6 @@ def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> s
     result_type = unify_types(left_type, right_type)
     bin_expr.inferred_type = result_type
     return result_type
-
 
 def check_unary_expression(u_expr: UnaryExpression, symbol_table: dict) -> str:
     """
@@ -116,7 +96,6 @@ def check_unary_expression(u_expr: UnaryExpression, symbol_table: dict) -> str:
     u_expr.inferred_type = result_type
     return result_type
 
-
 def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
     """
     For a function expression/call, we check each argument's type.
@@ -125,10 +104,6 @@ def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
     """
     for arg in fn_expr.arguments:
         check_expression(arg, symbol_table)
-
-    # If you have a function name or something, you might do additional checks:
-    # e.g. fn_name_type = check_expression(fn_expr.name, symbol_table)
-    # But if fn_expr.name is just a string, you'd do something else.
 
     fn_expr.inferred_type = "f64"
     return "f64"

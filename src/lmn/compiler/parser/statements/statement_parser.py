@@ -1,6 +1,7 @@
 # lmn/compiler/parser/statements/statement_parser.py
 from typing import Optional
 from lmn.compiler.lexer.token_type import LmnTokenType
+from lmn.compiler.parser.statements.assignment_parser import AssignmentParser
 from lmn.compiler.parser.statements.function_parser import FunctionDefinitionParser
 from lmn.compiler.parser.statements.if_parser import IfParser
 from lmn.compiler.parser.statements.for_parser import ForParser
@@ -30,6 +31,10 @@ class StatementParser:
             # If we want to consume 'function' here:
             self.parser.advance()
             return FunctionDefinitionParser(self.parser).parse()
+        
+        elif ttype == LmnTokenType.IDENTIFIER:
+            # parse assignment
+            return AssignmentParser(self.parser).parse()
         
         # check if the current token is an if statement keyword
         elif ttype == LmnTokenType.IF:

@@ -33,6 +33,7 @@ class LmnTokenType(Enum):
     COMMA = ','
     LBRACKET = '['
     RBRACKET = ']'
+    DOT = "DOT"
 
     # ------------------------------
     # Comment
@@ -116,5 +117,6 @@ class LmnTokenType(Enum):
             ')': LmnTokenType.RPAREN,
             ',': LmnTokenType.COMMA,
             '[': LmnTokenType.LBRACKET,
-            ']': LmnTokenType.RBRACKET
+            ']': LmnTokenType.RBRACKET,
+            ".": LmnTokenType.DOT,
         }

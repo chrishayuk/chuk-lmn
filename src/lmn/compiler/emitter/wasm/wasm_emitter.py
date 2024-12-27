@@ -24,6 +24,9 @@ class WasmEmitter:
         self.function_names = []
         self.function_counter = 0
 
+        # This is your new tracking set.
+        self.new_locals = set()
+
         # Local variable tracking for the current function
         self.func_local_map = {}
         self.local_counter = 0
@@ -69,21 +72,40 @@ class WasmEmitter:
         return self.build_module()
 
     def emit_top_level_statements_function(self, statements):
-        """
-        Wraps top-level statements in a special function so they are valid in WASM.
-        We append the name "__top_level__" to function_names so it gets exported.
-        """
         func_name = "__top_level__"
         self.function_names.append(func_name)
 
+        # Reset or create new_locals before processing statements,
+        # so each top-level "function" starts with a clean set.
+        self.new_locals = set()
+        self.func_local_map = {}
+        self.local_counter = 0
+
+        # Start building lines for this top-level function
         func_lines = []
         func_lines.append(f'(func ${func_name}')
 
+        # Emit each statement
         for stmt in statements:
             self.emit_statement(stmt, func_lines)
 
+        # Now insert local declarations right after (func $...)
+        # For each variable in self.new_locals, find its type in func_local_map 
+        # and emit a line like: (local $var_name i32)
+        # Typically you'd do something like:
+        local_decls = []
+        for var_name in self.new_locals:
+            var_info = self.func_local_map[var_name]
+            var_type = var_info["type"]
+            local_decls.append(f'  (local {var_name} {var_type})')
+
+        # Insert local declarations right after the function line
+        func_lines[1:1] = local_decls  # Insert at index 1
+
+        # Close function
         func_lines.append(')')
         self.functions.append(func_lines)
+
 
     def build_module(self):
         lines = []

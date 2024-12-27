@@ -40,6 +40,7 @@ from lmn.compiler.ast.statements.for_statement import ForStatement
 from lmn.compiler.ast.statements.function_definition import FunctionDefinition
 from lmn.compiler.ast.statements.print_statement import PrintStatement
 from lmn.compiler.ast.statements.return_statement import ReturnStatement
+from lmn.compiler.ast.statements.assignment_statement import AssignmentStatement
 from lmn.compiler.ast.statements.set_statement import SetStatement
 from lmn.compiler.ast.statements.call_statement import CallStatement
 
@@ -48,6 +49,7 @@ Statement = Annotated[
         # If you want them all in one union, list them here
         IfStatement,
         ForStatement,
+        AssignmentStatement,
         SetStatement,
         ReturnStatement,
         FunctionDefinition,
@@ -74,6 +76,7 @@ Node = Annotated[
 IfStatement.model_rebuild()
 CallStatement.model_rebuild()
 SetStatement.model_rebuild()
+AssignmentStatement.model_rebuild()
 ReturnStatement.model_rebuild()
 PrintStatement.model_rebuild()
 FunctionDefinition.model_rebuild()

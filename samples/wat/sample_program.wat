@@ -3,41 +3,32 @@
   (import "env" "print_i64" (func $print_i64 (param i64)))
   (import "env" "print_f64" (func $print_f64 (param f64)))
   (func $__top_level__
-    i32.const 42
-    call $print_i32
-    i32.const 10
-    call $print_i32
-    f64.const 3.14
-    call $print_f64
-    i32.const 42
-    i32.const 10
+    (local $a i32)
+    (local $sum i32)
+    (local $difference i32)
+    (local $product i32)
+    (local $b i32)
+    i32.const 5
+    local.set $a
+    i32.const 3
+    local.set $b
+    local.get $a
+    local.get $b
     i32.add
-    call $print_i32
-    i32.const 42
-    i32.const 10
+    local.set $sum
+    local.get $a
+    local.get $b
+    i32.mul
+    local.set $product
+    local.get $a
+    local.get $b
     i32.sub
+    local.set $difference
+    local.get $sum
     call $print_i32
-    i32.const 42
-    i32.const 10
-    i32.mul
+    local.get $product
     call $print_i32
-    i32.const 42
-    i32.const 10
-    i32.div_s
-    call $print_i32
-    i32.const 42
-    i32.const -1
-    i32.mul
-    call $print_i32
-    i32.const 42
-    i32.const 10
-    i32.add
-    i32.const 2
-    i32.mul
-    call $print_i32
-    i32.const 42
-    i32.const 10
-    i32.gt_s
+    local.get $difference
     call $print_i32
   )
   (export "__top_level__" (func $__top_level__))

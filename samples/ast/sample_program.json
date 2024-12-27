@@ -2,12 +2,126 @@
   "type": "Program",
   "body": [
     {
-      "type": "PrintStatement",
-      "expressions": [
-        {
+      "type": "SetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "flt"
+      },
+      "expression": null,
+      "type_annotation": "float.32"
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "flt",
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 2.718
+      }
+    },
+    {
+      "type": "SetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "dbl"
+      },
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 3.14159
+      },
+      "type_annotation": "float.64"
+    },
+    {
+      "type": "SetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "i32var"
+      },
+      "expression": null,
+      "type_annotation": "int.32"
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "i32var",
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 42
+      }
+    },
+    {
+      "type": "SetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "i64var"
+      },
+      "expression": {
+        "inferred_type": "i64",
+        "type": "LiteralExpression",
+        "value": 10000000000
+      },
+      "type_annotation": "int.64"
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "i64var",
+      "expression": {
+        "inferred_type": null,
+        "type": "BinaryExpression",
+        "operator": "+",
+        "left": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "i64var"
+        },
+        "right": {
           "inferred_type": null,
           "type": "LiteralExpression",
-          "value": 42
+          "value": 500
+        }
+      }
+    },
+    {
+      "type": "SetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "dbl2"
+      },
+      "expression": null,
+      "type_annotation": "float.64"
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "dbl2",
+      "expression": {
+        "inferred_type": null,
+        "type": "BinaryExpression",
+        "operator": "+",
+        "left": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "flt"
+        },
+        "right": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "dbl"
+        }
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "flt"
         }
       ]
     },
@@ -16,8 +130,8 @@
       "expressions": [
         {
           "inferred_type": null,
-          "type": "LiteralExpression",
-          "value": 10
+          "type": "VariableExpression",
+          "name": "dbl"
         }
       ]
     },
@@ -26,8 +140,8 @@
       "expressions": [
         {
           "inferred_type": null,
-          "type": "LiteralExpression",
-          "value": 3.14
+          "type": "VariableExpression",
+          "name": "i32var"
         }
       ]
     },
@@ -36,18 +150,8 @@
       "expressions": [
         {
           "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": "+",
-          "left": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 10
-          }
+          "type": "VariableExpression",
+          "name": "i64var"
         }
       ]
     },
@@ -56,123 +160,8 @@
       "expressions": [
         {
           "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": "-",
-          "left": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 10
-          }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": "*",
-          "left": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 10
-          }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": "/",
-          "left": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 10
-          }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": null,
-          "type": "UnaryExpression",
-          "operator": "-",
-          "operand": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": "*",
-          "left": {
-            "inferred_type": null,
-            "type": "BinaryExpression",
-            "operator": "+",
-            "left": {
-              "inferred_type": null,
-              "type": "LiteralExpression",
-              "value": 42
-            },
-            "right": {
-              "inferred_type": null,
-              "type": "LiteralExpression",
-              "value": 10
-            }
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": null,
-          "type": "BinaryExpression",
-          "operator": ">",
-          "left": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 42
-          },
-          "right": {
-            "inferred_type": null,
-            "type": "LiteralExpression",
-            "value": 10
-          }
+          "type": "VariableExpression",
+          "name": "dbl2"
         }
       ]
     }

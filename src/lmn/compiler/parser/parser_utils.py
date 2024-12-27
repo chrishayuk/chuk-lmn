@@ -30,3 +30,14 @@ def parse_block(parser, until_tokens):
             # parse_statement returned None or we're stuck
             break
     return statements
+
+def current_token_is(parser, token_type):
+    """
+    Returns True if parser.current_token is not None
+    and matches the given token_type.
+    """
+    return (
+        parser.current_token is not None 
+        and parser.current_token.token_type == token_type
+    )
+

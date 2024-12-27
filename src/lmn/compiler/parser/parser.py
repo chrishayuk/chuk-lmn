@@ -22,11 +22,18 @@ class Parser:
         else:
             self.current_token = None
 
-    def peek(self) -> Optional[Token]:
-        next_pos = self.current_pos + 1
-        if next_pos < len(self.tokens):
-            return self.tokens[next_pos]
+    def peek(self, offset: int = 1) -> Optional[Token]:
+        """
+        Returns the token at (current_pos + offset).
+        By default, offset=1 (the 'next' token).
+        """
+        pos = self.current_pos + offset
+        
+        if 0 <= pos < len(self.tokens):
+            return self.tokens[pos]
         return None
+
+
 
     def parse(self) -> Program:
         program = Program()
