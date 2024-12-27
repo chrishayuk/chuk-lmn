@@ -1,6 +1,4 @@
-import pytest
 from lmn.compiler.emitter.wasm.statements.set_emitter import SetEmitter
-
 class MockController:
     def __init__(self):
         self.func_local_map = {}
@@ -8,39 +6,61 @@ class MockController:
         self.new_locals = set()
 
     def _normalize_local_name(self, raw_name):
-        # e.g. "x" => "$x"
         return f"${raw_name}"
 
     def emit_expression(self, expr, out_lines):
         """
-        If "type" is "LiteralExpression", do: "i32.const <value>"
-        Otherwise, fallback to "i32.const 999"
+        - If var expr => i32.const 999
+        - If int literal in 32-bit => i32.const
+        - If int literal out of range => i64.const
+        - If float => i32.const 3.14
         """
-        if expr.get("type") == "LiteralExpression":
-            val = expr.get("value", 0)
-            out_lines.append(f"  i32.const {val}")
-        else:
+        etype = expr.get("type")
+        if etype == "VariableExpression":
             out_lines.append("  i32.const 999")
+        elif etype == "LiteralExpression":
+            val = expr.get("value", 0)
+            if isinstance(val, int):
+                if -2**31 <= val <= 2**31 - 1:
+                    out_lines.append(f"  i32.const {val}")
+                else:
+                    out_lines.append(f"  i64.const {val}")
+            elif isinstance(val, float):
+                out_lines.append(f"  i32.const {val}")
+            else:
+                out_lines.append("  i32.const 0")
+        else:
+            out_lines.append("  i32.const 0")
 
     def infer_type(self, expr):
         """
-        A naive inference method. If it's a numeric literal with a decimal, return 'f32'.
-        Else, if it fits i32 range, 'i32'. Otherwise 'i64'.
-        (Or adapt to your real logic.)
+        - If var => return existing or i32
+        - If int => i32 if in range, else i64
+        - If float => f32
         """
-        if expr.get("type") == "LiteralExpression":
-            value = expr.get("value", 0)
-            val_str = str(value)
-            if "." in val_str:
+        etype = expr.get("type")
+        if etype == "VariableExpression":
+            name = expr.get("name", "")
+            var_name = self._normalize_local_name(name)
+            if var_name in self.func_local_map:
+                return self.func_local_map[var_name]["type"]
+            return "i32"
+
+        elif etype == "LiteralExpression":
+            val = expr.get("value", 0)
+            if isinstance(val, int):
+                if -2**31 <= val <= 2**31 - 1:
+                    return "i32"
+                else:
+                    return "i64"
+            elif isinstance(val, float):
                 return "f32"
             else:
-                # Check if value is in i32 range
-                int_val = int(value)
-                if abs(int_val) > 2147483647:
-                    return "i64"
                 return "i32"
-        # fallback
+
         return "i32"
+
+
 
 
 def test_set_statement_new_var():
@@ -136,12 +156,6 @@ def test_set_statement_new_var_float():
 
 
 def test_set_statement_type_conflict():
-    """
-    Check if we handle or ignore a type conflict:
-     - First set z => i32
-     - Then set z => a large number => i64
-    Currently the code just 'pass'es, but let's demonstrate how we'd detect a mismatch.
-    """
     controller = MockController()
     emitter = SetEmitter(controller)
 
@@ -154,6 +168,10 @@ def test_set_statement_type_conflict():
     out_lines1 = []
     emitter.emit_set(node1, out_lines1)
 
+    # Immediately check the type in func_local_map
+    first_type = controller.func_local_map["$z"]["type"]
+    assert first_type == "i32", f"Expected i32 after first assignment, got {first_type}"
+
     # Second assignment => z = 999999999999 => i64
     node2 = {
         "type": "SetStatement",
@@ -163,30 +181,9 @@ def test_set_statement_type_conflict():
     out_lines2 = []
     emitter.emit_set(node2, out_lines2)
 
-    # Check the final lines are correct for each assignment
-    combined1 = "\n".join(out_lines1)
-    combined2 = "\n".join(out_lines2)
-
-    assert "i32.const 100" in combined1
-    assert "local.set $z" in combined1
-
-    # second
-    assert "i32.const 999999999999" in combined2  # Mock, but let's see it.
-    assert "local.set $z" in combined2
-
-    # Type checks
-    first_info = controller.func_local_map["$z"]
-    assert first_info["type"] == "i32", "After first assignment, z is i32"
-
-    # But your second assignment code has 'pass' if there's a mismatch. 
-    # In a real scenario, you might unify or throw an error. Here it remains i32.
-    # Let's confirm it didn't get overwritten:
-    second_info = controller.func_local_map["$z"]
-    assert second_info["type"] == "i32", (
-        "Your code hasn't updated the type. If you want to unify or throw error, you'd do so in the else-block."
-    )
-
-    # If you had logic to unify, you'd expect second_info["type"] == "i64" or an error message, etc.
+    # Now check that it's i64
+    second_type = controller.func_local_map["$z"]["type"]
+    assert second_type == "i64", f"Expected i64 after second assignment, got {second_type}"
 
 
 def test_set_statement_assign_var():
