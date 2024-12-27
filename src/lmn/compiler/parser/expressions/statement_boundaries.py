@@ -4,7 +4,7 @@ from lmn.compiler.lexer.token_type import LmnTokenType
 STATEMENT_BOUNDARY_TOKENS = {
     LmnTokenType.IF,
     LmnTokenType.FOR,
-    LmnTokenType.SET,
+    LmnTokenType.LET,
     LmnTokenType.PRINT,
     LmnTokenType.RETURN,
     LmnTokenType.END,

@@ -16,5 +16,5 @@ class NodeKind(str, Enum):
     IF = "IfStatement"
     PRINT = "PrintStatement"
     RETURN = "ReturnStatement"
-    SET = "SetStatement"
+    LET = "LetStatement"
     ASSIGNMENT = "AssignmentStatement"

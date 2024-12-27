@@ -44,7 +44,7 @@ class LmnTokenType(Enum):
     # Keywords (all lowercase)
     # ------------------------------
     FUNCTION = 'function'
-    SET = 'set'
+    LET = 'let'
     PRINT = 'print'
     IF = 'if'
     ELSE = 'else'
@@ -69,7 +69,7 @@ class LmnTokenType(Enum):
         """
         return {
             'function': LmnTokenType.FUNCTION,
-            'set': LmnTokenType.SET,
+            'let': LmnTokenType.LET,
             'print': LmnTokenType.PRINT,
             'if': LmnTokenType.IF,
             'else': LmnTokenType.ELSE,

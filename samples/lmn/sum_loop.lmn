@@ -1,11 +1,11 @@
 // Sums the first N integers using a for loop
 function sumFirstN(n)
   // Initialize total = 0
-  set total 0
+  let total = 0
 
   // Loop i from 1 to n
   for i 1 to n
-    set total total + i
+    total = total + i
   end
 
   // Return the final total
@@ -13,6 +13,6 @@ function sumFirstN(n)
 end
 
 function main()
-  set x 10
+  let x = 10
   print "Sum of 1..10 =" sumFirstN(x)
 end

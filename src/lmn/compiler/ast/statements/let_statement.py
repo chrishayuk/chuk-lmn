@@ -1,16 +1,16 @@
-# file: lmn/compiler/ast/statements/set_statement.py
+# file: lmn/compiler/ast/statements/let_statement.py
 from __future__ import annotations
 from typing import Literal, Optional
 from lmn.compiler.ast.ast_node import ASTNode
 from lmn.compiler.ast.node_kind import NodeKind
 
-class SetStatement(ASTNode):
+class LetStatement(ASTNode):
     """
     Represents a 'set' statement, e.g.:
-      set <variable> = <expression>
+      let <variable> = <expression>
     But we also allow no initializer: set x
     """
-    type: Literal[NodeKind.SET] = NodeKind.SET
+    type: Literal[NodeKind.LET] = NodeKind.LET
     variable: "Expression"
 
     # optional expression
@@ -19,5 +19,5 @@ class SetStatement(ASTNode):
     def __str__(self):
         # If expression is None, just print 'set variable'
         if self.expression is None:
-            return f"set {self.variable}"
-        return f"set {self.variable} = {self.expression}"
+            return f"let {self.variable}"
+        return f"let {self.variable} = {self.expression}"

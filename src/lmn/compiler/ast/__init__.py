@@ -24,7 +24,7 @@ from .statements.function_definition import FunctionDefinition
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
-from .statements.set_statement import SetStatement
+from .statements.let_statement import LetStatement
 from .statements.assignment_statement import AssignmentStatement
 
 # Program
@@ -49,7 +49,7 @@ IfStatement.model_rebuild()
 PrintStatement.model_rebuild()
 ReturnStatement.model_rebuild()
 AssignmentStatement.model_rebuild()
-SetStatement.model_rebuild()
+LetStatement.model_rebuild()
 
 # Program
 Program.model_rebuild()

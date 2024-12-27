@@ -2,12 +2,12 @@
 
 # STATEMENT EMITTERS
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
-from lmn.compiler.emitter.wasm.statements.set_emitter import SetEmitter
+from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
 from lmn.compiler.emitter.wasm.statements.print_emitter import PrintEmitter
 from lmn.compiler.emitter.wasm.statements.return_emitter import ReturnEmitter
 from lmn.compiler.emitter.wasm.statements.for_emitter import ForEmitter
 from lmn.compiler.emitter.wasm.statements.call_emitter import CallEmitter
-from lmn.compiler.emitter.wasm.statements.function_emitter import FunctionEmitter  # NEW
+from lmn.compiler.emitter.wasm.statements.function_emitter import FunctionEmitter
 
 # EXPRESSION EMITTERS
 from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
@@ -33,7 +33,7 @@ class WasmEmitter:
 
         # Statement emitters
         self.if_emitter = IfEmitter(self)
-        self.set_emitter = SetEmitter(self)
+        self.let_emitter = LetEmitter(self)
         self.print_emitter = PrintEmitter(self)
         self.return_emitter = ReturnEmitter(self)
         self.for_emitter = ForEmitter(self)
@@ -154,8 +154,8 @@ class WasmEmitter:
         stype = stmt["type"]
         if stype == "IfStatement":
             self.if_emitter.emit_if(stmt, out_lines)
-        elif stype == "SetStatement":
-            self.set_emitter.emit_set(stmt, out_lines)
+        elif stype == "LetStatement":
+            self.let_emitter.emit_let(stmt, out_lines)
         elif stype == "PrintStatement":
             self.print_emitter.emit_print(stmt, out_lines)
         elif stype == "ReturnStatement":

@@ -3,7 +3,7 @@
 # Instead of submodules, import from compiler.ast (the mega-union approach)
 from lmn.compiler.ast import (
     IfStatement,
-    SetStatement,
+    LetStatement,
     PrintStatement,
     ReturnStatement,
     ForStatement,
@@ -21,8 +21,8 @@ def test_if_statement_no_else():
         right=LiteralExpression(value="10")
     )
     
-    # then body: set x 5
-    then_body = SetStatement(
+    # then body: let x = 5
+    then_body = LetStatement(
         variable=VariableExpression(name="x"),
         expression=LiteralExpression(value="5")
     )
@@ -30,8 +30,6 @@ def test_if_statement_no_else():
     # IfStatement with a single item in then_body and empty else_body
     stmt = IfStatement(condition=cond, then_body=[then_body], else_body=[])
 
-    # If your IfStatement’s to_dict() or model_dump() uses by_alias=True internally,
-    # or you are calling .model_dump(by_alias=True) in your code:
     d = stmt.to_dict()  # or stmt.model_dump(by_alias=True)
 
     assert d["type"] == "IfStatement"
@@ -41,7 +39,7 @@ def test_if_statement_no_else():
 
     # thenBody is a list with one statement
     assert len(d["thenBody"]) == 1
-    assert d["thenBody"][0]["type"] == "SetStatement"
+    assert d["thenBody"][0]["type"] == "LetStatement"
 
     # elseBody is empty
     assert len(d["elseBody"]) == 0
@@ -50,7 +48,8 @@ def test_if_statement_no_else():
     s = str(stmt)
     assert "if" in s
     assert "<" in s
-    assert "set" in s
+    # We now expect "let" instead of "set"
+    assert "let" in s
 
 def test_if_statement_with_else():
     # condition: n <= 1
@@ -77,21 +76,23 @@ def test_if_statement_with_else():
     # Verify else is PrintStatement
     assert d["elseBody"][0]["type"] == "PrintStatement"
 
-def test_set_statement():
-    # set x 10
-    stmt = SetStatement(
+def test_let_statement():
+    # let x = 10
+    stmt = LetStatement(
         variable=VariableExpression(name="x"),
         expression=LiteralExpression(value="10")
     )
     
     d = stmt.to_dict()
-    assert d["type"] == "SetStatement"
+    assert d["type"] == "LetStatement"
     assert d["variable"]["type"] == "VariableExpression"
     assert d["variable"]["name"] == "x"
     assert d["expression"]["type"] == "LiteralExpression"
-    assert d["expression"]["value"] == 10  # numeric parse
+    # "10" => numeric parse => 10
+    assert d["expression"]["value"] == 10
 
-    assert "set x =" in str(stmt)
+    # The string representation should have "let x ="
+    assert "let x =" in str(stmt)
 
 def test_print_statement():
     # print "Hello" 42

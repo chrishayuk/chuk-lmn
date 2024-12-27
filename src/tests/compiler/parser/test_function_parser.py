@@ -6,7 +6,7 @@ from lmn.compiler.parser.parser import Parser
 from lmn.compiler.ast import (
     FunctionDefinition,
     IfStatement,
-    SetStatement,
+    LetStatement,
     PrintStatement,
     ReturnStatement,
     BinaryExpression,
@@ -217,14 +217,14 @@ def test_function_with_recursion():
 def test_function_multiple_statements_body():
     """
     function doStuff(a)
-      set x = a
+      let x = a
       print x
       return x * 2
     end
     """
     code = """
     function doStuff(a)
-      set x = a
+      let x = a
       print x
       return x * 2
     end
@@ -233,24 +233,29 @@ def test_function_multiple_statements_body():
     parser = Parser(tokens)
     program_ast = parser.parse()
 
+    # If your parser stores top-level statements in program_ast.body:
     assert len(program_ast.body) == 1
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "doStuff"
     assert func_def.params == ["a"]
-    # body has 3 statements: set x a, print x, return x * 2
+
+    # body has 3 statements: let x = a, print x, return x * 2
     assert len(func_def.body) == 3
     stmt1, stmt2, stmt3 = func_def.body
 
-    # stmt1 => set x a
-    assert isinstance(stmt1, SetStatement)
+    # stmt1 => let x = a
+    assert isinstance(stmt1, LetStatement)
     assert stmt1.variable.name == "x"
+    # If you want to check the expression:
+    # assert isinstance(stmt1.expression, VariableExpression)
+    # assert stmt1.expression.name == "a"
 
     # stmt2 => print x
     assert isinstance(stmt2, PrintStatement)
     assert len(stmt2.expressions) == 1
-    # Usually we expect 'x' to be a VariableExpression
     assert isinstance(stmt2.expressions[0], VariableExpression)
+    assert stmt2.expressions[0].name == "x"
 
     # stmt3 => return x * 2
     assert isinstance(stmt3, ReturnStatement)
@@ -258,3 +263,4 @@ def test_function_multiple_statements_body():
     rdict = rexp.to_dict()
     assert rdict["type"] == "BinaryExpression"
     assert rdict["operator"] == "*"
+

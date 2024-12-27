@@ -1,18 +1,18 @@
 # file: lmn/compiler/typechecker/statement_checker.py
 from lmn.compiler.typechecker.expression_checker import check_expression
 from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
-from lmn.compiler.typechecker.statements.set_statement import check_set_statement
+from lmn.compiler.typechecker.statements.let_statement import check_let_statement
 
 def check_statement(stmt, symbol_table: dict) -> None:
     """
-    A single statement could be SetStatement, PrintStatement, ReturnStatement, etc.
+    A single statement could be LetStatement, PrintStatement, ReturnStatement, etc.
     We'll dispatch by stmt.type.
     """
     try:
         stype = stmt.type
-        if stype == "SetStatement":
-            # set statement
-            check_set_statement(stmt, symbol_table)
+        if stype == "LetStatement":
+            # let statement
+            check_let_statement(stmt, symbol_table)
         elif stype == "AssignmentStatement":
             # assignment statement
             check_assignment_statement(stmt, symbol_table)

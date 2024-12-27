@@ -27,7 +27,7 @@ import lmn.compiler.ast.statements.function_definition
 import lmn.compiler.ast.statements.if_statement
 import lmn.compiler.ast.statements.print_statement
 import lmn.compiler.ast.statements.return_statement
-import lmn.compiler.ast.statements.set_statement
+import lmn.compiler.ast.statements.let_statement
 
 print("=== Forcibly importing them from the package to call model_rebuild ===")
 from lmn.compiler.ast import (
@@ -37,7 +37,7 @@ from lmn.compiler.ast import (
     IfStatement,
     PrintStatement,
     ReturnStatement,
-    SetStatement
+    LetStatement
 )
 CallStatement.model_rebuild()
 ForStatement.model_rebuild()
@@ -45,7 +45,7 @@ FunctionDefinition.model_rebuild()
 IfStatement.model_rebuild()
 PrintStatement.model_rebuild()
 ReturnStatement.model_rebuild()
-SetStatement.model_rebuild()
+LetStatement.model_rebuild()
 
 print("=== Now everything should be fully defined. Running debug_fields.py. ===")
 import lmn.debug_scripts.debug_fields as debug_fields

@@ -1,4 +1,4 @@
-from lmn.compiler.emitter.wasm.statements.set_emitter import SetEmitter
+from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
 class MockController:
     def __init__(self):
         self.func_local_map = {}
@@ -63,7 +63,7 @@ class MockController:
 
 
 
-def test_set_statement_new_var():
+def test_let_statement_new_var():
     """
     Test creating a brand new variable 'x'. We expect:
      - The variable is recorded in func_local_map with a type
@@ -71,15 +71,15 @@ def test_set_statement_new_var():
      - local.set $x
     """
     controller = MockController()
-    emitter = SetEmitter(controller)
+    emitter = LetEmitter(controller)
     node = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "x"},
         "expression": {"type": "LiteralExpression", "value": 42}
     }
 
     out_lines = []
-    emitter.emit_set(node, out_lines)
+    emitter.emit_let(node, out_lines)
     combined = "\n".join(out_lines)
 
     # Check the output instructions
@@ -109,15 +109,15 @@ def test_set_statement_existing_var():
     mock_ctrl.func_local_map["$y"] = {"index": 0, "type": "i32"}
     mock_ctrl.local_counter = 1
 
-    emitter = SetEmitter(mock_ctrl)
+    emitter = LetEmitter(mock_ctrl)
     node = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "y"},
         "expression": {"type": "LiteralExpression", "value": 99}
     }
 
     out_lines = []
-    emitter.emit_set(node, out_lines)
+    emitter.emit_let(node, out_lines)
     combined = "\n".join(out_lines)
 
     assert "i32.const 99" in combined
@@ -133,15 +133,15 @@ def test_set_statement_new_var_float():
     We'll see infer_type => f32.
     """
     controller = MockController()
-    emitter = SetEmitter(controller)
+    emitter = LetEmitter(controller)
     node = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "fvar"},
         "expression": {"type": "LiteralExpression", "value": 3.14}
     }
 
     out_lines = []
-    emitter.emit_set(node, out_lines)
+    emitter.emit_let(node, out_lines)
     combined = "\n".join(out_lines)
 
     # By default our MockController emits i32.const for any literal in emit_expression,
@@ -157,16 +157,16 @@ def test_set_statement_new_var_float():
 
 def test_set_statement_type_conflict():
     controller = MockController()
-    emitter = SetEmitter(controller)
+    emitter = LetEmitter(controller)
 
     # First assignment => z = 100 => i32
     node1 = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "z"},
         "expression": {"type": "LiteralExpression", "value": 100}
     }
     out_lines1 = []
-    emitter.emit_set(node1, out_lines1)
+    emitter.emit_let(node1, out_lines1)
 
     # Immediately check the type in func_local_map
     first_type = controller.func_local_map["$z"]["type"]
@@ -174,12 +174,12 @@ def test_set_statement_type_conflict():
 
     # Second assignment => z = 999999999999 => i64
     node2 = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "z"},
         "expression": {"type": "LiteralExpression", "value": 999999999999}
     }
     out_lines2 = []
-    emitter.emit_set(node2, out_lines2)
+    emitter.emit_let(node2, out_lines2)
 
     # Now check that it's i64
     second_type = controller.func_local_map["$z"]["type"]
@@ -193,15 +193,15 @@ def test_set_statement_assign_var():
     """
     controller = MockController()
     controller.func_local_map["$x"] = {"index": 0, "type": "i32"}
-    emitter = SetEmitter(controller)
+    emitter = LetEmitter(controller)
 
     node = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "w"},
         "expression": {"type": "VariableExpression", "name": "x"}
     }
     out_lines = []
-    emitter.emit_set(node, out_lines)
+    emitter.emit_let(node, out_lines)
 
     combined = "\n".join(out_lines)
     assert "  i32.const 999" in combined  # from mock emit_expression fallback
@@ -222,25 +222,25 @@ def test_set_statement_multiple_new_locals():
     and each goes in new_locals.
     """
     controller = MockController()
-    emitter = SetEmitter(controller)
+    emitter = LetEmitter(controller)
 
     # set a
     node_a = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "a"},
         "expression": {"type": "LiteralExpression", "value": 1}
     }
     out_a = []
-    emitter.emit_set(node_a, out_a)
+    emitter.emit_let(node_a, out_a)
 
     # set b
     node_b = {
-        "type": "SetStatement",
+        "type": "LetStatement",
         "variable": {"type": "VariableExpression", "name": "b"},
         "expression": {"type": "LiteralExpression", "value": 2}
     }
     out_b = []
-    emitter.emit_set(node_b, out_b)
+    emitter.emit_let(node_b, out_b)
 
     # checks
     assert controller.local_counter == 2, f"Expected 2 new locals, got {controller.local_counter}"

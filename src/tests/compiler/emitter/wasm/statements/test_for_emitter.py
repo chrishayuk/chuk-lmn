@@ -40,7 +40,7 @@ class MockController:
     def emit_statement(self, stmt, out_lines):
         """
         For the for-loop test, we can simply mock all statements as "i32.const 999".
-        If you'd like the "SetStatement" to actually be processed, you can import
+        If you'd like the "LetStatement" to actually be processed, you can import
         the SetEmitter here and call it, but for this test, a simple stub suffices.
         """
         out_lines.append("  i32.const 999")
@@ -56,7 +56,7 @@ def test_simple_for_loop():
         "step_expr":  None,  # defaults to +1
         "body": [
             {
-                "type": "SetStatement",
+                "type": "LetStatement",
                 "variable": {"type": "VariableExpression", "name": "x"},
                 "expression": {"type": "LiteralExpression", "value": 42}
             }

@@ -11,8 +11,8 @@ end
 x
 // The main entry point
 function main()
-    // Setting x = 10
-    set x 10
+    // let x = 10
+    let x = 10
 
     // Print a message and the fib(x) value
     print "Fibonacci of" x "is" fib(x)

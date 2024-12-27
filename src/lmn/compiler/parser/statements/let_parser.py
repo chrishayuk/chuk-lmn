@@ -1,18 +1,18 @@
-# set_parser.py
+# lmn/compiler/parser/statements/let_parser.py
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.parser.parser_utils import expect_token, current_token_is
-from lmn.compiler.ast import SetStatement, VariableExpression
+from lmn.compiler.ast import LetStatement, VariableExpression
 
-class SetParser:
+class LetParser:
     def __init__(self, parent_parser):
         self.parser = parent_parser
 
     def parse(self):
         """
         Parses statements like:
-          set x = 5
-          set int.32 x = 5
-          set y
+          let x = 5
+          let int.32 x = 5
+          let y
         """
         # 1) consume the 'set' token
         self.parser.advance()  
@@ -24,7 +24,7 @@ class SetParser:
 
         # 3) expect IDENTIFIER for variable name
         var_token = expect_token(self.parser, LmnTokenType.IDENTIFIER,
-                                 "Expected variable name after 'set'")
+                                 "Expected variable name after 'let'")
         # CRITICAL: consume that IDENTIFIER token 
         self.parser.advance()
 
@@ -34,7 +34,7 @@ class SetParser:
             self.parser.advance()  # consume '='
             initializer_expr = self.parser.expression_parser.parse_expression()
 
-        return SetStatement(
+        return LetStatement(
             variable=VariableExpression(name=var_token.value),
             expression=initializer_expr,
             type_annotation=type_annotation

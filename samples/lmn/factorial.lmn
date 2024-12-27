@@ -10,6 +10,6 @@ function factorial(n)
 end
 
 function main()
-  set x 5
+  let x = 5
   print "Factorial of" x "is" factorial(x)
 end

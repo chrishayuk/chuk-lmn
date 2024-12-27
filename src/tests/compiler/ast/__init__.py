@@ -8,7 +8,7 @@ from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
 
 # statements, if you want them also available
-#from lmn.compiler.ast.statements.set_statement import SetStatement
+#from lmn.compiler.ast.statements.let_statement import LetStatement
 # etc.
 
 # 2) Optionally define an __all__ to specify which symbols to export

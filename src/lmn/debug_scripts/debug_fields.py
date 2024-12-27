@@ -23,7 +23,7 @@ from lmn.compiler.ast import (
     IfStatement,
     PrintStatement,
     ReturnStatement,
-    SetStatement,
+    LetStatement,
 )
 
 def highlight_type_key(json_str: str) -> str:
@@ -142,7 +142,7 @@ func_def = FunctionDefinition(
     name="doSomething",
     params=["x", "y"],
     body=[
-        SetStatement(
+        LetStatement(
             variable=VariableExpression(name="x"),
             expression=BinaryExpression(
                 operator="+",
@@ -186,8 +186,8 @@ ret_stmt = ReturnStatement(
 )
 print_colored_dictionaries(ret_stmt)
 
-print(f"{Fore.BLUE}==== Debugging SetStatement ===={Style.RESET_ALL}")
-set_stmt = SetStatement(
+print(f"{Fore.BLUE}==== Debugging LetStatement ===={Style.RESET_ALL}")
+let_stmt = LetStatement(
     variable=VariableExpression(name="total"),
     expression=BinaryExpression(
         operator="+",
@@ -195,4 +195,4 @@ set_stmt = SetStatement(
         right=LiteralExpression(value="5")
     )
 )
-print_colored_dictionaries(set_stmt)
+print_colored_dictionaries(let_stmt)

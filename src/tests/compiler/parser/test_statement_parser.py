@@ -5,7 +5,7 @@ from lmn.compiler.parser.parser import Parser
 from lmn.compiler.ast import (
     Program,
     IfStatement,
-    SetStatement,
+    LetStatement,
     AssignmentStatement,
     PrintStatement,
     ReturnStatement,
@@ -25,16 +25,20 @@ def test_parse_empty():
     assert isinstance(program_ast, Program)
     assert len(program_ast.body) == 0
 
-def test_parse_set_statement():
-    # Updated: require '='
-    code = "set x = 5"
+def test_parse_let_statement():
+    """
+    Replaces old `test_parse_set_statement`.
+    Original code: `set x = 5`
+    New code:      `let x = 5`
+    """
+    code = "let x = 5"
     tokens = Tokenizer(code).tokenize()
     parser = Parser(tokens)
     program_ast = parser.parse()
 
     assert len(program_ast.body) == 1
     stmt = program_ast.body[0]
-    assert isinstance(stmt, SetStatement)
+    assert isinstance(stmt, LetStatement)
     # Check the variable name
     assert stmt.variable.name == "x"
     # The expression should be a literal with value=5
@@ -44,17 +48,23 @@ def test_parse_set_statement():
     assert stmt.variable.inferred_type is None
     assert stmt.expression.inferred_type is None
 
-def test_parse_set_statement_with_type():
-    # Updated: require '='
-    code = "set int.32 counter = 0"
+def test_parse_let_statement_with_type():
+    """
+    Replaces old `test_parse_set_statement_with_type`.
+    Original code: `set int.32 counter = 0`
+    New code:      `let int.32 counter = 0`
+    """
+    code = "let int.32 counter = 0"
     tokens = Tokenizer(code).tokenize()
     parser = Parser(tokens)
     program_ast = parser.parse()
 
     assert len(program_ast.body) == 1
     stmt = program_ast.body[0]
-    assert isinstance(stmt, SetStatement)
+    assert isinstance(stmt, LetStatement)
     assert stmt.variable.name == "counter"
+    # If your parser stores the type annotation as a string or a structured node,
+    # adjust this check as needed. Here we assume `.type_annotation == "int.32"`.
     assert stmt.type_annotation == "int.32"
     assert isinstance(stmt.expression, LiteralExpression)
     assert stmt.expression.value == 0
@@ -206,11 +216,23 @@ def test_parse_for_in():
     assert isinstance(stmt.body[0], PrintStatement)
 
 def test_parse_complex():
-    # Updated: require '=' after "set x"
+    """
+    Replaces old snippet that used `set`.
+    Original:
+        set x = 3
+        if (x < 5)
+          set x = x + 1
+          print x
+        else
+          print "Done"
+        end
+
+    New snippet uses `let`:
+    """
     code = """
-    set x = 3
+    let x = 3
     if (x < 5)
-      set x = x + 1
+      let x = x + 1
       print x
     else
       print "Done"
@@ -223,30 +245,30 @@ def test_parse_complex():
 
     assert len(program_ast.body) == 2
 
-    # 1) set x = 3
-    set_stmt = program_ast.body[0]
-    assert isinstance(set_stmt, SetStatement)
-    assert set_stmt.variable.name == "x"
-    assert isinstance(set_stmt.expression, LiteralExpression)
-    assert set_stmt.expression.value == 3
-    assert set_stmt.variable.inferred_type is None
-    assert set_stmt.expression.inferred_type is None
+    # 1) let x = 3
+    let_stmt = program_ast.body[0]
+    assert isinstance(let_stmt, LetStatement)
+    assert let_stmt.variable.name == "x"
+    assert isinstance(let_stmt.expression, LiteralExpression)
+    assert let_stmt.expression.value == 3
+    assert let_stmt.variable.inferred_type is None
+    assert let_stmt.expression.inferred_type is None
 
     # 2) if statement
     if_stmt = program_ast.body[1]
     assert isinstance(if_stmt, IfStatement)
     assert isinstance(if_stmt.condition, BinaryExpression)
     assert if_stmt.condition.operator == "<"
-    # then body has 2 statements: set x = x + 1, print x
+    # then body has 2 statements: let x = x + 1, print x
     assert len(if_stmt.then_body) == 2
-    then_set = if_stmt.then_body[0]
-    assert isinstance(then_set, SetStatement)
-    assert isinstance(then_set.expression, BinaryExpression)
-    assert then_set.expression.operator == "+"
-    assert isinstance(then_set.expression.left, VariableExpression)
-    assert then_set.expression.left.name == "x"
-    assert then_set.variable.inferred_type is None
-    assert then_set.expression.inferred_type is None
+    then_let = if_stmt.then_body[0]
+    assert isinstance(then_let, LetStatement)
+    assert isinstance(then_let.expression, BinaryExpression)
+    assert then_let.expression.operator == "+"
+    assert isinstance(then_let.expression.left, VariableExpression)
+    assert then_let.expression.left.name == "x"
+    assert then_let.variable.inferred_type is None
+    assert then_let.expression.inferred_type is None
 
     then_print = if_stmt.then_body[1]
     assert isinstance(then_print, PrintStatement)

@@ -1,4 +1,4 @@
-# file: lmn/compiler/emitter/wasm/statements/set_emitter.py
+# file: lmn/compiler/emitter/wasm/statements/let_emitter.py
 
 import logging
 from lmn.compiler.typechecker.utils import normalize_type, unify_types
@@ -6,15 +6,15 @@ from lmn.compiler.emitter.wasm.wasm_utils import default_zero_for
 
 logger = logging.getLogger(__name__)
 
-class SetEmitter:
+class LetEmitter:
     def __init__(self, controller):
         self.controller = controller
 
-    def emit_set(self, node, out_lines):
+    def emit_let(self, node, out_lines):
         """
         node example:
         {
-          "type": "SetStatement",
+          "type": "LetStatement",
           "variable": { "type": "VariableExpression", "name": "z" },
           "expression": { "type": "LiteralExpression", "value": 100 },
           "type_annotation": "int.32" or None,

@@ -4,7 +4,7 @@ import json
 # Import from compiler.ast (the mega-union approach), not submodules
 from lmn.compiler.ast import (
     Program,
-    SetStatement,
+    LetStatement,
     LiteralExpression,
     VariableExpression,
 )
@@ -29,7 +29,7 @@ def test_program_with_statements():
     prog = Program()
 
     # Create a single statement, e.g. 'set x 5'
-    set_stmt = SetStatement(
+    set_stmt = LetStatement(
         variable=VariableExpression(name="x"),
         expression=LiteralExpression(value="5")
     )
@@ -40,8 +40,8 @@ def test_program_with_statements():
     body = result_dict["body"]
     assert len(body) == 1
 
-    # Check that the statement is a SetStatement in dict form
-    assert body[0]["type"] == "SetStatement"
+    # Check that the statement is a LetStatement in dict form
+    assert body[0]["type"] == "LetStatement"
     # variable => a VariableExpression with name "x"
     assert body[0]["variable"]["type"] == "VariableExpression"
     assert body[0]["variable"]["name"] == "x"

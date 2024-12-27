@@ -19,7 +19,7 @@ def test_if_no_else():
       "type": "IfStatement",
       "condition": {"type": "LiteralExpression", "value": 42},
       "thenBody": [
-         {"type": "SetStatement", "var": "x", "expr": {"type": "LiteralExpression", "value": 1}}
+         {"type": "LetStatement", "var": "x", "expr": {"type": "LiteralExpression", "value": 1}}
       ],
       "elseBody": []
     }
@@ -49,7 +49,7 @@ def test_if_with_else():
          {"type": "PrintStatement", "expressions": [{"type": "LiteralExpression", "value": "Hello"}]}
       ],
       "elseBody": [
-         {"type": "SetStatement", "var": "y", "expr": {"type": "LiteralExpression", "value": 2}}
+         {"type": "LetStatement", "var": "y", "expr": {"type": "LiteralExpression", "value": 2}}
       ]
     }
     out = []

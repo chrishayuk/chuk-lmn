@@ -1,4 +1,4 @@
-# file: lmn/compiler/typechecker/statements/set_statement.py
+# file: lmn/compiler/typechecker/statements/let_statement.py
 import logging
 from typing import Dict, Optional
 from lmn.compiler.typechecker.utils import normalize_type, unify_types
@@ -7,13 +7,13 @@ from lmn.compiler.typechecker.expression_checker import check_expression
 # logger
 logger = logging.getLogger(__name__)
 
-def check_set_statement(stmt, symbol_table: Dict[str, str]) -> None:
-    """Type check a set statement and update the symbol table."""
+def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
+    """Type check a let statement and update the symbol table."""
     var_name = stmt.variable.name
     type_annotation = stmt.type_annotation
     expr = stmt.expression
 
-    logger.debug(f"Processing set statement for variable '{var_name}'")
+    logger.debug(f"Processing let statement for variable '{var_name}'")
     logger.debug(f"Type annotation: {type_annotation}")
 
     # Convert type annotation to internal format
@@ -41,7 +41,7 @@ def check_set_statement(stmt, symbol_table: Dict[str, str]) -> None:
 
     else:
         # No expression - just add declared type to symbol table
-        logger.debug(f"No expression provided in 'set' statement for variable '{var_name}'.")
+        logger.debug(f"No expression provided in 'let' statement for variable '{var_name}'.")
         symbol_table[var_name] = declared_type
         stmt.variable.inferred_type = declared_type  # Add this line
         logger.debug(f"Marking '{var_name}' with type {declared_type} in the symbol table.")

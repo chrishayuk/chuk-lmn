@@ -21,7 +21,7 @@ class PrintParser:
             not in [
                 LmnTokenType.IF,
                 LmnTokenType.FOR,
-                LmnTokenType.SET,
+                LmnTokenType.LET,
                 LmnTokenType.PRINT,
                 LmnTokenType.RETURN,
                 LmnTokenType.END,

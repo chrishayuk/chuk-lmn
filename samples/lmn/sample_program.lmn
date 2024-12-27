@@ -1,24 +1,24 @@
 // Demonstrates typed declarations, initialization, assignment, re-assignment
 
 // 1) Declare a 32-bit float variable, assign later
-set float.32 flt
+let float.32 flt
 flt = 2.718
 
 // 2) Declare a 64-bit float variable with immediate init
-set float.64 dbl = 3.14159
+let float.64 dbl = 3.14159
 
 // 3) Declare a 32-bit int variable, assign later
-set int.32 i32var
+let int.32 i32var
 i32var = 42
 
 // 4) Declare a 64-bit int with immediate init
-set int.64 i64var = 10000000000
+let int.64 i64var = 10000000000
 
 // 5) Re-assign a previously declared 64-bit int (add an expression)
 i64var = i64var + 500
 
 // 6) Declare another 64-bit float, assign an expression mixing flt + dbl
-set float.64 dbl2
+let float.64 dbl2
 dbl2 = flt + dbl
 
 // 7) Print them all

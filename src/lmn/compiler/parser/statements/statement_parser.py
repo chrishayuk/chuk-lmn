@@ -5,7 +5,7 @@ from lmn.compiler.parser.statements.assignment_parser import AssignmentParser
 from lmn.compiler.parser.statements.function_definition_parser import FunctionDefinitionParser
 from lmn.compiler.parser.statements.if_parser import IfParser
 from lmn.compiler.parser.statements.for_parser import ForParser
-from lmn.compiler.parser.statements.set_parser import SetParser
+from lmn.compiler.parser.statements.let_parser import LetParser
 from lmn.compiler.parser.statements.print_parser import PrintParser
 from lmn.compiler.parser.statements.return_parser import ReturnParser
 
@@ -24,7 +24,7 @@ class StatementParser:
         - identifier -> AssignmentParser
         - if -> IfParser
         - for -> ForParser
-        - set -> SetParser
+        - let -> LetParser
         - print -> PrintParser
         - return -> ReturnParser
         - otherwise -> SyntaxError
@@ -53,8 +53,8 @@ class StatementParser:
         elif ttype == LmnTokenType.FOR:
             return ForParser(self.parser).parse()
 
-        elif ttype == LmnTokenType.SET:
-            return SetParser(self.parser).parse()
+        elif ttype == LmnTokenType.LET:
+            return LetParser(self.parser).parse()
 
         elif ttype == LmnTokenType.PRINT:
             return PrintParser(self.parser).parse()
