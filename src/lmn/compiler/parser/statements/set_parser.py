@@ -1,8 +1,7 @@
-# file: set_parser.py
+# set_parser.py
 from lmn.compiler.lexer.token_type import LmnTokenType
-from lmn.compiler.ast import SetStatement, VariableExpression
 from lmn.compiler.parser.parser_utils import expect_token, current_token_is
-
+from lmn.compiler.ast import SetStatement, VariableExpression
 
 class SetParser:
     def __init__(self, parent_parser):
@@ -10,35 +9,37 @@ class SetParser:
 
     def parse(self):
         """
-        New-syntax 'set' for declaration:
-          set float.32 myVar = 3.14
-          set int.64 bigNum
-          set x = 42
-          set myUntyped
+        Parses statements like:
+          set x = 5
+          set int.32 x = 5
+          set y
         """
-        # 1) Optional type annotation
+        # 1) consume the 'set' token
+        self.parser.advance()  
+
+        # 2) optional type annotation
         type_annotation = None
         if self._lookahead_is_type_annotation():
             type_annotation = self._parse_type_annotation()
 
-        # Next must be an IDENTIFIER
+        # 3) expect IDENTIFIER for variable name
         var_token = expect_token(self.parser, LmnTokenType.IDENTIFIER,
-                                   "Expected variable name after type annotation or 'set'")
+                                 "Expected variable name after 'set'")
+        # CRITICAL: consume that IDENTIFIER token 
+        self.parser.advance()
 
-        variable_expr = VariableExpression(name=var_token.value)
-
-        # 2) Optional '=' <expr>
+        # 4) optional '=' <expr>
         initializer_expr = None
         if current_token_is(self.parser, LmnTokenType.EQ):
             self.parser.advance()  # consume '='
             initializer_expr = self.parser.expression_parser.parse_expression()
 
-        # Return a SetStatement node with optional type_annotation
         return SetStatement(
-            variable=variable_expr,
+            variable=VariableExpression(name=var_token.value),
             expression=initializer_expr,
             type_annotation=type_annotation
         )
+
 
     def _lookahead_is_type_annotation(self):
         """Check if next tokens look like IDENTIFIER '.' NUMBER."""
@@ -46,15 +47,13 @@ class SetParser:
         t2 = self.parser.peek(1)  # next
         t3 = self.parser.peek(2)
         return (
-                t1 and t1.token_type == LmnTokenType.IDENTIFIER and
-                t2 and t2.token_type == LmnTokenType.DOT and
-                t3 and t3.token_type == LmnTokenType.NUMBER
+            t1 and t1.token_type == LmnTokenType.IDENTIFIER and
+            t2 and t2.token_type == LmnTokenType.DOT and
+            t3 and t3.token_type == LmnTokenType.NUMBER
         )
 
     def _parse_type_annotation(self):
-        """
-        Consumes IDENTIFIER, DOT, NUMBER => e.g. 'float.32'
-        """
+        """Consumes IDENTIFIER, DOT, NUMBER => e.g. 'float.32'."""
         if self.parser.current_token.token_type != LmnTokenType.IDENTIFIER:
             raise SyntaxError("Expected type name (e.g. 'float')")
         part1_token = self.parser.current_token
@@ -69,4 +68,5 @@ class SetParser:
 
         bits_token = self.parser.current_token
         self.parser.advance()
+
         return f"{part1_token.value}.{int(bits_token.value)}"

@@ -1,6 +1,7 @@
-# tests/compiler/lexer/test_lmn_tokenizer.py
+# tests/compiler/lexer/test_tokenizer.py
+
 from lmn.compiler.lexer.tokenizer import Tokenizer
-from lmn.compiler.lexer.tokenizer import LmnTokenType
+from lmn.compiler.lexer.token_type import LmnTokenType
 
 def test_empty_input():
     tokenizer = Tokenizer("")
@@ -24,11 +25,12 @@ def test_string_literal():
     assert tokens[0].value == "Hello, world!"
 
 def test_keywords():
-    code = "function if else end return for in to call print"
+    # Added "set" here
+    code = "function if else end return for in to call print set"
     tokenizer = Tokenizer(code)
     tokens = tokenizer.tokenize()
-    # We expect 10 tokens
-    assert len(tokens) == 10
+    # We now expect 11 tokens
+    assert len(tokens) == 11
 
     expected_keywords = [
         LmnTokenType.FUNCTION,
@@ -40,7 +42,8 @@ def test_keywords():
         LmnTokenType.IN,
         LmnTokenType.TO,
         LmnTokenType.CALL,
-        LmnTokenType.PRINT
+        LmnTokenType.PRINT,
+        LmnTokenType.SET,   # <-- "set"
     ]
     for i, ttype in enumerate(expected_keywords):
         assert tokens[i].token_type == ttype
@@ -126,9 +129,9 @@ end
     assert len(tokens) > 0
 
     # We expect something like:
-    # COMMENT, FUNCTION, IDENTIFIER(fact), LPAREN, IDENTIFIER(n), RPAREN,
-    # IF, LPAREN, IDENTIFIER(n), LE, NUMBER(1.0), RPAREN, RETURN, NUMBER(1.0), ELSE, RETURN, IDENTIFIER(n),
-    # MUL, IDENTIFIER(fact), LPAREN, IDENTIFIER(n), MINUS, NUMBER(1.0), RPAREN, END, END
+    # COMMENT, FUNCTION, IDENTIFIER("fact"), LPAREN, IDENTIFIER("n"), RPAREN,
+    # IF, LPAREN, IDENTIFIER("n"), LE, NUMBER(1.0), RPAREN, RETURN, NUMBER(1.0), ELSE, RETURN, IDENTIFIER("n"),
+    # MUL, IDENTIFIER("fact"), LPAREN, IDENTIFIER("n"), MINUS, NUMBER(1.0), RPAREN, END, END
     #
     # Let's check just a few spots:
     assert tokens[0].token_type == LmnTokenType.COMMENT

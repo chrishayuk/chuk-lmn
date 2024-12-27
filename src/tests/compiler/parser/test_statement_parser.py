@@ -1,5 +1,5 @@
 # tests/test_statements_parser.py
-# Import the tokenizer, parser, and relevant AST nodes from your mega-union approach
+
 from lmn.compiler.lexer.tokenizer import Tokenizer
 from lmn.compiler.parser.parser import Parser
 from lmn.compiler.ast import (
@@ -26,7 +26,8 @@ def test_parse_empty():
     assert len(program_ast.body) == 0
 
 def test_parse_set_statement():
-    code = "set x 5"
+    # Updated: require '='
+    code = "set x = 5"
     tokens = Tokenizer(code).tokenize()
     parser = Parser(tokens)
     program_ast = parser.parse()
@@ -44,7 +45,8 @@ def test_parse_set_statement():
     assert stmt.expression.inferred_type is None
 
 def test_parse_set_statement_with_type():
-    code = "set int.32 counter 0"
+    # Updated: require '='
+    code = "set int.32 counter = 0"
     tokens = Tokenizer(code).tokenize()
     parser = Parser(tokens)
     program_ast = parser.parse()
@@ -152,6 +154,7 @@ def test_parse_return_statement():
     # expression is a binary expression x + 1
     assert isinstance(stmt.expression, BinaryExpression)
     assert stmt.expression.operator == "+"
+    # left side: VariableExpression("x"), right side: LiteralExpression(1)
 
 def test_parse_for_range():
     code = """
@@ -203,10 +206,11 @@ def test_parse_for_in():
     assert isinstance(stmt.body[0], PrintStatement)
 
 def test_parse_complex():
+    # Updated: require '=' after "set x"
     code = """
-    set x 3
+    set x = 3
     if (x < 5)
-      set x x + 1
+      set x = x + 1
       print x
     else
       print "Done"
@@ -219,7 +223,7 @@ def test_parse_complex():
 
     assert len(program_ast.body) == 2
 
-    # 1) set x 3
+    # 1) set x = 3
     set_stmt = program_ast.body[0]
     assert isinstance(set_stmt, SetStatement)
     assert set_stmt.variable.name == "x"
@@ -233,7 +237,7 @@ def test_parse_complex():
     assert isinstance(if_stmt, IfStatement)
     assert isinstance(if_stmt.condition, BinaryExpression)
     assert if_stmt.condition.operator == "<"
-    # then body has 2 statements: set x x + 1, print x
+    # then body has 2 statements: set x = x + 1, print x
     assert len(if_stmt.then_body) == 2
     then_set = if_stmt.then_body[0]
     assert isinstance(then_set, SetStatement)

@@ -217,14 +217,14 @@ def test_function_with_recursion():
 def test_function_multiple_statements_body():
     """
     function doStuff(a)
-      set x a
+      set x = a
       print x
       return x * 2
     end
     """
     code = """
     function doStuff(a)
-      set x a
+      set x = a
       print x
       return x * 2
     end
