@@ -41,32 +41,43 @@ def type_check_program(program_node: Program) -> None:
     Each MegaUnion node has a .type (string) and other fields depending on the node type.
     Raises TypeError or NotImplementedError on mismatch.
     """
+    # start
     logger.info("Starting type checking for program")
     
     try:
+        # Initialize an empty symbol table
         symbol_table: Dict[str, str] = {}
         logger.debug("Initialized empty symbol table")
 
+        # Iterate over each statement in the top-level node in the program
         for i, node in enumerate(program_node.body):
+            # debug
             logger.debug(f"Checking top-level node {i+1}/{len(program_node.body)}: {node.type}")
             logger.debug(f"Node details: {node.__dict__}")
             
             try:
+                # Check each top-level node
                 check_top_level_node(node, symbol_table)
+
+                # log symbol table after each node
                 log_symbol_table(symbol_table)
             except Exception as e:
+                # log the error and re-raise
                 logger.error(f"Error processing node {i+1}: {str(e)}")
                 logger.error(f"Node that caused error: {node.__dict__}")
                 raise
-            
+        
+        # success
         logger.info("Type checking completed successfully")
         
     except TypeCheckError as e:
+        # log the error and re-raise
         logger.error(f"Type checking failed: {e.message}")
         if e.details:
             logger.error(f"Error details: {e.details}")
         raise
     except Exception as e:
+        # log the critical error and re-raise
         logger.critical(f"Unexpected error during type checking: {str(e)}")
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
@@ -76,49 +87,38 @@ def check_top_level_node(node: Node, symbol_table: dict) -> None:
     A top-level node might be a FunctionDefinition or a statement 
     (if your language allows statements at top-level). We'll dispatch accordingly.
     """
+    # set the node type
     node_type = node.type
     
+    # debug
     logger.debug(f"Processing node of type: {node_type}")
     logger.debug(f"Node attributes: {node.__dict__}")
     
     try:
         if node_type == "FunctionDefinition":
+            # check the function definition
             logger.debug("Checking function definition")
             check_function_definition(node, symbol_table)
         else:
+            # check the statement
             logger.debug(f"Checking top-level statement: {node_type}")
-            
-            # Log expression details if present
-            if hasattr(node, 'expression') and node.expression:
-                expr = node.expression
-                logger.debug(f"Expression to check: {expr.__dict__}")
-                logger.debug(f"Expression type: {expr.type if hasattr(expr, 'type') else 'unknown'}")
-                logger.debug(f"Expression inferred type: {expr.inferred_type if hasattr(expr, 'inferred_type') else 'none'}")
-            
-            # For assignments, log detailed type information
-            if node_type == "AssignmentStatement":
-                var_name = node.variable_name
-                existing_type = symbol_table.get(var_name)
-                
-                if hasattr(node, 'type_annotation'):
-                    logger.debug(f"Variable '{var_name}' has type annotation: {node.type_annotation}")
-                
-                log_type_info(var_name, 
-                            existing_type,
-                            getattr(node.expression, 'inferred_type', None) if hasattr(node, 'expression') else None,
-                            symbol_table)
-            
             check_statement(node, symbol_table)
             
     except (TypeError, NotImplementedError) as e:
+        # get the error details
         error_details = {
             "node_type": node_type,
             "symbol_table": symbol_table,
             "node_attributes": node.__dict__
         }
+
+        # log the error
         logger.error(f"Error checking {node_type} node: {str(e)}", extra=error_details)
+
+        # re-raise the exception
         raise TypeCheckError(str(e), node_type, error_details)
     except Exception as e:
+        # log the critical error and re-raise
         logger.critical(f"Unexpected error checking {node_type} node: {str(e)}")
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise

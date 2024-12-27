@@ -4,6 +4,7 @@ from typing import Dict, Optional
 from lmn.compiler.typechecker.utils import normalize_type, unify_types
 from lmn.compiler.typechecker.expression_checker import check_expression
 
+# logger
 logger = logging.getLogger(__name__)
 
 def check_set_statement(stmt, symbol_table: Dict[str, str]) -> None:
