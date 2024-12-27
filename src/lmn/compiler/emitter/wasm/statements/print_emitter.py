@@ -1,4 +1,4 @@
-# compiler/emitter/wasm/statements/print_emitter.py
+# file: compiler/emitter/wasm/statements/print_emitter.py
 
 class PrintEmitter:
     def __init__(self, controller):
@@ -33,8 +33,10 @@ class PrintEmitter:
         exprs = node["expressions"]
         for ex in exprs:
             # 1) If it's a string literal, handle or skip
+            #    (Ignoring strings for simplicity, or you might 
+            #     do something else like put them in data segments.)
             if ex["type"] == "LiteralExpression" and isinstance(ex["value"], str):
-                # ignoring strings for simplicity
+                # Skipping strings for brevity
                 continue
 
             # 2) Emit code for the numeric expression
@@ -42,10 +44,19 @@ class PrintEmitter:
 
             # 3) Based on inferred type, call the matching print function
             inferred_type = ex.get("inferred_type", "i32")  # fallback to i32 if missing
+
             if inferred_type == "i64":
                 out_lines.append("  call $print_i64")
+
             elif inferred_type == "f64":
                 out_lines.append("  call $print_f64")
+
+            elif inferred_type == "f32":
+                # We only have print_f64 imported, so promote f32 -> f64 
+                # before calling $print_f64
+                out_lines.append("  f64.promote_f32")
+                out_lines.append("  call $print_f64")
+
             else:
-                # default or i32
+                # default => treat as i32
                 out_lines.append("  call $print_i32")
