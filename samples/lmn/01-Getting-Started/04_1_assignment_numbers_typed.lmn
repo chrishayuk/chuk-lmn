@@ -1,0 +1,13 @@
+// 04_1_assignment_numbers_typed.lmn
+// Shows typed variable declarations.
+let smallVal:int = 42
+let bigVal:long = 2147483648
+let ratio:float = 3.14
+let eVal:double = 2.71828
+let negative:int = -42
+
+print smallVal
+print bigVal
+print ratio
+print eVal
+print negative

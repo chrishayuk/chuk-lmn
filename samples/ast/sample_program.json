@@ -6,47 +6,94 @@
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
-        "name": "flt"
+        "name": "smallVal"
       },
       "expression": null,
-      "type_annotation": "float.32"
-    },
-    {
-      "type": "AssignmentStatement",
-      "variable_name": "flt",
-      "expression": {
-        "inferred_type": null,
-        "type": "LiteralExpression",
-        "value": 2.718
-      }
+      "type_annotation": "int"
     },
     {
       "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
-        "name": "dbl"
+        "name": "bigVal"
       },
-      "expression": {
-        "inferred_type": null,
-        "type": "LiteralExpression",
-        "value": 3.14159
-      },
-      "type_annotation": "float.64"
+      "expression": null,
+      "type_annotation": "long"
     },
     {
       "type": "LetStatement",
       "variable": {
         "inferred_type": null,
         "type": "VariableExpression",
-        "name": "i32var"
+        "name": "ratio"
       },
       "expression": null,
-      "type_annotation": "int.32"
+      "type_annotation": "float"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "eVal"
+      },
+      "expression": null,
+      "type_annotation": "double"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "negative"
+      },
+      "expression": null,
+      "type_annotation": "int"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "inferredInt"
+      },
+      "expression": null,
+      "type_annotation": null
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "inferredLarge"
+      },
+      "expression": null,
+      "type_annotation": null
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "inferredRatio"
+      },
+      "expression": null,
+      "type_annotation": null
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": null,
+        "type": "VariableExpression",
+        "name": "inferredNegative"
+      },
+      "expression": null,
+      "type_annotation": null
     },
     {
       "type": "AssignmentStatement",
-      "variable_name": "i32var",
+      "variable_name": "smallVal",
       "expression": {
         "inferred_type": null,
         "type": "LiteralExpression",
@@ -54,64 +101,84 @@
       }
     },
     {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": null,
-        "type": "VariableExpression",
-        "name": "i64var"
-      },
+      "type": "AssignmentStatement",
+      "variable_name": "bigVal",
       "expression": {
-        "inferred_type": "i64",
+        "inferred_type": null,
         "type": "LiteralExpression",
-        "value": 10000000000
-      },
-      "type_annotation": "int.64"
+        "value": 2147483648
+      }
     },
     {
       "type": "AssignmentStatement",
-      "variable_name": "i64var",
+      "variable_name": "ratio",
       "expression": {
         "inferred_type": null,
-        "type": "BinaryExpression",
-        "operator": "+",
-        "left": {
-          "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "i64var"
-        },
-        "right": {
+        "type": "LiteralExpression",
+        "value": 3.14
+      }
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "eVal",
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 2.71828
+      }
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "negative",
+      "expression": {
+        "inferred_type": null,
+        "type": "UnaryExpression",
+        "operator": "-",
+        "operand": {
           "inferred_type": null,
           "type": "LiteralExpression",
-          "value": 500
+          "value": 42
         }
       }
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": null,
-        "type": "VariableExpression",
-        "name": "dbl2"
-      },
-      "expression": null,
-      "type_annotation": "float.64"
     },
     {
       "type": "AssignmentStatement",
-      "variable_name": "dbl2",
+      "variable_name": "inferredInt",
       "expression": {
         "inferred_type": null,
-        "type": "BinaryExpression",
-        "operator": "+",
-        "left": {
+        "type": "LiteralExpression",
+        "value": 42
+      }
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "inferredLarge",
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 9999999999999
+      }
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "inferredRatio",
+      "expression": {
+        "inferred_type": null,
+        "type": "LiteralExpression",
+        "value": 0.5
+      }
+    },
+    {
+      "type": "AssignmentStatement",
+      "variable_name": "inferredNegative",
+      "expression": {
+        "inferred_type": null,
+        "type": "UnaryExpression",
+        "operator": "-",
+        "operand": {
           "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "flt"
-        },
-        "right": {
-          "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "dbl"
+          "type": "LiteralExpression",
+          "value": 100
         }
       }
     },
@@ -121,7 +188,7 @@
         {
           "inferred_type": null,
           "type": "VariableExpression",
-          "name": "flt"
+          "name": "smallVal"
         }
       ]
     },
@@ -131,7 +198,7 @@
         {
           "inferred_type": null,
           "type": "VariableExpression",
-          "name": "dbl"
+          "name": "bigVal"
         }
       ]
     },
@@ -141,7 +208,7 @@
         {
           "inferred_type": null,
           "type": "VariableExpression",
-          "name": "i32var"
+          "name": "ratio"
         }
       ]
     },
@@ -151,7 +218,7 @@
         {
           "inferred_type": null,
           "type": "VariableExpression",
-          "name": "i64var"
+          "name": "eVal"
         }
       ]
     },
@@ -161,7 +228,47 @@
         {
           "inferred_type": null,
           "type": "VariableExpression",
-          "name": "dbl2"
+          "name": "negative"
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "inferredInt"
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "inferredLarge"
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "inferredRatio"
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "inferredNegative"
         }
       ]
     }

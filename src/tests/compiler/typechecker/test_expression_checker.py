@@ -5,15 +5,16 @@ from pydantic import TypeAdapter
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.expression_checker import check_expression
 
-# If you have a ConversionExpression node, import it here:
+# If your code inserts explicit conversions, import the ConversionExpression node:
 # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
 # Create a single TypeAdapter for the `Node` union
 node_adapter = TypeAdapter(Node)
 
+
 def test_literal_expression_int():
     """
-    If the literal is an int => 'i32'.
+    If the literal is an int => default is 'i32'.
     """
     dict_expr = {
         "type": "LiteralExpression",
@@ -28,7 +29,7 @@ def test_literal_expression_int():
 
 def test_literal_expression_float():
     """
-    If the literal is a float => 'f64'.
+    If the literal is a float => default is 'f64'.
     """
     dict_expr = {
         "type": "LiteralExpression",
@@ -73,7 +74,7 @@ def test_variable_expression_not_found():
 
 def test_unary_minus_float():
     """
-    -(some float literal) => 'f64'
+    -(some float literal) => 'f64'.
     """
     dict_expr = {
         "type": "UnaryExpression",
@@ -92,7 +93,7 @@ def test_unary_minus_float():
 
 def test_unary_not_i32():
     """
-    not i32 => i32
+    'not' + i32 => i32
     """
     dict_expr = {
         "type": "UnaryExpression",
@@ -114,7 +115,7 @@ def test_unary_not_i32():
 @pytest.mark.parametrize("operator", ["+", "-", "*"])
 def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_is_float, operator):
     """
-    If either side is float => f64, else => i32.
+    If either side is float => result is f64, else => i32.
     """
     dict_expr = {
         "type": "BinaryExpression",
@@ -139,7 +140,7 @@ def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_
 
 def test_binary_mixed_variable_and_literal():
     """
-    e.g. (x + 3.14): x => i32, unify => f64
+    e.g. (x + 3.14): if x => i32, unify => f64
     """
     dict_expr = {
         "type": "BinaryExpression",
@@ -162,7 +163,7 @@ def test_binary_mixed_variable_and_literal():
 
 def test_fn_expression_simple():
     """
-    A naive function call => always returns 'f64'.
+    A naive function call => always returns 'f64' (per check_fn_expression).
     """
     dict_expr = {
         "type": "FnExpression",
@@ -181,10 +182,6 @@ def test_fn_expression_simple():
     assert inferred == "f64"
     assert expr_obj.inferred_type == "f64"
 
-
-# -------------------------------------------------------------------
-# Additional Mixed-Type Tests (Optional)
-# -------------------------------------------------------------------
 
 @pytest.mark.parametrize(
     "left_value,left_inferred,right_value,right_inferred,expected_result",
@@ -208,7 +205,7 @@ def test_binary_expression_mixed_types(
 ):
     """
     Checks that check_expression unifies subexpressions with different numeric types.
-    If your code inserts a ConversionExpression, you can check for that here.
+    If your code inserts a ConversionExpression, you can test for it here.
     """
     dict_expr = {
         "type": "BinaryExpression",
@@ -233,10 +230,10 @@ def test_binary_expression_mixed_types(
     assert expr_obj.inferred_type == expected_result
 
 
-@pytest.mark.skip(reason="Requires typechecker rewriting to insert ConversionExpression.")
+@pytest.mark.skip(reason="Requires rewriting to insert ConversionExpression.")
 def test_binary_expression_f32_plus_f64_inserts_conversion():
     """
-    Example: If left is f32, right is f64 => result f64,
+    If left is f32, right is f64 => result f64,
     typechecker might wrap the left side in a ConversionExpression(f32->f64).
     Uncomment if your typechecker does AST rewriting.
     """
@@ -261,7 +258,7 @@ def test_binary_expression_f32_plus_f64_inserts_conversion():
     assert final_type == "f64"
     assert expr_obj.inferred_type == "f64"
 
-    # If your typechecker rewrote the left side:
+    # If your typechecker does AST insertion:
     # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
     # assert isinstance(expr_obj.left, ConversionExpression)
     # assert expr_obj.left.from_type == "f32"

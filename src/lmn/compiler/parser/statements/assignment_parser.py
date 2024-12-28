@@ -10,21 +10,28 @@ class AssignmentParser:
     def parse(self):
         """
         Parse an assignment statement of form:
-          myVar = expression
+            myVar = expression
         """
-        # 1) Expect an IDENTIFIER
-        var_token = expect_token(self.parser, LmnTokenType.IDENTIFIER,
-                                 "Expected variable name for assignment")
+        # 1) Expect an IDENTIFIER for the variable name
+        var_token = expect_token(
+            self.parser, 
+            LmnTokenType.IDENTIFIER,
+            "Expected variable name for assignment"
+        )
         self.parser.advance()
 
         # 2) Expect '='
-        eq_token = expect_token(self.parser, LmnTokenType.EQ,
-                                "Expected '=' for assignment statement")
+        eq_token = expect_token(
+            self.parser, 
+            LmnTokenType.EQ,
+            "Expected '=' for assignment statement"
+        )
         self.parser.advance()
 
         # 3) Parse expression
         rhs_expr = self.parser.expression_parser.parse_expression()
 
+        # 4) Build and return the AssignmentStatement node
         return AssignmentStatement(
             variable_name=var_token.value,
             expression=rhs_expr

@@ -5,16 +5,23 @@ class LmnTokenType(Enum):
     # ------------------------------
     # Basic Value/Identifier Tokens
     # ------------------------------
-    STRING = 'STRING'         # e.g., "hello"
-    NUMBER = 'NUMBER'         # e.g., 123, 3.14
-    IDENTIFIER = 'IDENTIFIER' # e.g., myVar, fact, city
-    NEWLINE = 'NEWLINE'       # representing a line break
+    STRING = 'STRING'
+    IDENTIFIER = 'IDENTIFIER'
+    NEWLINE = 'NEWLINE'  # Use if needed; else remove
+
+    # ------------------------------
+    # Numeric (literals)
+    # ------------------------------
+    INT_LITERAL      = 'INT_LITERAL'      # 32-bit integer literal
+    LONG_LITERAL     = 'LONG_LITERAL'     # 64-bit integer literal
+    FLOAT_LITERAL    = 'FLOAT_LITERAL'    # float literal (f suffix)
+    DOUBLE_LITERAL   = 'DOUBLE_LITERAL'   # double literal (no f suffix)
 
     # ------------------------------
     # Operators
     # ------------------------------
-    EQ = '='       # can be used for equality (expr-level) or assignment (depending on grammar)
-    NE = '!='      # not-equal
+    EQ = '='
+    NE = '!='
     LT = '<'
     LE = '<='
     GT = '>'
@@ -23,7 +30,7 @@ class LmnTokenType(Enum):
     MINUS = '-'
     MUL = '*'
     DIV = '/'
-    POW = '^'      # optional exponent operator
+    POW = '^'
 
     # ------------------------------
     # Punctuation
@@ -33,12 +40,13 @@ class LmnTokenType(Enum):
     COMMA = ','
     LBRACKET = '['
     RBRACKET = ']'
-    DOT = "DOT"
+    DOT = 'DOT'
+    COLON = ':'
 
     # ------------------------------
     # Comment
     # ------------------------------
-    COMMENT = 'COMMENT'       # e.g., everything after "//" until end of line
+    COMMENT = 'COMMENT'
 
     # ------------------------------
     # Keywords (all lowercase)
@@ -61,6 +69,14 @@ class LmnTokenType(Enum):
     TRUE = 'true'
     FALSE = 'false'
     NIL = 'nil'
+
+    # ------------------------------
+    # Type Keywords
+    # ------------------------------
+    INT    = 'int'
+    LONG   = 'long'
+    FLOAT  = 'float'
+    DOUBLE = 'double'
 
     @staticmethod
     def get_keywords():
@@ -85,17 +101,21 @@ class LmnTokenType(Enum):
             'break': LmnTokenType.BREAK,
             'true': LmnTokenType.TRUE,
             'false': LmnTokenType.FALSE,
-            'nil': LmnTokenType.NIL
+            'nil': LmnTokenType.NIL,
+
+            # Type keywords
+            'int': LmnTokenType.INT,
+            'long': LmnTokenType.LONG,
+            'float': LmnTokenType.FLOAT,
+            'double': LmnTokenType.DOUBLE,
         }
 
     @staticmethod
     def get_operator_map():
         return {
-            # Multi-char first
             '!=': LmnTokenType.NE,
             '<=': LmnTokenType.LE,
             '>=': LmnTokenType.GE,
-            # Then single-char
             '<':  LmnTokenType.LT,
             '>':  LmnTokenType.GT,
             '=':  LmnTokenType.EQ,
@@ -106,17 +126,14 @@ class LmnTokenType(Enum):
             '^':  LmnTokenType.POW
         }
 
-
     @staticmethod
     def get_punctuation_map():
-        """
-        Maps punctuation characters to the corresponding enum member.
-        """
         return {
             '(': LmnTokenType.LPAREN,
             ')': LmnTokenType.RPAREN,
             ',': LmnTokenType.COMMA,
             '[': LmnTokenType.LBRACKET,
             ']': LmnTokenType.RBRACKET,
-            ".": LmnTokenType.DOT,
+            '.': LmnTokenType.DOT,
+            ':': LmnTokenType.COLON,
         }

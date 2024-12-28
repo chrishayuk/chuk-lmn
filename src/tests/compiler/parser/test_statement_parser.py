@@ -25,11 +25,11 @@ def test_parse_empty():
     assert isinstance(program_ast, Program)
     assert len(program_ast.body) == 0
 
+
 def test_parse_let_statement():
     """
-    Replaces old `test_parse_set_statement`.
-    Original code: `set x = 5`
-    New code:      `let x = 5`
+    Basic let statement without a colon-based type annotation:
+        let x = 5
     """
     code = "let x = 5"
     tokens = Tokenizer(code).tokenize()
@@ -39,22 +39,28 @@ def test_parse_let_statement():
     assert len(program_ast.body) == 1
     stmt = program_ast.body[0]
     assert isinstance(stmt, LetStatement)
+
     # Check the variable name
     assert stmt.variable.name == "x"
+
     # The expression should be a literal with value=5
     assert isinstance(stmt.expression, LiteralExpression)
     assert stmt.expression.value == 5
-    # Parser doesn't infer types, so these should be None at this stage
+
+    # No type annotation => stmt.type_annotation is None
+    assert stmt.type_annotation is None
+
+    # The parser doesn't do type inference, so these are typically None
     assert stmt.variable.inferred_type is None
     assert stmt.expression.inferred_type is None
 
-def test_parse_let_statement_with_type():
+
+def test_parse_let_statement_with_type_colon():
     """
-    Replaces old `test_parse_set_statement_with_type`.
-    Original code: `set int.32 counter = 0`
-    New code:      `let int.32 counter = 0`
+    Tests a let statement with a colon-based type annotation:
+        let counter: int = 0
     """
-    code = "let int.32 counter = 0"
+    code = "let counter: int = 0"
     tokens = Tokenizer(code).tokenize()
     parser = Parser(tokens)
     program_ast = parser.parse()
@@ -62,14 +68,45 @@ def test_parse_let_statement_with_type():
     assert len(program_ast.body) == 1
     stmt = program_ast.body[0]
     assert isinstance(stmt, LetStatement)
+
+    # 'counter'
     assert stmt.variable.name == "counter"
-    # If your parser stores the type annotation as a string or a structured node,
-    # adjust this check as needed. Here we assume `.type_annotation == "int.32"`.
-    assert stmt.type_annotation == "int.32"
+
+    # type_annotation => "int"
+    assert stmt.type_annotation == "int"
+
+    # The expression => LiteralExpression(0)
     assert isinstance(stmt.expression, LiteralExpression)
     assert stmt.expression.value == 0
+
+    # No actual type inference done yet
     assert stmt.variable.inferred_type is None
     assert stmt.expression.inferred_type is None
+
+
+def test_parse_let_statement_with_type_colon_no_init():
+    """
+    Tests a let statement with a colon-based type annotation but no initializer:
+        let ratio: float
+    """
+    code = "let ratio: float"
+    tokens = Tokenizer(code).tokenize()
+    parser = Parser(tokens)
+    program_ast = parser.parse()
+
+    assert len(program_ast.body) == 1
+    stmt = program_ast.body[0]
+    assert isinstance(stmt, LetStatement)
+
+    # 'ratio'
+    assert stmt.variable.name == "ratio"
+
+    # type_annotation => "float"
+    assert stmt.type_annotation == "float"
+
+    # No initializer => expression is None
+    assert stmt.expression is None
+
 
 def test_parse_assignment_statement():
     code = "counter = 10"
@@ -84,6 +121,7 @@ def test_parse_assignment_statement():
     assert isinstance(stmt.expression, LiteralExpression)
     assert stmt.expression.value == 10
     assert stmt.expression.inferred_type is None
+
 
 def test_parse_print_statement():
     code = "print 10 20"
@@ -104,6 +142,7 @@ def test_parse_print_statement():
     assert isinstance(exprs[1], LiteralExpression)
     assert exprs[1].value == 20
     assert exprs[1].inferred_type is None
+
 
 def test_parse_if_no_else():
     code = """
@@ -126,6 +165,7 @@ def test_parse_if_no_else():
     assert isinstance(stmt.then_body[0], PrintStatement)
     # elseBody is empty
     assert len(stmt.else_body) == 0
+
 
 def test_parse_if_with_else():
     code = """
@@ -152,6 +192,7 @@ def test_parse_if_with_else():
     assert len(stmt.else_body) == 1
     assert isinstance(stmt.else_body[0], PrintStatement)
 
+
 def test_parse_return_statement():
     code = "return x + 1"
     tokens = Tokenizer(code).tokenize()
@@ -165,6 +206,7 @@ def test_parse_return_statement():
     assert isinstance(stmt.expression, BinaryExpression)
     assert stmt.expression.operator == "+"
     # left side: VariableExpression("x"), right side: LiteralExpression(1)
+
 
 def test_parse_for_range():
     code = """
@@ -192,6 +234,7 @@ def test_parse_for_range():
     assert len(stmt.body) == 1
     assert isinstance(stmt.body[0], PrintStatement)
 
+
 def test_parse_for_in():
     code = """
     for city in locations
@@ -214,6 +257,7 @@ def test_parse_for_in():
     # body has 1 statement: print city
     assert len(stmt.body) == 1
     assert isinstance(stmt.body[0], PrintStatement)
+
 
 def test_parse_complex():
     """

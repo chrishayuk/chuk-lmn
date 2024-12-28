@@ -1,0 +1,13 @@
+// 04_1_assignment_numbers_inferred.lmn
+// Shows typed variable declarations.
+let smallVal = 42
+let bigVal = 2147483648
+let ratio = 3.14f
+let eVal = 2.71828
+let negative = -42
+
+print smallVal
+print bigVal
+print ratio
+print eVal
+print negative

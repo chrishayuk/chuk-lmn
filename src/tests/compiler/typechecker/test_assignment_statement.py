@@ -1,3 +1,5 @@
+# tests/test_assignment_statement_typechecker.py
+
 import pytest
 
 from lmn.compiler.ast.statements.assignment_statement import AssignmentStatement
@@ -48,7 +50,6 @@ def test_assign_promote_f32_to_f64():
     assert symbol_table["x"] == "f64"
 
     # If your code injects a ConversionExpression:
-    # e.g. if new_type= 'f64' but expr_type='f32', wrap the expression
     if isinstance(stmt.expression, ConversionExpression):
         # Confirm the inserted conversion node
         conv = stmt.expression
@@ -58,9 +59,7 @@ def test_assign_promote_f32_to_f64():
         assert isinstance(conv.source_expr, LiteralExpression)
         assert conv.source_expr.value == 2.718
     else:
-        # If your typechecker doesn't auto-inject, it's enough to unify 
-        # so there's no mismatch. But in that case,
-        # you'd rely on the emitter to handle 'f32 -> f64' for assignment.
+        # Some language designs might skip explicit insertion
         pass
 
 
@@ -69,7 +68,9 @@ def test_assign_demote_f64_to_f32():
     If x is declared f32, but expression is an f64 literal,
     we unify => final type f32. If your language allows demotion, 
     you might insert a ConversionExpression (f64 -> f32).
-    Otherwise, you might raise an error if narrowing is forbidden.
+    
+    If your language forbids demotion, you can uncomment the 'pytest.raises' 
+    block and remove the lines after it, so the test expects a TypeError.
     """
     symbol_table = {"x": "f32"}
     expr = LiteralExpression(value=3.14159, inferred_type="f64")
@@ -79,11 +80,12 @@ def test_assign_demote_f64_to_f32():
         expression=expr
     )
 
-    # If your language forbids demotion, expect an error:
+    # If your language forbids demotion, do:
     # with pytest.raises(TypeError):
     #     check_assignment_statement(stmt, symbol_table)
+    # return
 
-    # Otherwise, let's say we do allow demotion:
+    # Otherwise, let the checker allow it with an inserted conversion:
     check_assignment_statement(stmt, symbol_table)
 
     assert stmt.inferred_type == "f32"

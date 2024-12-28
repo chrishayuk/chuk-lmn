@@ -1,8 +1,7 @@
-# tests/test_function_parser.py
+# file: tests/test_function_parser.py
+
 from lmn.compiler.lexer.tokenizer import Tokenizer
 from lmn.compiler.parser.parser import Parser
-
-# Instead of from old submodules, import from your mega-union approach if re-exported in __init__.py
 from lmn.compiler.ast import (
     FunctionDefinition,
     IfStatement,
@@ -15,10 +14,9 @@ from lmn.compiler.ast import (
     VariableExpression,
 )
 
+
 def test_empty_function():
     """
-    Test a function with no parameters and no body statements:
-    
     function empty()
     end
     """
@@ -27,16 +25,16 @@ def test_empty_function():
     parser = Parser(tokens)
     program_ast = parser.parse()
 
-    # We expect 1 FunctionDefinition in the program
-    # The program stores top-level statements in .body
+    # 1 function definition
     assert len(program_ast.body) == 1
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "empty"
     # No parameters
-    assert func_def.params == []
+    assert len(func_def.params) == 0
     # Empty body
     assert len(func_def.body) == 0
+
 
 def test_function_one_param():
     """
@@ -53,28 +51,31 @@ def test_function_one_param():
     parser = Parser(tokens)
     program_ast = parser.parse()
 
-    # Top-level statements => .body
+    # We expect 1 function definition
     assert len(program_ast.body) == 1
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "greet"
-    # 1 parameter: name
-    assert func_def.params == ["name"]
-    # Body has 1 statement
+    # Expect exactly 1 param object
+    assert len(func_def.params) == 1
+    param0 = func_def.params[0]
+    # e.g. param0 => { "name": "name", "type_annotation": None } 
+    assert param0.name == "name"
+    # If your model has .type_annotation, we assume None
+    assert param0.type_annotation in (None, "any")
+
+    # Body => 1 statement => print "Hello," name
     assert len(func_def.body) == 1
     stmt = func_def.body[0]
     assert isinstance(stmt, PrintStatement)
-    # 2 expressions: "Hello," and name
+    # 2 expressions => "Hello," and name
     assert len(stmt.expressions) == 2
-    # First is a literal string, second is a variable
-    lit = stmt.expressions[0]
-    var = stmt.expressions[1]
-    # Check for LiteralExpression
+    lit, var = stmt.expressions
     assert isinstance(lit, LiteralExpression)
     assert lit.value == "Hello,"
-    # Check for VariableExpression
     assert isinstance(var, VariableExpression)
     assert var.name == "name"
+
 
 def test_function_two_params_and_return():
     """
@@ -95,15 +96,29 @@ def test_function_two_params_and_return():
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "add"
-    assert func_def.params == ["a", "b"]
-    assert len(func_def.body) == 1
 
-    stmt = func_def.body[0]
-    assert isinstance(stmt, ReturnStatement)
-    # Check it's returning a + b
-    expr_dict = stmt.expression.to_dict()
-    assert expr_dict["type"] == "BinaryExpression"
-    assert expr_dict["operator"] == "+"
+    # Expect 2 param objects
+    assert len(func_def.params) == 2
+    p0, p1 = func_def.params
+    assert p0.name == "a"
+    assert p1.name == "b"
+
+    # Body => 1 statement => return a + b
+    assert len(func_def.body) == 1
+    ret_stmt = func_def.body[0]
+    assert isinstance(ret_stmt, ReturnStatement)
+
+    # a + b => BinaryExpression("+")
+    bin_expr = ret_stmt.expression
+    assert isinstance(bin_expr, BinaryExpression)
+    assert bin_expr.operator == "+"
+    # left => variable "a"
+    assert isinstance(bin_expr.left, VariableExpression)
+    assert bin_expr.left.name == "a"
+    # right => variable "b"
+    assert isinstance(bin_expr.right, VariableExpression)
+    assert bin_expr.right.name == "b"
+
 
 def test_function_if_statement():
     """
@@ -128,29 +143,32 @@ def test_function_if_statement():
     parser = Parser(tokens)
     program_ast = parser.parse()
 
-    # 1 function definition
     assert len(program_ast.body) == 1
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "check"
-    assert func_def.params == ["x"]
-    # Body has 1 statement: if-statement
+
+    # 1 param => x
+    assert len(func_def.params) == 1
+    param0 = func_def.params[0]
+    assert param0.name == "x"
+
+    # Body => 1 if-statement
     assert len(func_def.body) == 1
     if_stmt = func_def.body[0]
     assert isinstance(if_stmt, IfStatement)
 
-    # Check condition is x > 10
-    cond_dict = if_stmt.condition.to_dict()
-    assert cond_dict["type"] == "BinaryExpression"
-    assert cond_dict["operator"] == ">"
+    cond = if_stmt.condition
+    assert isinstance(cond, BinaryExpression)
+    assert cond.operator == ">"
 
-    # thenBody: 1 statement => print "Big"
+    # then => print "Big"
     assert len(if_stmt.then_body) == 1
     assert isinstance(if_stmt.then_body[0], PrintStatement)
-
-    # elseBody: 1 statement => print "Small"
+    # else => print "Small"
     assert len(if_stmt.else_body) == 1
     assert isinstance(if_stmt.else_body[0], PrintStatement)
+
 
 def test_function_with_recursion():
     """
@@ -179,40 +197,43 @@ def test_function_with_recursion():
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "factorial"
-    # check param "n"
-    assert func_def.params == ["n"]
-    # body has 1 if-statement
+
+    # 1 param => n
+    assert len(func_def.params) == 1
+    assert func_def.params[0].name == "n"
+
+    # Body => 1 if statement
     assert len(func_def.body) == 1
     if_stmt = func_def.body[0]
     assert isinstance(if_stmt, IfStatement)
 
-    # condition: n <= 1
-    cond_dict = if_stmt.condition.to_dict()
-    assert cond_dict["operator"] == "<="
+    cond = if_stmt.condition
+    assert isinstance(cond, BinaryExpression)
+    assert cond.operator == "<="
 
-    # thenBody => return 1
-    then_body = if_stmt.then_body
-    assert len(then_body) == 1
-    assert isinstance(then_body[0], ReturnStatement)
+    # then => return 1
+    assert len(if_stmt.then_body) == 1
+    assert isinstance(if_stmt.then_body[0], ReturnStatement)
 
-    # elseBody => return n * factorial(n - 1)
+    # else => return n * factorial(n - 1)
     else_body = if_stmt.else_body
     assert len(else_body) == 1
-    return_stmt = else_body[0]
-    assert isinstance(return_stmt, ReturnStatement)
+    ret_stmt = else_body[0]
+    assert isinstance(ret_stmt, ReturnStatement)
 
-    # The expression is a BinaryExpression with operator '*'
-    bin_expr = return_stmt.expression
+    bin_expr = ret_stmt.expression
     assert isinstance(bin_expr, BinaryExpression)
     assert bin_expr.operator == "*"
-
-    # Left side is a variable 'n'
+    # left => n
     assert isinstance(bin_expr.left, VariableExpression)
     assert bin_expr.left.name == "n"
+    # right => FnExpression => factorial(n - 1)
+    right_fn = bin_expr.right
+    assert isinstance(right_fn, FnExpression)
+    # The "name" might itself be a VariableExpression or literal.
+    # E.g. right_fn.name => VariableExpression("factorial") or "factorial"
+    # Adjust if your AST structure is different.
 
-    # Right side is a FnExpression => factorial(n - 1)
-    assert isinstance(bin_expr.right, FnExpression)
-    # etc. if you want more checks
 
 def test_function_multiple_statements_body():
     """
@@ -233,34 +254,41 @@ def test_function_multiple_statements_body():
     parser = Parser(tokens)
     program_ast = parser.parse()
 
-    # If your parser stores top-level statements in program_ast.body:
+    # We expect 1 function definition
     assert len(program_ast.body) == 1
     func_def = program_ast.body[0]
     assert isinstance(func_def, FunctionDefinition)
     assert func_def.name == "doStuff"
-    assert func_def.params == ["a"]
 
-    # body has 3 statements: let x = a, print x, return x * 2
+    # 1 param => a
+    assert len(func_def.params) == 1
+    param0 = func_def.params[0]
+    assert param0.name == "a"
+
+    # body => 3 statements => let x=a, print x, return x*2
     assert len(func_def.body) == 3
     stmt1, stmt2, stmt3 = func_def.body
 
-    # stmt1 => let x = a
+    # let x = a
     assert isinstance(stmt1, LetStatement)
     assert stmt1.variable.name == "x"
-    # If you want to check the expression:
-    # assert isinstance(stmt1.expression, VariableExpression)
-    # assert stmt1.expression.name == "a"
+    assert isinstance(stmt1.expression, VariableExpression)
+    assert stmt1.expression.name == "a"
 
-    # stmt2 => print x
+    # print x
     assert isinstance(stmt2, PrintStatement)
     assert len(stmt2.expressions) == 1
-    assert isinstance(stmt2.expressions[0], VariableExpression)
-    assert stmt2.expressions[0].name == "x"
+    expr2 = stmt2.expressions[0]
+    assert isinstance(expr2, VariableExpression)
+    assert expr2.name == "x"
 
-    # stmt3 => return x * 2
+    # return x*2
     assert isinstance(stmt3, ReturnStatement)
     rexp = stmt3.expression
-    rdict = rexp.to_dict()
-    assert rdict["type"] == "BinaryExpression"
-    assert rdict["operator"] == "*"
-
+    assert isinstance(rexp, BinaryExpression)
+    assert rexp.operator == "*"
+    assert isinstance(rexp.left, VariableExpression)
+    assert rexp.left.name == "x"
+    # right => 2
+    assert isinstance(rexp.right, LiteralExpression)
+    assert rexp.right.value == 2

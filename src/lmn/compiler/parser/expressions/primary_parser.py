@@ -1,12 +1,13 @@
 # lmn/compiler/parser/expressions/primary_parser.py
 
-from lmn.compiler.lexer.token_type import LmnTokenType
+from lmn.compiler.lexer.token_type import (
+    LmnTokenType,
+)
 from lmn.compiler.ast import (
     LiteralExpression,
     FnExpression,
     VariableExpression,
 )
-# Import or define our boundary set
 from lmn.compiler.parser.expressions.statement_boundaries import STATEMENT_BOUNDARY_TOKENS
 
 class PrimaryParser:
@@ -23,40 +24,60 @@ class PrimaryParser:
             self.parser.advance()
 
     def parse_primary(self):
+        """
+        primary := INT_LITERAL
+                 | LONG_LITERAL
+                 | FLOAT_LITERAL
+                 | DOUBLE_LITERAL
+                 | STRING
+                 | IDENTIFIER [ '(' args ')' ]
+                 | '(' expression ')'
+        """
         # 1) Skip comment tokens before parsing
         self._skip_comments()
 
         token = self.parser.current_token
-
-        # 2) If we're out of tokens, that's an error (or 'None' if you prefer)
         if not token:
             raise SyntaxError("Unexpected end of input in primary expression")
 
-        # 3) If this token is a statement boundary, return None
-        #    to signal "no valid expression here."
+        # 2) If the token is a statement boundary, return None (no expression found)
         if token.token_type in STATEMENT_BOUNDARY_TOKENS:
             return None
 
         ttype = token.token_type
 
-        if ttype == LmnTokenType.NUMBER:
-            # 'NUMBER' => parse as LiteralExpression (numeric)
+        # ------------------
+        # Numeric Literals
+        # ------------------
+        # If the token is one of the new numeric literal types, parse as a literal.
+        if ttype in (
+            LmnTokenType.INT_LITERAL,
+            LmnTokenType.LONG_LITERAL,
+            LmnTokenType.FLOAT_LITERAL,
+            LmnTokenType.DOUBLE_LITERAL,
+        ):
             self.parser.advance()
-            return LiteralExpression(value=str(token.value))
+            # token.value is already the numeric value (int/float) stored by the tokenizer.
+            return LiteralExpression(value=token.value)
 
+        # ------------------
+        # String Literals
+        # ------------------
         elif ttype == LmnTokenType.STRING:
-            # 'STRING' => parse as a string literal
             self.parser.advance()
             return LiteralExpression(value=token.value)
 
+        # ------------------
+        # Identifiers (variable or function call)
+        # ------------------
         elif ttype == LmnTokenType.IDENTIFIER:
-            # Could be a variable or a function call
             var_name = token.value
-            self.parser.advance()  # consume the identifier
+            self.parser.advance()  # consume IDENTIFIER
 
-            # check if next is '(' => function call
+            # Check if next token is '(' => function call
             if (self.parser.current_token
                 and self.parser.current_token.token_type == LmnTokenType.LPAREN):
+                # parse function-call syntax: name(...)
                 self.parser.advance()  # consume '('
                 args = []
                 # parse arguments until we see ')'
@@ -66,8 +87,9 @@ class PrimaryParser:
                     args.append(arg_expr)
                     if (self.parser.current_token
                         and self.parser.current_token.token_type == LmnTokenType.COMMA):
-                        self.parser.advance()  # consume comma
+                        self.parser.advance()  # consume ','
 
+                # Expect a closing paren
                 self._expect(LmnTokenType.RPAREN, "Expected ')' after function call arguments")
                 self.parser.advance()  # consume ')'
 
@@ -76,24 +98,26 @@ class PrimaryParser:
                     arguments=args
                 )
             else:
-                # just a variable
+                # Just a variable reference
                 return VariableExpression(name=var_name)
 
+        # ------------------
+        # Parenthesized Expression
+        # ------------------
         elif ttype == LmnTokenType.LPAREN:
-            # grouping: ( expr )
             self.parser.advance()  # consume '('
             expr = self.expr_parser.parse_expression()
-            self._expect(LmnTokenType.RPAREN, "Expected ')' to close grouping")
+            self._expect(LmnTokenType.RPAREN, "Expected ')' to close grouped expression")
             self.parser.advance()  # consume ')'
             return expr
 
         else:
-            # If it's not recognized as a valid primary token, raise an error
-            raise SyntaxError(f"Unexpected token in expression: {token}")
+            # If it's not recognized, raise a syntax error
+            raise SyntaxError(f"Unexpected token in primary expression: {token}")
 
     def _expect(self, ttype, message):
         """
-        Helper to ensure the current token is ttype; otherwise raise SyntaxError.
+        Helper to ensure the current token is of the specified type, or raise SyntaxError.
         """
         if not self.parser.current_token or self.parser.current_token.token_type != ttype:
             raise SyntaxError(message)

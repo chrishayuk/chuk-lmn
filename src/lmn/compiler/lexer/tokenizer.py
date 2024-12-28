@@ -13,27 +13,20 @@ class Tokenizer:
 
     def tokenize(self):
         tokens = []
-
         while self.current_pos < len(self.input_string):
-            # Attempt to get a token
             token = self.get_next_token()
-
             if token:
                 tokens.append(token)
             else:
-                # If no token found, skip whitespace or raise error if unexpected chars
                 self.skip_whitespace()
                 if self.current_pos < len(self.input_string):
                     raise TokenizationError(
                         f"Unexpected character: {self.input_string[self.current_pos]}"
                     )
-
         return tokens
 
     def get_next_token(self):
         self.skip_whitespace()
-
-        # If we've reached the end of the input string
         if self.current_pos >= len(self.input_string):
             return None
 
@@ -61,7 +54,7 @@ class Tokenizer:
         if punctuation_token:
             return punctuation_token
 
-        # 6. Match number
+        # 6. Match number (updated)
         number_token = self.tokenize_number()
         if number_token:
             return number_token
@@ -74,65 +67,58 @@ class Tokenizer:
         return None
 
     def tokenize_comment(self):
-        # We have //, grab everything until the next newline or end of file
-        start_pos = self.current_pos
-        
-        # Move past //
+        # Move past the "//"
         self.current_pos += 2
-
         comment_start = self.current_pos
 
         # Consume until newline or EOF
-        while (
-            self.current_pos < len(self.input_string)
-            and self.input_string[self.current_pos] not in ("\n", "\r")
-        ):
+        while (self.current_pos < len(self.input_string) and
+               self.input_string[self.current_pos] not in ("\n", "\r")):
             self.current_pos += 1
-
-        # The comment text is everything from comment_start up to (but not including) newline
-        comment_text = self.input_string[comment_start : self.current_pos]
-
+        comment_text = self.input_string[comment_start:self.current_pos]
         return Token(LmnTokenType.COMMENT, comment_text)
 
     def tokenize_string(self):
-        # Matches a double-quoted string
+        """
+        Match a string literal wrapped in double quotes ("...").
+        Simple version that doesn't handle escapes.
+        """
         if self.input_string[self.current_pos] == '"':
-            # Attempt a regex from the current position
             match = re.match(r'"([^"]*)"', self.input_string[self.current_pos:])
             if match:
                 full_text = match.group(0)  # e.g. "Hello world"
-                content = match.group(1)    # e.g. Hello world (inside quotes)
+                content = match.group(1)    # e.g. Hello world (no quotes)
                 self.current_pos += len(full_text)
                 return Token(LmnTokenType.STRING, content)
         return None
 
     def match_keywords(self):
         """
-        If the upcoming substring is one of the recognized LMN keywords,
-        consume it and return a Token. Otherwise, return None.
+        Check if the current substring matches any known keyword.
+        Must ensure we don't match partial identifiers.
         """
         for keyword, token_type in LmnTokenType.get_keywords().items():
-            # Case-sensitive or case-insensitive? LMN is typically lowercase, so we can do:
-            if self.input_string[self.current_pos :].lower().startswith(keyword):
-                # Check that the next char is non-alphanumeric or we're at end
+            substring = self.input_string[self.current_pos:].lower()
+            if substring.startswith(keyword):
                 end_pos = self.current_pos + len(keyword)
+                # ensure we don't match partial identifiers, e.g. "in" in "index"
                 if end_pos == len(self.input_string) or not self.input_string[end_pos].isalnum():
                     self.current_pos += len(keyword)
                     return Token(token_type, keyword)
         return None
 
     def match_operators(self):
-        # Sort operators by length descending, so '!=' or '<=' gets matched before '=' or '<'
-        operators = sorted(LmnTokenType.get_operator_map().items(), key=lambda x: len(x[0]), reverse=True)
-
-        # loop through the operators
+        """
+        Match multi-character operators first, then single-character.
+        """
+        operators = sorted(
+            LmnTokenType.get_operator_map().items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
         for op, token_type in operators:
-            # check if we have a match
-            if self.input_string[self.current_pos :].startswith(op):
-                # check that the next char is non-alphanumeric or we're at end
+            if self.input_string[self.current_pos:].startswith(op):
                 self.current_pos += len(op)
-
-                # return the token
                 return Token(token_type, op)
         return None
 
@@ -145,25 +131,54 @@ class Tokenizer:
 
     def tokenize_number(self):
         """
-        Matches digits (e.g. 123 or 3.14).
+        Match numeric literals:
+         - int (32-bit range)
+         - long (beyond 32-bit)
+         - float (with 'f' suffix, decimal/exponent)
+         - double (no 'f' suffix, decimal/exponent)
         """
-        match = re.match(r'\d+(\.\d+)?', self.input_string[self.current_pos:])
-        if match:
-            number_str = match.group(0)
-            self.current_pos += len(number_str)
-            try:
-                value = float(number_str)
-                return Token(LmnTokenType.NUMBER, value)
-            except ValueError:
-                raise TokenizationError(f"Invalid number: {number_str}")
-        return None
+        pattern = re.compile(
+            r"""
+            ^
+            (\d+(\.\d+)?([eE][+-]?\d+)?)  # Base numeric portion: digits(.digits)?(exponent)?
+            ([fF])?                      # Optional 'f' or 'F' suffix for single precision
+            """,
+            re.VERBOSE
+        )
+
+        substring = self.input_string[self.current_pos:]
+        match = pattern.match(substring)
+        if not match:
+            return None
+
+        full_match = match.group(0)
+        numeric_part = match.group(1)  # e.g., "123", "1.23", "1.2e10"
+        f_suffix = match.group(4)      # 'f' or 'F' if present
+
+        # Advance past the matched numeric string
+        self.current_pos += len(full_match)
+
+        # Check decimal or exponent => float/double
+        if '.' in numeric_part or 'e' in numeric_part.lower():
+            if f_suffix:
+                # Float literal
+                return Token(LmnTokenType.FLOAT_LITERAL, float(numeric_part))
+            else:
+                # Double literal
+                return Token(LmnTokenType.DOUBLE_LITERAL, float(numeric_part))
+        else:
+            # Integer form
+            val = int(numeric_part)
+            # 32-bit range check
+            if -2**31 <= val <= 2**31 - 1:
+                return Token(LmnTokenType.INT_LITERAL, val)
+            else:
+                return Token(LmnTokenType.LONG_LITERAL, val)
 
     def tokenize_identifier(self):
         """
-        Matches an identifier: e.g. myVar, city, sum, etc.
-        (Allows letters, digits, underscores. Adjust the regex if needed.)
+        Match standard identifiers: letters, underscores, digits (but not starting with digit).
         """
-        # Simple pattern: starts with alpha or underscore, then alphanumeric or underscore
         match = re.match(r'[A-Za-z_][A-Za-z0-9_]*', self.input_string[self.current_pos:])
         if match:
             identifier = match.group(0)
@@ -172,9 +187,11 @@ class Tokenizer:
         return None
 
     def skip_whitespace(self):
+        """
+        Advance current_pos while whitespace chars are found.
+        """
         while self.current_pos < len(self.input_string):
-            c = self.input_string[self.current_pos]
-            if c.isspace():
+            if self.input_string[self.current_pos].isspace():
                 self.current_pos += 1
             else:
                 break

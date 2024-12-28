@@ -1,0 +1,11 @@
+// 03_1_numbers_notation.lmn
+// Demonstrates various numeric literal notations.
+print 007                           // Might parse as INT_LITERAL(7)
+print 3.1415                        // DOUBLE_LITERAL(3.1415)
+print 6.022f                        // FLOAT_LITERAL(6.022)
+print 1.23e10                       // DOUBLE_LITERAL(1.23e10)
+print 9.81e3f                       // FLOAT_LITERAL(9810)
+print 9999999999999                 // LONG_LITERAL(9999999999999) beyond 32-bit
+
+// Negative notation might be minus + literal or a single literal
+print negativeExample -42

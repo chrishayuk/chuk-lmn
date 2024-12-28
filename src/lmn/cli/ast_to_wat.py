@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+import logging
 import os
 import json
 import sys
 import argparse
 from lmn.compiler.emitter.wasm.wasm_emitter import WasmEmitter
+
+# Basic config for logging
+logging.basicConfig(
+    level=logging.CRITICAL,
+    format="%(levelname)s - %(name)s - %(message)s")
 
 def main():
     # Setup argument parser

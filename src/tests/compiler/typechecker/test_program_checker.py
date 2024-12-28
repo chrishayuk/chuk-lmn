@@ -1,54 +1,122 @@
-import pytest
-from lmn.compiler.typechecker.program_checker import ProgramChecker
+# file: tests/compiler/typechecker/test_function_checker.py
 
-def test_valid_program():
+from pydantic import TypeAdapter
+
+# The union that includes FunctionDefinition
+from lmn.compiler.ast.mega_union import Node
+
+# The checker we want to test
+from lmn.compiler.typechecker.function_checker import check_function_definition
+
+# Create a single TypeAdapter for the `Node` union
+node_adapter = TypeAdapter(Node)
+
+
+def test_function_definition_basic():
     """
-    A 'valid' program has:
-      - "type": "Program"
-      - "body": a list of top-level nodes (or can be empty).
+    A function with no statements and no params shouldn't raise errors.
     """
-    program_ast = {
-        "type": "Program",
+    dict_func_def = {
+        "type": "FunctionDefinition",
+        "name": "doNothing",
+        "params": [],
+        "body": []  # No statements
+    }
+    func_def_node = node_adapter.validate_python(dict_func_def)
+    symbol_table = {}
+
+    # This should run without error
+    check_function_definition(func_def_node, symbol_table)
+
+
+def test_function_definition_with_statement():
+    """
+    A function that has one PrintStatement in its body.
+    """
+    dict_func_def = {
+        "type": "FunctionDefinition",
+        "name": "printHello",
+        "params": [],
         "body": [
             {
                 "type": "PrintStatement",
                 "expressions": [
-                    {"type": "LiteralExpression", "value": 42}
+                    {
+                        "type": "LiteralExpression",
+                        "value": "Hello World"
+                    }
                 ]
             }
         ]
     }
+    func_def_node = node_adapter.validate_python(dict_func_def)
+    symbol_table = {}
 
-    checker = ProgramChecker()
-    result = checker.validate_program(program_ast)
-    assert result is True, "Expected a valid program"
+    # Should succeed if statement_checker handles PrintStatement
+    check_function_definition(func_def_node, symbol_table)
 
 
-def test_program_missing_body():
+def test_function_with_typed_params():
     """
-    The checker defaults 'body' to [] if it's missing, 
-    so this should still pass without an error.
+    function add(a: int, b: float)
+      print a b
+    end
     """
-    program_ast = {
-        "type": "Program"
-        # No 'body' field
+    dict_func_def = {
+        "type": "FunctionDefinition",
+        "name": "add",
+        "params": [
+            {"name": "a", "type_annotation": "int"},   # => i32
+            {"name": "b", "type_annotation": "float"}  # => f32
+        ],
+        "body": [
+            {
+                "type": "PrintStatement",
+                "expressions": [
+                    {"type": "VariableExpression", "name": "a"},
+                    {"type": "VariableExpression", "name": "b"}
+                ]
+            }
+        ]
     }
+    func_def_node = node_adapter.validate_python(dict_func_def)
+    symbol_table = {}
 
-    checker = ProgramChecker()
-    result = checker.validate_program(program_ast)
-    assert result is True, "Expected a valid program even if 'body' is missing"
+    # We expect check_function_definition to put 'a' => i32, 'b' => f32 in the local table
+    check_function_definition(func_def_node, symbol_table)
+
+    # If your checker merges function params into the top-level table, 
+    # you might test for symbol_table["a"] == "i32" etc.
+    # Or if they remain function-local, you won't see them in the global table.
 
 
-def test_program_body_not_a_list():
+def test_function_with_untyped_params():
     """
-    If 'body' is present but not a list, the checker should raise a ValueError.
+    function doStuff(x, y)
+      print x y
+    end
     """
-    program_ast = {
-        "type": "Program",
-        "body": {"not": "a list"}
+    dict_func_def = {
+        "type": "FunctionDefinition",
+        "name": "doStuff",
+        "params": [
+            {"name": "x", "type_annotation": None},
+            {"name": "y"}  # Or omit 'type_annotation' field
+        ],
+        "body": [
+            {
+                "type": "PrintStatement",
+                "expressions": [
+                    {"type": "VariableExpression", "name": "x"},
+                    {"type": "VariableExpression", "name": "y"}
+                ]
+            }
+        ]
     }
+    func_def_node = node_adapter.validate_python(dict_func_def)
+    symbol_table = {}
 
-    checker = ProgramChecker()
-    with pytest.raises(ValueError) as excinfo:
-        checker.validate_program(program_ast)
-    assert "'body' must be a list" in str(excinfo.value)
+    # The checker might set x => None, y => None in the local table,
+    # or let them be inferred as usage continues.
+    check_function_definition(func_def_node, symbol_table)
+    # No error expected for untyped parameters if your language allows them.

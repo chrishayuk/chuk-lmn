@@ -1,4 +1,3 @@
-// hello_literal.lmn
-
+// 02_hello_literal.lmn
 // prints the literal 42
 print 42

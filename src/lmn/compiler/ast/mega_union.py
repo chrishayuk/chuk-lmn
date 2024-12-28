@@ -38,6 +38,7 @@ ConversionExpression.model_rebuild()
 # 2) Import statement submodels
 #
 
+from lmn.compiler.ast.statements.function_parameter import FunctionParameter
 from lmn.compiler.ast.statements.if_statement import IfStatement
 from lmn.compiler.ast.statements.for_statement import ForStatement
 from lmn.compiler.ast.statements.function_definition import FunctionDefinition
@@ -55,6 +56,7 @@ Statement = Annotated[
         AssignmentStatement,
         LetStatement,
         ReturnStatement,
+        FunctionParameter,
         FunctionDefinition,
         PrintStatement,
         CallStatement,  # Add any statement submodels
@@ -82,6 +84,7 @@ LetStatement.model_rebuild()
 AssignmentStatement.model_rebuild()
 ReturnStatement.model_rebuild()
 PrintStatement.model_rebuild()
+FunctionParameter.model_rebuild()
 FunctionDefinition.model_rebuild()
 ForStatement.model_rebuild()
 

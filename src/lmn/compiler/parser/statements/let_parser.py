@@ -10,63 +10,52 @@ class LetParser:
     def parse(self):
         """
         Parses statements like:
-          let x = 5
-          let int.32 x = 5
-          let y
+            let x: int = 5
+            let y
+            let ratio: float
+            let eVal: double = 2.718
         """
-        # 1) consume the 'set' token
-        self.parser.advance()  
+        # 1) Consume the 'let' token (already current_token)
+        self.parser.advance()  # move past LmnTokenType.LET
 
-        # 2) optional type annotation
+        # 2) Expect an IDENTIFIER for the variable name
+        var_token = expect_token(
+            self.parser,
+            LmnTokenType.IDENTIFIER,
+            "Expected variable name after 'let'"
+        )
+        self.parser.advance()  # consume the variable name token
+
+        # 3) Check for optional ': type'
         type_annotation = None
-        if self._lookahead_is_type_annotation():
-            type_annotation = self._parse_type_annotation()
+        if current_token_is(self.parser, LmnTokenType.COLON):
+            # consume ':'
+            self.parser.advance()
 
-        # 3) expect IDENTIFIER for variable name
-        var_token = expect_token(self.parser, LmnTokenType.IDENTIFIER,
-                                 "Expected variable name after 'let'")
-        # CRITICAL: consume that IDENTIFIER token 
-        self.parser.advance()
+            # Next token should be a type keyword, e.g. INT/LONG/FLOAT/DOUBLE
+            if (self.parser.current_token
+                and self.parser.current_token.token_type in (
+                    LmnTokenType.INT,
+                    LmnTokenType.LONG,
+                    LmnTokenType.FLOAT,
+                    LmnTokenType.DOUBLE,
+                )):
+                type_annotation = self.parser.current_token.value  # e.g. "int"
+                self.parser.advance()  # consume that type keyword
+            else:
+                raise SyntaxError(
+                    "Expected a type keyword (int, long, float, double) after ':'"
+                )
 
-        # 4) optional '=' <expr>
+        # 4) Optional '=' <expr>
         initializer_expr = None
         if current_token_is(self.parser, LmnTokenType.EQ):
             self.parser.advance()  # consume '='
             initializer_expr = self.parser.expression_parser.parse_expression()
 
+        # 5) Build and return the LetStatement node
         return LetStatement(
             variable=VariableExpression(name=var_token.value),
             expression=initializer_expr,
             type_annotation=type_annotation
         )
-
-
-    def _lookahead_is_type_annotation(self):
-        """Check if next tokens look like IDENTIFIER '.' NUMBER."""
-        t1 = self.parser.peek(0)  # current token
-        t2 = self.parser.peek(1)  # next
-        t3 = self.parser.peek(2)
-        return (
-            t1 and t1.token_type == LmnTokenType.IDENTIFIER and
-            t2 and t2.token_type == LmnTokenType.DOT and
-            t3 and t3.token_type == LmnTokenType.NUMBER
-        )
-
-    def _parse_type_annotation(self):
-        """Consumes IDENTIFIER, DOT, NUMBER => e.g. 'float.32'."""
-        if self.parser.current_token.token_type != LmnTokenType.IDENTIFIER:
-            raise SyntaxError("Expected type name (e.g. 'float')")
-        part1_token = self.parser.current_token
-        self.parser.advance()
-
-        if self.parser.current_token.token_type != LmnTokenType.DOT:
-             raise SyntaxError("Expected '.' in type annotation")
-        self.parser.advance()
-
-        if self.parser.current_token.token_type != LmnTokenType.NUMBER:
-             raise SyntaxError("Expected bit-size after '.' (e.g. 32)")
-
-        bits_token = self.parser.current_token
-        self.parser.advance()
-
-        return f"{part1_token.value}.{int(bits_token.value)}"

@@ -1,6 +1,5 @@
-# file: compiler/emitter/wasm/wasm_emitter.py
+# file: lmn/compiler/emitter/wasm/wasm_emitter.py
 
-# STATEMENT EMITTERS
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
 from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
@@ -11,25 +10,26 @@ from lmn.compiler.emitter.wasm.statements.for_emitter import ForEmitter
 from lmn.compiler.emitter.wasm.statements.call_emitter import CallEmitter
 from lmn.compiler.emitter.wasm.statements.function_emitter import FunctionEmitter
 
-# EXPRESSION EMITTERS
 from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.fn_expression_emitter import FnExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.unary_expression_emitter import UnaryExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.literal_expression_emitter import LiteralExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.variable_expression_emitter import VariableExpressionEmitter
 
-
 class WasmEmitter:
     def __init__(self):
-        # Collect function text lines to build the final module
+        """
+        Orchestrates the WASM (WAT) code emission from the typed AST.
+        We store:
+          - self.functions: list of list-of-lines (one list per function)
+          - self.function_names: so we can export them
+        """
         self.functions = []
         self.function_names = []
         self.function_counter = 0
 
-        # This is your new tracking set.
+        # Track new locals for the current function
         self.new_locals = set()
-
-        # Local variable tracking for the current function
         self.func_local_map = {}
         self.local_counter = 0
 
@@ -41,7 +41,7 @@ class WasmEmitter:
         self.return_emitter = ReturnEmitter(self)
         self.for_emitter = ForEmitter(self)
         self.call_emitter = CallEmitter(self)
-        self.function_emitter = FunctionEmitter(self)  # NEW
+        self.function_emitter = FunctionEmitter(self)
 
         # Expression emitters
         self.binary_expr_emitter = BinaryExpressionEmitter(self)
@@ -53,101 +53,96 @@ class WasmEmitter:
 
     def emit_program(self, ast):
         """
-        Build a complete WASM module from the top-level AST.
-        Gathers any top-level statements (non-function) into a special function so they can be executed.
+        Accepts a Program node with .body => top-level statements, which might be:
+          - function definitions
+          - let statements
+          - print statements, etc.
+        We separate function definitions vs. top-level code, then emit a
+        special __top_level__ function if needed.
         """
         if ast["type"] != "Program":
             raise ValueError("AST root must be a Program")
 
-        # Gather top-level statements
         top_level_statements = []
-
         for node in ast["body"]:
             if node["type"] == "FunctionDefinition":
                 self.emit_function_definition(node)
             else:
-                # Treat as a top-level statement
                 top_level_statements.append(node)
 
-        # If we have any top-level statements, emit them in a special function
+        # If there's any top-level code, we create a special function for it
         if top_level_statements:
             self.emit_top_level_statements_function(top_level_statements)
 
         return self.build_module()
 
     def emit_top_level_statements_function(self, statements):
+        """
+        Creates a function __top_level__ for statements that are not inside any user function.
+        We do *not* forcibly zero them with i32.const 0 or anything, 
+        but rely on let/assignment to insert correct typed zeros if needed.
+        """
         func_name = "__top_level__"
         self.function_names.append(func_name)
 
-        # Reset or create new_locals before processing statements,
-        # so each top-level "function" starts with a clean set.
+        # Reset local-tracking for this new function
         self.new_locals = set()
         self.func_local_map = {}
         self.local_counter = 0
 
-        # Start building lines for this top-level function
         func_lines = []
         func_lines.append(f'(func ${func_name}')
 
-        # Emit each statement
+        # Emit each top-level statement
         for stmt in statements:
             self.emit_statement(stmt, func_lines)
 
-        # Now insert local declarations right after (func $...)
-        # For each variable in self.new_locals, find its type in func_local_map 
-        # and emit a line like: (local $var_name i32)
-        # Typically you'd do something like:
+        # Insert local declarations (ex: (local $myVar i64))
         local_decls = []
         for var_name in self.new_locals:
-            var_info = self.func_local_map[var_name]
-            var_type = var_info["type"]
+            var_type = self.func_local_map[var_name]["type"]
             local_decls.append(f'  (local {var_name} {var_type})')
 
-        # Insert local declarations right after the function line
-        func_lines[1:1] = local_decls  # Insert at index 1
+        # Insert them at index 1, right after '(func $name'
+        func_lines[1:1] = local_decls
 
-        # Close function
+        # Notice: We do NOT do anything like "i32.const 0 / local.set" for each local here.
+        # That is the job of LetEmitter or AssignmentEmitter if there's no expression.
+
         func_lines.append(')')
         self.functions.append(func_lines)
 
-
     def build_module(self):
+        """
+        Builds the final WAT module with imports and function exports.
+        """
         lines = []
         lines.append('(module')
 
-        # Import for printing 32-bit integers
+        # Basic printing imports
         lines.append('  (import "env" "print_i32" (func $print_i32 (param i32)))')
-
-        # Import for printing 64-bit integers
         lines.append('  (import "env" "print_i64" (func $print_i64 (param i64)))')
-
-        # Import for printing 64-bit floats
         lines.append('  (import "env" "print_f64" (func $print_f64 (param f64)))')
 
-        # (Optionally import a print_f32 if you handle 32-bit floats separately)
-        # lines.append('  (import "env" "print_f32" (func $print_f32 (param f32)))')
-
         # Insert each function
-        for f in self.functions:
-            for line in f:
+        for f_lines in self.functions:
+            for line in f_lines:
                 lines.append(f"  {line}")
 
-        # Export each named function
+        # Export each function name
         for fname in self.function_names:
             lines.append(f'  (export "{fname}" (func ${fname}))')
 
         lines.append(')')
         return "\n".join(lines) + "\n"
 
-
     def emit_function_definition(self, node):
         """
-        Delegates the function definition to FunctionEmitter.
-        Also adds the function name to self.function_names so it is exported.
+        Delegates to self.function_emitter; 
+        adds the function name to self.function_names for exporting.
         """
         func_name = node.get("name", f"fn_{self.function_counter}")
         self.function_counter += 1
-
         self.function_names.append(func_name)
 
         func_lines = []
@@ -155,6 +150,9 @@ class WasmEmitter:
         self.functions.append(func_lines)
 
     def emit_statement(self, stmt, out_lines):
+        """
+        Chooses the correct emitter for a statement based on its .type.
+        """
         stype = stmt["type"]
         if stype == "IfStatement":
             self.if_emitter.emit_if(stmt, out_lines)
@@ -171,10 +169,13 @@ class WasmEmitter:
         elif stype == "AssignmentStatement":
             self.assignment_emitter.emit_assignment(stmt, out_lines)
         else:
-            # No emitter for this statement => do nothing or raise an error
+            # fallback => do nothing or push i32.const 0
             pass
 
     def emit_expression(self, expr, out_lines):
+        """
+        Chooses the correct expression emitter (binary, unary, literal, etc.)
+        """
         etype = expr["type"]
         if etype == "BinaryExpression":
             self.binary_expr_emitter.emit(expr, out_lines)
@@ -189,15 +190,15 @@ class WasmEmitter:
         elif etype == "ConversionExpression":
             self.conversion_expr_emitter.emit(expr, out_lines)
         else:
-            # Fallback or unknown expression
+            # fallback => i32.const 0 is a last-ditch approach if we can't figure out anything
             out_lines.append('  i32.const 0')
 
     def _normalize_local_name(self, name: str) -> str:
         """
         Ensures local variable has exactly one '$' prefix:
-            - 'x'    -> '$x'
-            - '$$x'  -> '$x'
-            - '$x'   -> '$x' (unchanged)
+         - 'x' -> '$x'
+         - '$$x' -> '$x'
+         - '$x' stays '$x'
         """
         if name.startswith('$$'):
             return '$' + name[2:]
@@ -205,34 +206,41 @@ class WasmEmitter:
             return f'${name}'
         else:
             return name
-        
-    def infer_type(self, expr_node):
+
+    def infer_type(self, expr_node, context_type=None):
         """
-        A naive approach to determine if expr_node is i32, i64, f32, or f64.
+        If we have a context_type (the local’s known type, e.g. 'i64'),
+        we unify the naive guess with that context_type.
         """
+        if "inferred_type" in expr_node:
+            return expr_node["inferred_type"]  # trust the AST
+
+        # Otherwise, do naive guess
         if expr_node["type"] == "LiteralExpression":
             val_str = str(expr_node.get("value", "0"))
+            # naive logic...
             if "." in val_str:
-                return "f32"
-            try:
-                int_val = int(val_str)
-                if abs(int_val) > 2147483647:
-                    return "i64"
-                else:
-                    return "i32"
-            except ValueError:
-                return "f32"
-        
-        elif expr_node["type"] == "BinaryExpression":
-            left = expr_node["left"]
-            right = expr_node["right"]
-            left_t = self.infer_type(left)
-            right_t = self.infer_type(right)
-            return self._unify_types(left_t, right_t)
-        
-        # fallback
+                guessed = "f32"
+            else:
+                try:
+                    val = int(val_str)
+                    guessed = "i64" if abs(val) > 2147483647 else "i32"
+                except ValueError:
+                    guessed = "f32"
+            # unify with context?
+            if context_type:
+                return self._unify_types(guessed, context_type)
+            else:
+                return guessed
+        ...
+        # fallback => i32
         return "i32"
 
+
     def _unify_types(self, t1, t2):
+        """
+        If either is 'higher' in numeric precedence, pick that. 
+        i32 < i64 < f32 < f64
+        """
         priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
         return t1 if priority[t1] >= priority[t2] else t2
