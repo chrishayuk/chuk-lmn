@@ -1,7 +1,0 @@
-let a = 5.3
-let b = 3.2
-let sum = a + b
-let product = a * b
-
-print sum
-print product

@@ -1,0 +1,14 @@
+// hello_functions.lmn
+function sum(a: int, b: int): int
+    // declare
+    let result: int
+
+    // calculate the result
+    result = a + b
+
+    // return the result
+    return result
+end
+
+// output the sum
+print sum(10, 20)

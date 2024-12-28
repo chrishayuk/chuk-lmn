@@ -1,43 +1,33 @@
 # lmn/compiler/parser/statements/print_parser.py
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.ast import PrintStatement
+from lmn.compiler.parser.statements.statement_boundaries import is_statement_boundary
 
 class PrintParser:
     def __init__(self, parent_parser):
-        # set the parser as the parent parser
         self.parser = parent_parser
 
     def parse(self):
-        # current_token == PRINT, consume
-        self.parser.advance()
+        # consume PRINT token
+        self.parser.advance()  
 
-        # empty list to store the expressions
+        # Parse the expression(s)
         expressions = []
 
-        # parse expressions until we see the start of another statement or we reach end/else
+        # Keep parsing expressions until we hit a statement boundary
         while (
             self.parser.current_token
-            and self.parser.current_token.token_type
-            not in [
-                LmnTokenType.IF,
-                LmnTokenType.FOR,
-                LmnTokenType.LET,
-                LmnTokenType.PRINT,
-                LmnTokenType.RETURN,
-                LmnTokenType.END,
-                LmnTokenType.ELSE,
-                LmnTokenType.FUNCTION,
-                LmnTokenType.CALL,
-            ]
+            and not is_statement_boundary(self.parser.current_token.token_type)
         ):
-            # parse the expression
+            # Parse the expression
             expr = self.parser.expression_parser.parse_expression()
 
-            # If parse_expression() returned None, break out 
-            # (this indicates a statement boundary or invalid expression)
+            # Check for a comma after each expression
             if expr is None:
                 break
 
+            # Add the parsed expression to the list of expressions
             expressions.append(expr)
 
+        # return the print statement node
         return PrintStatement(expressions=expressions)

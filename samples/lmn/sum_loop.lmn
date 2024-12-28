@@ -4,7 +4,7 @@ function sumFirstN(n)
   let total = 0
 
   // Loop i from 1 to n
-  for i 1 to n
+  for i = 1 to n
     total = total + i
   end
 

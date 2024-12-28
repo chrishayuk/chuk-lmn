@@ -7,16 +7,58 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "a",
-          "type_annotation": "int"
+          "name": "a"
         },
         {
           "type": "FunctionParameter",
-          "name": "b",
-          "type_annotation": "int"
+          "name": "b"
         }
       ],
       "body": [
+        {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "int",
+                "type": "VariableExpression",
+                "name": "temp"
+              },
+              "expression": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "-",
+                "left": {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "a"
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "b"
+                }
+              },
+              "inferred_type": "int"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": "Inside nested block of sum, temp = "
+                },
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "temp"
+                }
+              ]
+            }
+          ]
+        },
         {
           "type": "LetStatement",
           "variable": {
@@ -24,12 +66,6 @@
             "type": "VariableExpression",
             "name": "result"
           },
-          "type_annotation": "int",
-          "inferred_type": "int"
-        },
-        {
-          "type": "AssignmentStatement",
-          "variable_name": "result",
           "expression": {
             "inferred_type": "int",
             "type": "BinaryExpression",
@@ -48,6 +84,50 @@
           "inferred_type": "int"
         },
         {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "int",
+                "type": "VariableExpression",
+                "name": "half"
+              },
+              "expression": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "/",
+                "left": {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "result"
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              },
+              "inferred_type": "int"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": "Still inside sum, half = "
+                },
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "half"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "ReturnStatement",
           "expression": {
             "inferred_type": "int",
@@ -56,31 +136,162 @@
           },
           "inferred_type": "int"
         }
-      ],
-      "return_type": "int"
+      ]
+    },
+    {
+      "type": "BlockStatement",
+      "statements": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "void",
+            "type": "VariableExpression",
+            "name": "x"
+          },
+          "expression": {
+            "inferred_type": "void",
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "sum"
+            },
+            "arguments": [
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 3
+              },
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 4
+              }
+            ]
+          },
+          "inferred_type": "void"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "int",
+              "type": "LiteralExpression",
+              "value": "In outer block, x = "
+            },
+            {
+              "inferred_type": "void",
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        },
+        {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "int",
+                "type": "VariableExpression",
+                "name": "z"
+              },
+              "expression": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "type": "ConversionExpression",
+                  "from_type": "void",
+                  "to_type": "int",
+                  "source_expr": {
+                    "inferred_type": "void",
+                    "type": "VariableExpression",
+                    "name": "x"
+                  }
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              },
+              "inferred_type": "int"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": "Nested block: z = "
+                },
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "int",
+              "type": "LiteralExpression",
+              "value": "Back in outer block, x still = "
+            },
+            {
+              "inferred_type": "void",
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "void",
+        "type": "VariableExpression",
+        "name": "globalVar"
+      },
+      "expression": {
+        "inferred_type": "void",
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "sum"
+        },
+        "arguments": [
+          {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 10
+          },
+          {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 20
+          }
+        ]
+      },
+      "inferred_type": "void"
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
           "inferred_type": "int",
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "sum"
-          },
-          "arguments": [
-            {
-              "inferred_type": "int",
-              "type": "LiteralExpression",
-              "value": 10
-            },
-            {
-              "inferred_type": "int",
-              "type": "LiteralExpression",
-              "value": 20
-            }
-          ]
+          "type": "LiteralExpression",
+          "value": "globalVar after sum(10, 20): "
+        },
+        {
+          "inferred_type": "void",
+          "type": "VariableExpression",
+          "name": "globalVar"
         }
       ]
     }

@@ -38,6 +38,7 @@ ConversionExpression.model_rebuild()
 # 2) Import statement submodels
 #
 
+from lmn.compiler.ast.statements.block_statement import BlockStatement
 from lmn.compiler.ast.statements.function_parameter import FunctionParameter
 from lmn.compiler.ast.statements.if_statement import IfStatement
 from lmn.compiler.ast.statements.for_statement import ForStatement
@@ -59,7 +60,8 @@ Statement = Annotated[
         FunctionParameter,
         FunctionDefinition,
         PrintStatement,
-        CallStatement,  # Add any statement submodels
+        CallStatement,
+        BlockStatement,
     ],
     Field(discriminator="type")
 ]
@@ -87,6 +89,7 @@ PrintStatement.model_rebuild()
 FunctionParameter.model_rebuild()
 FunctionDefinition.model_rebuild()
 ForStatement.model_rebuild()
+BlockStatement.model_rebuild()
 
 # rebuild program node
 Program.model_rebuild()

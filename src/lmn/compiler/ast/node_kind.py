@@ -18,3 +18,4 @@ class NodeKind(str, Enum):
     RETURN = "ReturnStatement"
     LET = "LetStatement"
     ASSIGNMENT = "AssignmentStatement"
+    BLOCK = "BlockStatement"

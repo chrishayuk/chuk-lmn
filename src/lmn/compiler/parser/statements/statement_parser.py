@@ -2,6 +2,7 @@
 from typing import Optional
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.parser.statements.assignment_parser import AssignmentParser
+from lmn.compiler.parser.statements.block_parser import BlockParser
 from lmn.compiler.parser.statements.function_definition_parser import FunctionDefinitionParser
 from lmn.compiler.parser.statements.if_parser import IfParser
 from lmn.compiler.parser.statements.for_parser import ForParser
@@ -61,6 +62,9 @@ class StatementParser:
 
         elif ttype == LmnTokenType.RETURN:
             return ReturnParser(self.parser).parse()
+        
+        elif ttype == LmnTokenType.BEGIN:
+            return BlockParser(self.parser).parse()
 
         # Possibly other statements here: call, break, etc.
 

@@ -1,17 +1,18 @@
 // A simple Fibonacci function
 function fib(n)
-    // If n < 2, just return n
-    if (n < 2)
+    // 0, 1
+    if n < 2
+        // return n
         return n
     else
         // Otherwise, return fib(n - 1) + fib(n - 2)
         return fib(n - 1) + fib(n - 2)
     end
 end
-x
+
 // The main entry point
 function main()
-    // let x = 10
+    // assign x to be 10
     let x = 10
 
     // Print a message and the fib(x) value

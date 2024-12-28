@@ -7,27 +7,57 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "a",
-          "type_annotation": "int"
+          "name": "a"
         },
         {
           "type": "FunctionParameter",
-          "name": "b",
-          "type_annotation": "int"
+          "name": "b"
         }
       ],
       "body": [
+        {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "type": "VariableExpression",
+                "name": "temp"
+              },
+              "expression": {
+                "type": "BinaryExpression",
+                "operator": "-",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "a"
+                },
+                "right": {
+                  "type": "VariableExpression",
+                  "name": "b"
+                }
+              }
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "type": "LiteralExpression",
+                  "value": "Inside nested block of sum, temp = "
+                },
+                {
+                  "type": "VariableExpression",
+                  "name": "temp"
+                }
+              ]
+            }
+          ]
+        },
         {
           "type": "LetStatement",
           "variable": {
             "type": "VariableExpression",
             "name": "result"
           },
-          "type_annotation": "int"
-        },
-        {
-          "type": "AssignmentStatement",
-          "variable_name": "result",
           "expression": {
             "type": "BinaryExpression",
             "operator": "+",
@@ -42,34 +72,177 @@
           }
         },
         {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "type": "VariableExpression",
+                "name": "half"
+              },
+              "expression": {
+                "type": "BinaryExpression",
+                "operator": "/",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "result"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              }
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "type": "LiteralExpression",
+                  "value": "Still inside sum, half = "
+                },
+                {
+                  "type": "VariableExpression",
+                  "name": "half"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "ReturnStatement",
           "expression": {
             "type": "VariableExpression",
             "name": "result"
           }
         }
-      ],
-      "return_type": "int"
+      ]
+    },
+    {
+      "type": "BlockStatement",
+      "statements": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "x"
+          },
+          "expression": {
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "sum"
+            },
+            "arguments": [
+              {
+                "type": "LiteralExpression",
+                "value": 3
+              },
+              {
+                "type": "LiteralExpression",
+                "value": 4
+              }
+            ]
+          }
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "In outer block, x = "
+            },
+            {
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        },
+        {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "type": "VariableExpression",
+                "name": "z"
+              },
+              "expression": {
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "x"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              }
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "type": "LiteralExpression",
+                  "value": "Nested block: z = "
+                },
+                {
+                  "type": "VariableExpression",
+                  "name": "z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "Back in outer block, x still = "
+            },
+            {
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "globalVar"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "sum"
+        },
+        "arguments": [
+          {
+            "type": "LiteralExpression",
+            "value": 10
+          },
+          {
+            "type": "LiteralExpression",
+            "value": 20
+          }
+        ]
+      }
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "sum"
-          },
-          "arguments": [
-            {
-              "type": "LiteralExpression",
-              "value": 10
-            },
-            {
-              "type": "LiteralExpression",
-              "value": 20
-            }
-          ]
+          "type": "LiteralExpression",
+          "value": "globalVar after sum(10, 20): "
+        },
+        {
+          "type": "VariableExpression",
+          "name": "globalVar"
         }
       ]
     }

@@ -51,24 +51,38 @@ class LmnTokenType(Enum):
     # ------------------------------
     # Keywords (all lowercase)
     # ------------------------------
+
+    # Scope
+    BEGIN = 'begin'
+    END = 'end'
+
+    # Functions
     FUNCTION = 'function'
-    LET = 'let'
-    PRINT = 'print'
+    RETURN = 'return'
+
+    # Control
     IF = 'if'
     ELSE = 'else'
-    END = 'end'
-    RETURN = 'return'
-    CALL = 'call'
+    ELSEIF = 'elseif'
+
+    # Loops
     FOR = 'for'
     TO = 'to'
     IN = 'in'
+    BREAK = 'break'
+    CONTINUE = 'continue'
+
+    # Statements
+    LET = 'let'
+    PRINT = 'print'
+    CALL = 'call'
     AND = 'and'
     OR = 'or'
     NOT = 'not'
-    BREAK = 'break'
     TRUE = 'true'
     FALSE = 'false'
     NIL = 'nil'
+    
 
     # ------------------------------
     # Type Keywords
@@ -84,21 +98,32 @@ class LmnTokenType(Enum):
         Maps lowercase keyword strings to the corresponding enum member.
         """
         return {
+            # scope
+            'begin': LmnTokenType.BEGIN,
+            'end': LmnTokenType.END,
+
+            # functions
             'function': LmnTokenType.FUNCTION,
-            'let': LmnTokenType.LET,
-            'print': LmnTokenType.PRINT,
+            'return': LmnTokenType.RETURN,
+
+            # control
             'if': LmnTokenType.IF,
             'else': LmnTokenType.ELSE,
-            'end': LmnTokenType.END,
-            'return': LmnTokenType.RETURN,
-            'call': LmnTokenType.CALL,
+            'elseif': LmnTokenType.ELSEIF,
+
+            # loops
             'for': LmnTokenType.FOR,
             'to': LmnTokenType.TO,
             'in': LmnTokenType.IN,
+            'break': LmnTokenType.BREAK,
+
+            # statements
+            'let': LmnTokenType.LET,
+            'print': LmnTokenType.PRINT,
+            'call': LmnTokenType.CALL,
             'and': LmnTokenType.AND,
             'or': LmnTokenType.OR,
             'not': LmnTokenType.NOT,
-            'break': LmnTokenType.BREAK,
             'true': LmnTokenType.TRUE,
             'false': LmnTokenType.FALSE,
             'nil': LmnTokenType.NIL,
