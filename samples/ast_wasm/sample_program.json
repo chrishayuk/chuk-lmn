@@ -1,0 +1,90 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "FunctionDefinition",
+      "name": "sum",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "a",
+          "type_annotation": "i32"
+        },
+        {
+          "type": "FunctionParameter",
+          "name": "b",
+          "type_annotation": "i32"
+        }
+      ],
+      "body": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "i32",
+            "type": "VariableExpression",
+            "name": "result"
+          },
+          "expression": null,
+          "type_annotation": "i32",
+          "inferred_type": "i32"
+        },
+        {
+          "type": "AssignmentStatement",
+          "variable_name": "result",
+          "expression": {
+            "inferred_type": "i32",
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            "right": {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "b"
+            }
+          },
+          "inferred_type": "i32"
+        },
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "inferred_type": "i32",
+            "type": "VariableExpression",
+            "name": "result"
+          },
+          "inferred_type": "i32"
+        }
+      ],
+      "return_type": "i32"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "FnExpression",
+          "name": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "sum"
+          },
+          "arguments": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 10
+            },
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 20
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

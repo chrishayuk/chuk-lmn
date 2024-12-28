@@ -1,5 +1,6 @@
 [console_scripts]
 ast-to-wat = lmn.cli.ast_to_wat:main
+ast-wasm-lowerer = lmn.cli.ast_wasm_lowerer:main
 parser-cli = lmn.cli.parser_cli:main
 tokenizer-cli = lmn.cli.tokenizer_cli:main
 typechecker = lmn.cli.typechecker:main
