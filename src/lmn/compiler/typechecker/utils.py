@@ -5,120 +5,122 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# Priority for types: int < long < float < double
+TYPE_PRIORITY = {
+    "int": 1,
+    "long": 2,
+    "float": 3,
+    "double": 4
+}
+
 def normalize_type(t: Optional[str]) -> Optional[str]:
     """
-    Convert the new style type names to a standard format:
-      int    -> i32
-      long   -> i64
-      float  -> f32
-      double -> f64
-
-    If 't' is None or not recognized in the map, we return it unchanged.
+    Optionally, you can keep this as a no-op if your parser
+    already provides "int", "long", "float", "double".
+    
+    If you never need to convert them to something else,
+    just return 't' unchanged or remove this function entirely.
     """
-    if t is None:
-        return None
-
-    type_map = {
-        "int":    "i32",
-        "long":   "i64",
-        "float":  "f32",
-        "double": "f64",
-    }
-    return type_map.get(t, t)
+    # For now, do nothing:
+    return t
 
 def infer_literal_type(value, target_type: Optional[str] = None) -> str:
     """
-    Infer the type of a literal (int/float). Floats default to f64
-    unless target is f32. Integers default to i32 unless out of 32-bit range, then i64.
+    Infer the type of a literal based on its Python value and 
+    an optional 'target_type' from context.
+    
+    - If 'value' is an integer, default to "int".
+      But if the target is "long", use "long".
+    - If 'value' is a float, default to "double".
+      But if the target is "float", use that.
+    - Otherwise, fallback to "int".
     """
     normalized_target = normalize_type(target_type)
 
     if isinstance(value, float):
-        if normalized_target == "f32":
-            return "f32"
-        return "f64"
+        # If the user wanted a float, use float; otherwise default to double
+        if normalized_target in ("float", "double"):
+            return normalized_target
+        return "double"
 
     if isinstance(value, int):
-        if -2**31 <= value <= 2**31 - 1:
-            return "i32"
-        else:
-            return "i64"
+        # If the user wanted a long, use long; otherwise default to int
+        if normalized_target in ("int", "long"):
+            return normalized_target
+        return "int"
 
-    # Fallback for string-literal or other forms, though commonly you'd do something else here
-    return "i32"
+    # For strings or other cases, you might do something else.
+    return "int"
 
 def can_assign_to(source: str, target: str) -> bool:
     """
     Check if 'source' can be assigned to 'target'.
-      i32 -> i64/f32/f64 => True
-      i64 -> f64 => True
-      f32 -> f64 => True
-      otherwise => False
+    
+      - int  -> long, float, double
+      - long -> float, double
+      - float -> double
+      - double -> double
+    
+    You can adjust these rules as needed.
     """
     if source == target:
         return True
 
+    # Allowed upward conversions
     allowed_conversions = {
-        "i32": {"i64", "f32", "f64"},
-        "i64": {"f64"},
-        "f32": {"f64"},
+        "int":    {"long", "float", "double"},
+        "long":   {"float", "double"},
+        "float":  {"double"},
+        "double": set()
     }
+
     return target in allowed_conversions.get(source, set())
-
-def get_binary_op_type(left: str, right: str) -> str:
-    """
-    For binary ops:
-      - if either is float => result is f64
-      - else pick higher of i32 vs i64
-    """
-    priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
-
-    if "f" in left or "f" in right:
-        return "f64"
-
-    # If neither is float, pick the higher integer type
-    return left if priority[left] >= priority[right] else right
 
 def unify_types(t1: Optional[str], t2: Optional[str], for_assignment: bool = False) -> str:
     """
-    If for_assignment=True:
-      - t1 = existing var type (target)
-      - t2 = new expr type (source)
-      Steps:
-        1) if can_assign_to(t2->t1), keep t1
-        2) else if can_assign_to(t1->t2), upcast to t2
-        3) else raise error
-    Else:
-      - for binary ops or other scenario => get_binary_op_type
+    Unifies two types (e.g., left and right side of an expression).
+    
+    If 'for_assignment' is True:
+      - We want to see if 't2' (RHS) can be assigned to 't1' (LHS).
+      - If so, keep t1. If not, see if we can promote t1 to t2. 
+      - Otherwise error.
+    If 'for_assignment' is False:
+      - For example, a binary expression. 
+      - We'll pick the "larger" type, e.g., (int + float) => float.
     """
+
     logger.debug(f"Unifying types t1={t1}, t2={t2}, assignment={for_assignment}")
 
+    # 1) If both are None, default to int
     if t1 is None and t2 is None:
-        return "i32"  # default if both are unknown
+        return "int"
 
-    # Normalize
-    t1_norm = normalize_type(t1) if t1 else None
-    t2_norm = normalize_type(t2) if t2 else None
+    # 2) If one is None, pick the other
+    if t1 is None:
+        return t2
+    if t2 is None:
+        return t1
 
-    if t1_norm is None and t2_norm is not None:
-        return t2_norm
-    if t2_norm is None and t1_norm is not None:
-        return t1_norm
-    if t1_norm is None and t2_norm is None:
-        return "i32"
-
-    # Now both are not None
+    # 3) Both are non-null, do the actual unification
     if for_assignment:
-        # 1) if can_assign_to(t2_norm -> t1_norm), keep t1_norm
-        if can_assign_to(t2_norm, t1_norm):
-            logger.debug(f"Assignment {t2_norm} -> {t1_norm} allowed; staying {t1_norm}")
-            return t1_norm
-        # 2) else if can_assign_to(t1_norm -> t2_norm), upcast to t2_norm
-        if can_assign_to(t1_norm, t2_norm):
-            logger.debug(f"Promoting variable from {t1_norm} -> {t2_norm}")
-            return t2_norm
-        # 3) otherwise => error
-        raise TypeError(f"Cannot unify assignment: {t2_norm} -> {t1_norm}")
+        # Example: var_type = t1, expr_type = t2
+        if can_assign_to(t2, t1):
+            # no conversion needed, keep t1
+            logger.debug(f"Assignment {t2} -> {t1} allowed; staying {t1}")
+            return t1
+        if can_assign_to(t1, t2):
+            # promote the variable to t2
+            logger.debug(f"Promoting variable from {t1} -> {t2}")
+            return t2
+        # Otherwise error
+        raise TypeError(f"Cannot unify assignment: {t2} -> {t1}")
     else:
-        # binary op scenario or similar
-        return get_binary_op_type(t1_norm, t2_norm)
+        # For a binary expression, pick the "larger" type
+        # e.g., (int + float) => float, (long + double) => double
+        p1 = TYPE_PRIORITY.get(t1, 0)
+        p2 = TYPE_PRIORITY.get(t2, 0)
+
+        if p1 >= p2:
+            return t1
+        else:
+            return t2

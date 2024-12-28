@@ -20,27 +20,22 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "result"
           },
-          "expression": null,
           "type_annotation": "int"
         },
         {
           "type": "AssignmentStatement",
           "variable_name": "result",
           "expression": {
-            "inferred_type": null,
             "type": "BinaryExpression",
             "operator": "+",
             "left": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "a"
             },
             "right": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "b"
             }
@@ -49,7 +44,6 @@
         {
           "type": "ReturnStatement",
           "expression": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "result"
           }
@@ -61,21 +55,17 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": null,
           "type": "FnExpression",
           "name": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "sum"
           },
           "arguments": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": 10
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": 20
             }

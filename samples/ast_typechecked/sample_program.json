@@ -20,53 +20,41 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "i32",
+            "inferred_type": "int",
             "type": "VariableExpression",
             "name": "result"
           },
-          "expression": null,
-          "type_annotation": "int"
+          "type_annotation": "int",
+          "inferred_type": "int"
         },
         {
           "type": "AssignmentStatement",
           "variable_name": "result",
           "expression": {
-            "inferred_type": "i32",
+            "inferred_type": "int",
             "type": "BinaryExpression",
             "operator": "+",
             "left": {
-              "type": "ConversionExpression",
-              "from_type": "int",
-              "to_type": "i32",
-              "source_expr": {
-                "inferred_type": "int",
-                "type": "VariableExpression",
-                "name": "a"
-              },
-              "inferred_type": null
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "a"
             },
             "right": {
-              "type": "ConversionExpression",
-              "from_type": "int",
-              "to_type": "i32",
-              "source_expr": {
-                "inferred_type": "int",
-                "type": "VariableExpression",
-                "name": "b"
-              },
-              "inferred_type": null
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "b"
             }
           },
-          "inferred_type": "i32"
+          "inferred_type": "int"
         },
         {
           "type": "ReturnStatement",
           "expression": {
-            "inferred_type": "i32",
+            "inferred_type": "int",
             "type": "VariableExpression",
             "name": "result"
           },
-          "inferred_type": "i32"
+          "inferred_type": "int"
         }
       ],
       "return_type": "int"
@@ -75,21 +63,20 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": "f64",
+          "inferred_type": "int",
           "type": "FnExpression",
           "name": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "sum"
           },
           "arguments": [
             {
-              "inferred_type": "i32",
+              "inferred_type": "int",
               "type": "LiteralExpression",
               "value": 10
             },
             {
-              "inferred_type": "i32",
+              "inferred_type": "int",
               "type": "LiteralExpression",
               "value": 20
             }

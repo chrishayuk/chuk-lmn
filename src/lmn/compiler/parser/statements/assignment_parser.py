@@ -1,4 +1,4 @@
-# file: assignment_parser.py
+# lmn/compiler/parser/statements/assignment_parser.py
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.parser.parser_utils import expect_token
 from lmn.compiler.ast.statements.assignment_statement import AssignmentStatement

@@ -7,8 +7,11 @@ logger = logging.getLogger(__name__)
 
 def check_assignment_statement(assign_stmt, symbol_table: dict) -> None:
     """
-    For statement like: x = expression
-    We'll confirm x is in the symbol table, typecheck the expression, and unify or ensure compatibility.
+    For a statement like: x = expression
+    1) Confirm x is in the symbol table.
+    2) Type-check the expression.
+    3) Unify or ensure compatibility with the variable's declared type.
+    4) If needed, insert a ConversionExpression node for narrowing or promotion.
     """
     logger.debug("Starting check_assignment_statement...")
 
@@ -18,35 +21,34 @@ def check_assignment_statement(assign_stmt, symbol_table: dict) -> None:
         logger.error("Assignment statement missing variable name")
         raise TypeError("Assignment statement missing variable name")
 
-    # 2. Check variable is declared
+    # 2. Ensure the variable is declared
     if var_name not in symbol_table:
         logger.error(f"Variable '{var_name}' not declared before assignment")
         raise NameError(f"Variable '{var_name}' not declared before assignment")
 
-    # 3. Check the expression type (pass the declared type as a hint)
+    # 3. Check the expression type (pass the declared type as a 'target_type')
     target_type = symbol_table[var_name]
     logger.debug(f"Checking expression for var '{var_name}' => {assign_stmt.expression}")
     expr_type = check_expression(assign_stmt.expression, symbol_table, target_type)
     logger.debug(f"Expression type resolved to {expr_type}")
 
-    # 4. unify with existing
+    # 4. Unify the existing var type (e.g. "int", "float") with the expression's type
     existing_type = symbol_table[var_name]
     new_type = unify_types(existing_type, expr_type, for_assignment=True)
 
-    # 4a. If the variable is f32 but the expression ended up as f64,
-    #     we allow demotion => Insert a ConversionExpression node.
-    if existing_type == "f32" and expr_type == "f64":
+    # 5. If we allow narrowing from "double" to "float", handle it similarly:
+    if existing_type == "float" and expr_type == "double":
         from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
-        # Wrap the original expr in a demotion node
+        # Insert a ConversionExpression to narrow "double" -> "float"
         conv = ConversionExpression(
             source_expr=assign_stmt.expression,
-            from_type="f64",
-            to_type="f32"
+            from_type="double",
+            to_type="float"
         )
         assign_stmt.expression = conv
-        new_type = "f32"  # final type is f32
+        new_type = "float"  # final type remains "float"
 
-    # 5. Store final type in symbol_table and the AST node
+    # 6. Update the symbol table and the AST node
     symbol_table[var_name] = new_type
     assign_stmt.inferred_type = new_type
 
