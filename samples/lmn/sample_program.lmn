@@ -1,41 +1,7 @@
-// 04_2_assignment_numbers_declare_assign.lmn
-// Demonstrates typed variable declarations vs. separate assignment,
-// and also shows inferred variables.
+function sum(a: int, b: int): int
+    let result: int
+    result = a + b
+    return result
+end
 
-// 1. Declare typed variables without initializing
-let smallVal:int
-let bigVal:long
-let ratio:float
-let eVal:double
-let negative:int
-
-// 2. Also declare variables with *no* type annotation (inferred)
-let inferredInt
-let inferredLarge
-let inferredRatio
-let inferredNegative
-
-// 3. Assign values afterward
-smallVal = 42
-bigVal = 2147483648
-ratio = 3.14         // float => requires 'f' suffix if you want a float literal
-eVal = 2.71828       // double => no 'f' suffix
-negative = -42
-
-// 4. Assign values to the inferred variables
-inferredInt = 42
-inferredLarge = 9999999999999
-inferredRatio = 0.5   // could be inferred as double
-inferredNegative = -100
-
-// 5. Print the results
-print smallVal
-print bigVal
-print ratio
-print eVal
-print negative
-
-print inferredInt
-print inferredLarge
-print inferredRatio
-print inferredNegative
+print sum(10, 20)

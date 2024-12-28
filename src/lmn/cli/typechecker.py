@@ -11,7 +11,7 @@ from lmn.compiler.typechecker.program_checker import ProgramChecker
 
 # Basic config for logging
 logging.basicConfig(
-    level=logging.CRITICAL,
+    level=logging.DEBUG,
     format="%(levelname)s - %(name)s - %(message)s")
 
 def main():

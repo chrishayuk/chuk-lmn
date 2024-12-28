@@ -100,20 +100,54 @@ def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> s
 
 def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
     """
-    For a function expression/call, we check each argument's type.
-    In a real compiler, you'd also unify with the function's declared param/return types.
-    For now, we just say the function returns 'f64'.
+    Type-check a function call expression, e.g. sum(10, 20).
+
+    Steps:
+      1) Extract the function name (fn_expr.name) and look it up in 'symbol_table'.
+      2) Check each argument's type against the declared param type.
+      3) Return the function's declared return type (instead of hardcoding 'f64').
     """
-    # iterate over each argument
-    for arg in fn_expr.arguments:
-        # check the argument's type
-        check_expression(arg, symbol_table)
 
-    # set the inferred type of the function expression
-    fn_expr.inferred_type = "f64"
+    # 1) Get the function name
+    #    fn_expr.name might be a VariableExpression, so do fn_expr.name.name
+    fn_name = fn_expr.name.name
 
-    # return the result
-    return "f64"
+    # 2) Look up the function signature
+    if fn_name not in symbol_table:
+        raise TypeError(f"Undefined function '{fn_name}'")
+
+    signature = symbol_table[fn_name]
+    param_types = signature["param_types"]
+    return_type = signature["return_type"]
+
+    # 3) Check argument count
+    if len(fn_expr.arguments) != len(param_types):
+        raise TypeError(
+            f"Function '{fn_name}' expects {len(param_types)} args, "
+            f"but got {len(fn_expr.arguments)}."
+        )
+
+    # 4) For each argument, check the expression's type
+    for i, arg in enumerate(fn_expr.arguments):
+        arg_type = check_expression(arg, symbol_table)
+        param_type = param_types[i]
+
+        # If you have a unify or conversion logic, now's the time to apply it:
+        # Possibly call unify_types(arg_type, param_type, for_assignment=True)
+        # or insert a ConversionExpression if needed. Example:
+        unified = unify_types(arg_type, param_type, for_assignment=True)
+        if unified != param_type:
+            raise TypeError(
+                f"Argument {i+1} of '{fn_name}' mismatch: "
+                f"expected '{param_type}', got '{arg_type}'."
+            )
+
+    # 5) The call's overall type is the function's declared return type
+    fn_expr.inferred_type = return_type
+
+    # Return it
+    return return_type
+
 
 def check_literal_expression(lit_expr: LiteralExpression, target_type: Optional[str] = None) -> str:
     """
