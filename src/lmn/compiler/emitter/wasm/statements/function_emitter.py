@@ -1,135 +1,144 @@
 import logging
+from lmn.compiler.emitter.wasm.wasm_utils import default_zero_for
 
 logger = logging.getLogger(__name__)
 
 class FunctionEmitter:
     def __init__(self, controller):
         """
-        The controller is typically your main WasmEmitter or code manager that:
+        The 'controller' is typically your main WasmEmitter or code manager that:
           - Tracks function names
           - Maintains func_local_map, local_counter
-          - Has a set/dict to gather newly declared locals from sub-emitters
+          - Has a set/dict to gather newly declared locals
           - Calls emit_statement(...) for each statement
         """
         self.controller = controller
 
     def emit_function(self, node, out_lines):
         """
-        Example node:
-          {
-            "type":  "FunctionDefinition",
-            "name":  "sumFirstN",
-            "params": ["n", "m"],  # plain strings for now
-            "body":   [
-                # e.g. { "op": "local.set", "args": ["temp"] },
-                #      { "op": "local.get", "args": ["m"] }, ...
-            ]
-          }
+        Example AST structure for a function node:
+        {
+          "type":  "FunctionDefinition",
+          "name":  "sumFirstN",
+          "params": [
+            { "type": "FunctionParameter", "name": "n", "type_annotation": "i32" },
+            { "type": "FunctionParameter", "name": "m", "type_annotation": "i32" }
+          ],
+          "return_type": "i32",  # or "f64" or "void", etc.
+          "body": [ ...some statements... ]
+        }
 
-        Desired WAT output:
-
+        The generated WAT might look like:
           (func $sumFirstN (param $n i32) (param $m i32) (result i32)
-            (local $temp i32)
+            ;; local declarations
             ;; body instructions...
-            i32.const 0
-            return
+            ;; fallback return if no explicit ReturnStatement
           )
         """
 
-        # 1) Gather function info
-        fname      = node["name"]
-        params     = node.get("params", [])
+        fname = node["name"]
+        params = node.get("params", [])
         body_nodes = node.get("body", [])
+        ret_type = node.get("return_type", "i32")  # fallback if not present
 
-        logger.debug(
-            "emit_function() for '%s' with params=%s, body_nodes=%d",
-            fname, params, len(body_nodes)
-        )
+        logger.debug("Emit function '%s' with %d params, return_type=%s", 
+                     fname, len(params), ret_type)
 
-        # 2) Track function name in the controller
+        # 1) Track the function name for exporting
         if fname not in self.controller.function_names:
             self.controller.function_names.append(fname)
-            logger.debug("Added function '%s' to function_names: %s",
-                         fname, self.controller.function_names)
 
-        # 3) Build the function header
-        param_decls = " ".join(f"(param ${p} i32)" for p in params)
-        if param_decls:
-            func_header = f"(func ${fname} {param_decls} (result i32)"
-        else:
-            func_header = f"(func ${fname} (result i32)"
+        # 2) Build the function header (params and optional (result ...))
+        param_lines = []
+        for p in params:
+            p_name = p["name"]
+            p_type = p.get("type_annotation", "i32")
+            param_lines.append(f"(param ${p_name} {p_type})")
+
+        param_section = " ".join(param_lines)
+        func_header = f"(func ${fname}"
+        if param_section:
+            func_header += f" {param_section}"
+
+        if ret_type != "void":
+            func_header += f" (result {ret_type})"
+
         out_lines.append(func_header)
-        logger.debug("Function header line: %s", func_header)
+        logger.debug("Function header: %s", func_header)
 
-        # 4) Reset the local environment for this function
-        logger.debug("Resetting func_local_map and local_counter for '%s'", fname)
+        # 3) Reset local environment for this function
         self.controller.func_local_map = {}
-        self.controller.local_counter = len(params)
-
-        # Initialize each param in func_local_map (index-based or with a type if you prefer)
-        for i, p in enumerate(params):
-            self.controller.func_local_map[p] = {
-                "index": i,        # or just i
-                "type":  "i32"     # default i32 for all params
-            }
-            logger.debug("Param '%s' => local index %d (i32)", p, i)
-
-        # Collect new local variables in a fresh set
-        logger.debug("Resetting new_locals set.")
+        self.controller.local_counter = 0
         self.controller.new_locals = set()
 
-        # 5) Emit body instructions into a temp list
-        body_instructions = []
-        for st_index, st_node in enumerate(body_nodes):
-            logger.debug("Emitting statement %d of '%s': %s",
-                         st_index, fname, st_node)
-            # We call the controller's `emit_statement` method,
-            # which must handle auto-registration of new locals.
-            self.controller.emit_statement(st_node, body_instructions)
+        # 4) Put params into func_local_map
+        for i, p in enumerate(params):
+            p_name = p["name"]
+            p_type = p.get("type_annotation", "i32")
+            self.controller.func_local_map[p_name] = {
+                "index": i,
+                "type":  p_type
+            }
+            self.controller.local_counter += 1
 
-        # 6) Insert local declarations right after function header
+        # 5) Emit the body statements
+        body_instructions = []
+        encountered_return = False
+
+        for stmt in body_nodes:
+            stmt_type = stmt.get("type")
+            if stmt_type == "ReturnStatement":
+                encountered_return = True
+
+            # Always emit the statement via controller
+            self.controller.emit_statement(stmt, body_instructions)
+
+        # 6) Now insert local declarations for newly referenced variables.
+        #    If a var isn't in func_local_map yet, we auto-declare it as "i32".
         local_decl_lines = []
         for var_name in sorted(self.controller.new_locals):
-            clean_var_name = self._normalize_local_name(var_name)
-            declared_type = self.controller.func_local_map[var_name]["type"]
-            if declared_type is None:
-                # default to i32 if untyped
-                declared_type = "i32"
-            decl_line = f"  (local {clean_var_name} {declared_type})"
-            local_decl_lines.append(decl_line)
-            logger.debug("Declaring local '%s' => (local %s %s)",
-                         var_name, clean_var_name, declared_type)
+            # If this variable wasn't declared, do so now:
+            if var_name not in self.controller.func_local_map:
+                idx = self.controller.local_counter
+                self.controller.func_local_map[var_name] = {
+                    "index": idx,
+                    "type": "i32"
+                }
+                self.controller.local_counter += 1
 
+            normalized = self._normalize_local_name(var_name)
+            local_type = self.controller.func_local_map[var_name].get("type", "i32")
+            local_decl_lines.append(f"  (local {normalized} {local_type})")
+
+        # Insert them right after the function header
         insert_index = len(out_lines)
-        out_lines[insert_index:insert_index] = local_decl_lines
+        for decl in reversed(local_decl_lines):
+            out_lines.insert(insert_index, decl)
 
-        # 7) Append body instructions
+        # 7) Add the actual body instructions
         out_lines.extend(body_instructions)
 
-        # 8) If no explicit return, push `0` & `return`
-        out_lines.append("  i32.const 0")
-        out_lines.append("  return")
+        # 8) If no explicit return => push typed 0, then return
+        if not encountered_return:
+            zero_instr = default_zero_for(ret_type)
+            if zero_instr:  # If ret_type != "void"
+                out_lines.append(f"  {zero_instr}")
+            out_lines.append("  return")
 
         # 9) Close the function
         out_lines.append(")")
-        logger.debug("Closed function '%s'.", fname)
+        logger.debug("Finished function '%s'.", fname)
 
     def _normalize_local_name(self, var_name: str) -> str:
         """
-        Convert any local name that starts with '$$' into a single '$',
-        or prepend '$' if it doesn't have any dollar sign at all.
-        E.g.:
-          'x'    -> '$x'
-          '$$x'  -> '$x'
-          '$x'   -> '$x'
+        Ensures local var has one '$' prefix:
+          'x'   -> '$x'
+          '$$x' -> '$x'
+          '$x'  -> '$x'
         """
         if var_name.startswith('$$'):
-            normal = '$' + var_name[2:]
+            return '$' + var_name[2:]
         elif not var_name.startswith('$'):
-            normal = f'${var_name}'
+            return f'${var_name}'
         else:
-            normal = var_name
-
-        logger.debug("_normalize_local_name: '%s' => '%s'", var_name, normal)
-        return normal
-
+            return var_name

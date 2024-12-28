@@ -14,17 +14,17 @@ def annotation_to_wasm_type(annotation: Optional[str]) -> Optional[str]:
 
 def default_zero_for(wasm_type: str) -> str:
     """
-    Return a WebAssembly instruction that pushes a zero literal 
+    Return a WebAssembly instruction that pushes a zero literal
     for the given wasm_type:
-       - 'f32' => 'f32.const 0'
+       - 'void' => ''  # no push
        - 'f64' => 'f64.const 0'
+       - 'f32' => 'f32.const 0'
        - 'i64' => 'i64.const 0'
        - anything else => 'i32.const 0'
-    
-    This is crucial if you're zero-initializing locals of different types, 
-    so that i64/f64 locals don't get i32.const 0 (leading to type mismatch).
     """
-    if wasm_type == "f64":
+    if wasm_type == "void":
+        return ""  # no push
+    elif wasm_type == "f64":
         return "f64.const 0"
     elif wasm_type == "f32":
         return "f32.const 0"
@@ -33,3 +33,4 @@ def default_zero_for(wasm_type: str) -> str:
     else:
         # default fallback => i32
         return "i32.const 0"
+

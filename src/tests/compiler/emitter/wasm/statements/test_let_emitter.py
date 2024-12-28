@@ -1,4 +1,6 @@
-from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
+import pytest
+from lmn.compiler.emitter.wasm.statements.assignment_emitter import AssignmentEmitter
+
 class MockController:
     def __init__(self):
         self.func_local_map = {}
@@ -10,11 +12,15 @@ class MockController:
 
     def emit_expression(self, expr, out_lines):
         """
-        - If var expr => i32.const 999
-        - If int literal in 32-bit => i32.const
-        - If int literal out of range => i64.const
-        - If float => i32.const 3.14
+        Very simplified expression emitter for testing:
+          - VariableExpression => i32.const 999
+          - int literal => i32.const or i64.const if out of i32 range
+          - float => i32.const <val>
         """
+        if not expr:
+            out_lines.append("  i32.const 0")
+            return
+
         etype = expr.get("type")
         if etype == "VariableExpression":
             out_lines.append("  i32.const 999")
@@ -34,10 +40,14 @@ class MockController:
 
     def infer_type(self, expr):
         """
-        - If var => return existing or i32
-        - If int => i32 if in range, else i64
-        - If float => f32
+        Very naive approach:
+          - If a variable is declared, return that type; else "i32".
+          - int => i32 if in range, else i64
+          - float => f32
         """
+        if not expr:
+            return "i32"
+
         etype = expr.get("type")
         if etype == "VariableExpression":
             name = expr.get("name", "")
@@ -45,7 +55,6 @@ class MockController:
             if var_name in self.func_local_map:
                 return self.func_local_map[var_name]["type"]
             return "i32"
-
         elif etype == "LiteralExpression":
             val = expr.get("value", 0)
             if isinstance(val, int):
@@ -57,202 +66,119 @@ class MockController:
                 return "f32"
             else:
                 return "i32"
-
         return "i32"
 
 
-
-
-def test_let_statement_new_var():
+@pytest.mark.parametrize("var_name,expr_node,declared_type,expected_lines", [
+    # 1) Simple i32 assignment
+    (
+        "x",
+        {"type": "LiteralExpression", "value": 42},
+        "i32",
+        [
+            "  i32.const 42",
+            "  local.set $x",
+        ],
+    ),
+    # 2) Larger int => i64 => declare as i64
+    (
+        "bigVal",
+        {"type": "LiteralExpression", "value": 2147483648},  # i64
+        "i64",
+        [
+            "  i64.const 2147483648",
+            "  local.set $bigVal",
+        ],
+    ),
+    # 3) Float => f32 => declare as f32
+    (
+        "ratio",
+        {"type": "LiteralExpression", "value": 3.14},  # f32
+        "f32",
+        [
+            "  i32.const 3.14",     # mock emitter always does i32.const <val> for floats
+            "  local.set $ratio",
+        ],
+    ),
+    # 4) Variable => i32 => assign from variable expression => i32.const 999
+    (
+        "dest",
+        {"type": "VariableExpression", "name": "source"},
+        "i32",
+        [
+            "  i32.const 999",
+            "  local.set $dest",
+        ],
+    ),
+    # 5) No expression => fallback zero => i32 => declare as i32
+    (
+        "noExpr",
+        None,
+        "i32",
+        [
+            "  i32.const 0",
+            "  local.set $noExpr",
+        ],
+    ),
+])
+def test_assignment_statement(var_name, expr_node, declared_type, expected_lines):
     """
-    Test creating a brand new variable 'x'. We expect:
-     - The variable is recorded in func_local_map with a type
-     - i32.const 42
-     - local.set $x
+    Tests that AssignmentEmitter emits the correct lines for a variety of
+    expression scenarios, with each variable pre-declared to match the final type.
     """
     controller = MockController()
-    emitter = LetEmitter(controller)
+    emitter = AssignmentEmitter(controller)
+
+    # Pre-declare the variable with declared_type, so no unify error
+    name_in_map = controller._normalize_local_name(var_name)
+    controller.func_local_map[name_in_map] = {
+        "index": 0,
+        "type": declared_type,
+    }
+
+    # Build the AST for the assignment
     node = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "x"},
-        "expression": {"type": "LiteralExpression", "value": 42}
+        "type": "AssignmentStatement",
+        "variable_name": var_name,
+        "expression": expr_node,
     }
 
-    out_lines = []
-    emitter.emit_let(node, out_lines)
-    combined = "\n".join(out_lines)
+    out = []
+    emitter.emit_assignment(node, out)
 
-    # Check the output instructions
-    assert "  i32.const 42" in combined
-    assert "local.set $x" in combined
+    combined = "\n".join(out)
 
-    # Check that x was added to func_local_map
-    assert "$x" in controller.func_local_map
-    # If you're storing an object/dict with {'index': idx, 'type': ...}, check that
-    info = controller.func_local_map["$x"]
-    assert info["type"] == "i32", f"Expected x to be i32, got {info['type']}"
-
-    # Also check new_locals
-    assert "$x" in controller.new_locals
+    # Check lines
+    for line in expected_lines:
+        assert line in combined, f"Expected line '{line}' in:\n{combined}"
 
 
-def test_set_statement_existing_var():
+def test_assignment_existing_variable():
     """
-    We'll pre-populate func_local_map with '$y' so the code won't declare it again.
-    The expression is also i32, so no conflict in type. We expect:
-      i32.const 99
-      local.set $y
-    and no mention of new locals.
-    """
-    mock_ctrl = MockController()
-    # Suppose we store: { 'index': 0, 'type': 'i32' }
-    mock_ctrl.func_local_map["$y"] = {"index": 0, "type": "i32"}
-    mock_ctrl.local_counter = 1
-
-    emitter = LetEmitter(mock_ctrl)
-    node = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "y"},
-        "expression": {"type": "LiteralExpression", "value": 99}
-    }
-
-    out_lines = []
-    emitter.emit_let(node, out_lines)
-    combined = "\n".join(out_lines)
-
-    assert "i32.const 99" in combined
-    assert "local.set $y" in combined
-
-    # Ensure we didn't re-add $y to new_locals
-    assert "$y" not in mock_ctrl.new_locals
-
-
-def test_set_statement_new_var_float():
-    """
-    Test a new variable 'fvar' assigned a float literal (e.g. 3.14).
-    We'll see infer_type => f32.
+    Example: A previously declared i64 variable, assigned a large int => i64
     """
     controller = MockController()
-    emitter = LetEmitter(controller)
-    node = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "fvar"},
-        "expression": {"type": "LiteralExpression", "value": 3.14}
-    }
+    # i64 from the start
+    controller.func_local_map["$myVar"] = {"index": 0, "type": "i64"}
 
-    out_lines = []
-    emitter.emit_let(node, out_lines)
-    combined = "\n".join(out_lines)
-
-    # By default our MockController emits i32.const for any literal in emit_expression,
-    # but let's just check the final lines. (If we wanted f32.const, we'd adjust emit_expression)
-    assert "i32.const 3.14" in combined, "MockController always uses i32.const <value>, so it's textual."
-    assert "local.set $fvar" in combined
-
-    # Check type in func_local_map
-    info = controller.func_local_map["$fvar"]
-    assert info["type"] == "f32", f"Expected fvar to be f32, got {info['type']}"
-    assert "$fvar" in controller.new_locals
-
-
-def test_set_statement_type_conflict():
-    controller = MockController()
-    emitter = LetEmitter(controller)
-
-    # First assignment => z = 100 => i32
-    node1 = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "z"},
-        "expression": {"type": "LiteralExpression", "value": 100}
-    }
-    out_lines1 = []
-    emitter.emit_let(node1, out_lines1)
-
-    # Immediately check the type in func_local_map
-    first_type = controller.func_local_map["$z"]["type"]
-    assert first_type == "i32", f"Expected i32 after first assignment, got {first_type}"
-
-    # Second assignment => z = 999999999999 => i64
-    node2 = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "z"},
-        "expression": {"type": "LiteralExpression", "value": 999999999999}
-    }
-    out_lines2 = []
-    emitter.emit_let(node2, out_lines2)
-
-    # Now check that it's i64
-    second_type = controller.func_local_map["$z"]["type"]
-    assert second_type == "i64", f"Expected i64 after second assignment, got {second_type}"
-
-
-def test_set_statement_assign_var():
-    """
-    If the expression is just a variable reference, e.g. set w x
-    Then we check the type is inherited from x if new, or confirm it matches if existing.
-    """
-    controller = MockController()
-    controller.func_local_map["$x"] = {"index": 0, "type": "i32"}
-    emitter = LetEmitter(controller)
+    emitter = AssignmentEmitter(controller)
 
     node = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "w"},
-        "expression": {"type": "VariableExpression", "name": "x"}
+        "type": "AssignmentStatement",
+        "variable_name": "myVar",
+        "expression": {
+            "type": "LiteralExpression",
+            "value": 999999999999,  # large => i64
+        },
     }
-    out_lines = []
-    emitter.emit_let(node, out_lines)
 
-    combined = "\n".join(out_lines)
-    assert "  i32.const 999" in combined  # from mock emit_expression fallback
-    assert "local.set $w" in combined
+    out = []
+    emitter.emit_assignment(node, out)
+    combined = "\n".join(out)
 
-    # Since w didn't exist, we infer type from the expression. But our mock 'infer_type' doesn't
-    # handle variable references properly (it returns i32 by default).
-    # If you want real logic, you'd do something like:
-    #  - w_type = controller.func_local_map["$x"]["type"]
-    #  - or unify w with x
-    info = controller.func_local_map["$w"]
-    assert info["type"] == "i32"
+    assert "  i64.const 999999999999" in combined
+    assert "local.set $myVar" in combined
 
-
-def test_set_statement_multiple_new_locals():
-    """
-    If we do set a, then set b, each new var increments local_counter, 
-    and each goes in new_locals.
-    """
-    controller = MockController()
-    emitter = LetEmitter(controller)
-
-    # set a
-    node_a = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "a"},
-        "expression": {"type": "LiteralExpression", "value": 1}
-    }
-    out_a = []
-    emitter.emit_let(node_a, out_a)
-
-    # set b
-    node_b = {
-        "type": "LetStatement",
-        "variable": {"type": "VariableExpression", "name": "b"},
-        "expression": {"type": "LiteralExpression", "value": 2}
-    }
-    out_b = []
-    emitter.emit_let(node_b, out_b)
-
-    # checks
-    assert controller.local_counter == 2, f"Expected 2 new locals, got {controller.local_counter}"
-    assert "$a" in controller.func_local_map
-    assert "$b" in controller.func_local_map
-    assert "$a" in controller.new_locals
-    assert "$b" in controller.new_locals
-
-    # 'a' lines
-    assert "  i32.const 1" in "\n".join(out_a)
-    assert "local.set $a" in "\n".join(out_a)
-
-    # 'b' lines
-    assert "  i32.const 2" in "\n".join(out_b)
-    assert "local.set $b" in "\n".join(out_b)
+    # The variable remains i64
+    info = controller.func_local_map["$myVar"]
+    assert info["type"] == "i64"

@@ -1,4 +1,4 @@
-# tests/emitter/wasm/test_wasm_emitter.py
+# file: tests/emitter/wasm/test_wasm_emitter.py
 from lmn.compiler.emitter.wasm.wasm_emitter import WasmEmitter
 
 def test_emit_program_with_function():
@@ -8,9 +8,21 @@ def test_emit_program_with_function():
         {
           "type": "FunctionDefinition",
           "name": "myFunc",
-          "params": ["n"],
+          "params": [
+            {
+              "type": "FunctionParameter",
+              "name": "n",
+              "type_annotation": "i32"
+            }
+          ],
           "body": [
-            { "type": "ReturnStatement", "expression": {"type": "LiteralExpression", "value": 123} }
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "LiteralExpression",
+                "value": 123
+              }
+            }
           ]
         }
       ]
@@ -23,7 +35,7 @@ def test_emit_program_with_function():
 
     # 1) The function signature:
     #    We now expect (func $myFunc (param $n i32) (result i32)
-    #    because your emitter names parameters (e.g., $n).
+    #    because your emitter uses param dictionaries with 'name' and 'type_annotation'.
     assert '(func $myFunc (param $n i32) (result i32' in result
 
     # 2) The return expression:

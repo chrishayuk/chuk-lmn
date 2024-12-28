@@ -1,4 +1,5 @@
-# compiler/emitter/wasm/expressions/variable_expression_emitter.py
+# file: lmn/compiler/emitter/wasm/expressions/variable_expression_emitter.py
+
 class VariableExpressionEmitter:
     def __init__(self, controller):
         """
@@ -18,9 +19,32 @@ class VariableExpressionEmitter:
 
         We assume 'x' is a local variable for now, so we'll do 'local.get $x'.
         If it were a global, you'd use 'global.get $x' or something similar.
-        """
-        var_name = node["name"]
 
-        # Emit a local.get. If your compiler uses a different scheme (globals,
-        # environment lookups, etc.), adjust accordingly.
-        out_lines.append(f'  local.get ${var_name}')
+        We also normalize names so that:
+          - "x"      => "$x"
+          - "$$thing" => "$thing"
+          - "$already" => "$already"
+          - anything else is handled accordingly
+        """
+        raw_name = node["name"]
+        normalized_name = self._normalize_local_name(raw_name)
+
+        # Emit a local.get with the normalized name.
+        out_lines.append(f'  local.get {normalized_name}')
+
+    def _normalize_local_name(self, var_name: str) -> str:
+        """
+        Conforms to the test's expected rules:
+         - If var_name starts with '$$', convert to a single '$'.
+         - If var_name starts with a single '$', leave it as-is.
+         - Otherwise, prepend a single '$'.
+        """
+        if var_name.startswith('$$'):
+            # e.g. "$$thing" => "$thing"
+            return f'${var_name[2:]}'
+        elif var_name.startswith('$'):
+            # e.g. "$already" => "$already"
+            return var_name
+        else:
+            # e.g. "x" => "$x"
+            return f'${var_name}'
