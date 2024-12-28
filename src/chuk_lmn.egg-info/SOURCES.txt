@@ -123,6 +123,8 @@ src/tests/compiler/emitter/wasm/statements/test_print_emitter.py
 src/tests/compiler/emitter/wasm/statements/test_return_emitter.py
 src/tests/compiler/lexer/__init__.py
 src/tests/compiler/lexer/test_tokenizer.py
+src/tests/compiler/lowering/__init__.py
+src/tests/compiler/lowering/test_wasm_lowerer.py
 src/tests/compiler/parser/__init__.py
 src/tests/compiler/parser/test_expressions_parser.py
 src/tests/compiler/parser/test_function_parser.py
