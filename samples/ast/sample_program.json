@@ -3,204 +3,220 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "checkNumericConditions",
+      "name": "demonstrateExtendedOperators",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "x"
+          "name": "a"
+        },
+        {
+          "type": "FunctionParameter",
+          "name": "b"
         }
       ],
       "body": [
         {
-          "type": "IfStatement",
-          "condition": {
-            "type": "BinaryExpression",
-            "operator": ">",
-            "left": {
-              "type": "VariableExpression",
-              "name": "x"
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "BinaryExpression",
+              "operator": "/",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "BinaryExpression",
+              "operator": "//",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "BinaryExpression",
+              "operator": "%",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "type": "VariableExpression",
+                "name": "b"
+              }
             },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 10
-            }
-          },
-          "thenBody": [
             {
-              "type": "PrintStatement",
-              "expressions": [
-                {
-                  "type": "LiteralExpression",
-                  "value": 999
-                }
-              ]
+              "type": "PostfixExpression",
+              "operator": "++",
+              "operand": {
+                "type": "VariableExpression",
+                "name": "a"
+              }
             }
-          ],
-          "elseifClauses": [
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
             {
-              "type": "ElseIfClause",
-              "condition": {
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            {
+              "type": "PostfixExpression",
+              "operator": "--",
+              "operand": {
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "b"
+            },
+            {
+              "type": "AssignmentExpression",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
                 "type": "BinaryExpression",
-                "operator": "==",
+                "operator": "+",
                 "left": {
                   "type": "VariableExpression",
-                  "name": "x"
+                  "name": "a"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 3
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            {
+              "type": "AssignmentExpression",
+              "left": {
+                "type": "VariableExpression",
+                "name": "b"
+              },
+              "right": {
+                "type": "BinaryExpression",
+                "operator": "-",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "b"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "b"
+            },
+            {
+              "type": "AssignmentExpression",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "type": "BinaryExpression",
+                "operator": "+",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "a"
                 },
                 "right": {
                   "type": "LiteralExpression",
                   "value": 10
                 }
-              },
-              "body": [
-                {
-                  "type": "PrintStatement",
-                  "expressions": [
-                    {
-                      "type": "LiteralExpression",
-                      "value": 1000
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "elseBody": [
-            {
-              "type": "PrintStatement",
-              "expressions": [
-                {
-                  "type": "LiteralExpression",
-                  "value": 888
-                }
-              ]
+              }
             }
           ]
         },
         {
-          "type": "IfStatement",
-          "condition": {
-            "type": "BinaryExpression",
-            "operator": "<",
-            "left": {
-              "type": "BinaryExpression",
-              "operator": "+",
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "a"
+            },
+            {
+              "type": "AssignmentExpression",
               "left": {
                 "type": "VariableExpression",
-                "name": "x"
+                "name": "b"
               },
               "right": {
-                "type": "LiteralExpression",
-                "value": 5
+                "type": "BinaryExpression",
+                "operator": "-",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "b"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 5
+                }
               }
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 10
             }
-          },
-          "thenBody": [
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
             {
-              "type": "PrintStatement",
-              "expressions": [
-                {
-                  "type": "BinaryExpression",
-                  "operator": "+",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "x"
-                  },
-                  "right": {
-                    "type": "LiteralExpression",
-                    "value": 5
-                  }
-                }
-              ]
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "BlockStatement",
-              "statements": [
-                {
-                  "type": "IfStatement",
-                  "condition": {
-                    "type": "BinaryExpression",
-                    "operator": "<",
-                    "left": {
-                      "type": "BinaryExpression",
-                      "operator": "*",
-                      "left": {
-                        "type": "BinaryExpression",
-                        "operator": "+",
-                        "left": {
-                          "type": "VariableExpression",
-                          "name": "x"
-                        },
-                        "right": {
-                          "type": "LiteralExpression",
-                          "value": 5
-                        }
-                      },
-                      "right": {
-                        "type": "LiteralExpression",
-                        "value": 2
-                      }
-                    },
-                    "right": {
-                      "type": "BinaryExpression",
-                      "operator": "*",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "x"
-                      },
-                      "right": {
-                        "type": "VariableExpression",
-                        "name": "x"
-                      }
-                    }
-                  },
-                  "thenBody": [
-                    {
-                      "type": "PrintStatement",
-                      "expressions": [
-                        {
-                          "type": "LiteralExpression",
-                          "value": 111
-                        }
-                      ]
-                    }
-                  ],
-                  "elseifClauses": [],
-                  "elseBody": [
-                    {
-                      "type": "PrintStatement",
-                      "expressions": [
-                        {
-                          "type": "LiteralExpression",
-                          "value": 222
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+              "type": "VariableExpression",
+              "name": "b"
             }
           ]
         },
         {
           "type": "ReturnStatement",
           "expression": {
-            "type": "BinaryExpression",
-            "operator": "+",
-            "left": {
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 42
-            }
+            "type": "VariableExpression",
+            "name": "b"
           }
         }
       ]
@@ -209,24 +225,19 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "type": "LiteralExpression",
-          "value": 8
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
           "type": "FnExpression",
           "name": {
             "type": "VariableExpression",
-            "name": "checkNumericConditions"
+            "name": "demonstrateExtendedOperators"
           },
           "arguments": [
             {
               "type": "LiteralExpression",
-              "value": 8
+              "value": 3
+            },
+            {
+              "type": "LiteralExpression",
+              "value": 5
             }
           ]
         }
@@ -236,21 +247,16 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "type": "LiteralExpression",
-          "value": 10
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
           "type": "FnExpression",
           "name": {
             "type": "VariableExpression",
-            "name": "checkNumericConditions"
+            "name": "demonstrateExtendedOperators"
           },
           "arguments": [
+            {
+              "type": "LiteralExpression",
+              "value": 10
+            },
             {
               "type": "LiteralExpression",
               "value": 10
@@ -263,8 +269,21 @@
       "type": "PrintStatement",
       "expressions": [
         {
-          "type": "LiteralExpression",
-          "value": 12
+          "type": "FnExpression",
+          "name": {
+            "type": "VariableExpression",
+            "name": "demonstrateExtendedOperators"
+          },
+          "arguments": [
+            {
+              "type": "LiteralExpression",
+              "value": 12
+            },
+            {
+              "type": "LiteralExpression",
+              "value": 2
+            }
+          ]
         }
       ]
     },
@@ -275,12 +294,16 @@
           "type": "FnExpression",
           "name": {
             "type": "VariableExpression",
-            "name": "checkNumericConditions"
+            "name": "demonstrateExtendedOperators"
           },
           "arguments": [
             {
               "type": "LiteralExpression",
-              "value": 12
+              "value": 6
+            },
+            {
+              "type": "LiteralExpression",
+              "value": 6
             }
           ]
         }

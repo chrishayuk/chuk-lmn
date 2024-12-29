@@ -1,14 +1,14 @@
-// 03_0_numbers_simple.lmn
-// A small integer (fits in i32 range)
+# 03_0_numbers_simple.lmn
+# A small integer (fits in i32 range)
 print 42
 
-// A larger integer (exceeds i32 range, should become i64)
+# A larger integer (exceeds i32 range, should become i64)
 print 4294967296
 
-// A decimal literal, should become f64
+# A decimal literal, should become f64
 print 3.14
 
-print 42            // Inferred as int (if within 32-bit range)
-print 2147483648    // Inferred as long (beyond 32-bit)
-print 3.14          // Inferred as double (decimal, no 'f' suffix)
-print 2.71f         // Inferred as float (decimal + 'f' suffix)
+print 42            # Inferred as int (if within 32-bit range)
+print 2147483648    # Inferred as long (beyond 32-bit)
+print 3.14          # Inferred as double (decimal, no 'f' suffix)
+print 2.71f         # Inferred as float (decimal + 'f' suffix)

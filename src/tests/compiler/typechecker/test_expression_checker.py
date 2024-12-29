@@ -5,12 +5,12 @@ from pydantic import TypeAdapter
 
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.expression_checker import check_expression
+
 # If your code inserts explicit conversions, uncomment this:
 # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
 # Create a single TypeAdapter for the `Node` union
 node_adapter = TypeAdapter(Node)
-
 
 def test_literal_expression_int():
     """
@@ -41,8 +41,6 @@ def test_literal_expression_float():
     symbol_table = {}
 
     inferred = check_expression(expr_obj, symbol_table)
-    # If your language treats 3.14 as a double by default, this check is correct.
-    # Otherwise, you might expect "float".
     assert inferred == "double"
     assert expr_obj.inferred_type == "double"
 
@@ -143,8 +141,6 @@ def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_
 
     inferred = check_expression(expr_obj, symbol_table)
 
-    # If either side is a float (in Python sense => e.g. 3.14),
-    # we assume your type system defaults it to "double". Otherwise "int".
     expected_type = "double" if (left_is_float or right_is_float) else "int"
     assert inferred == expected_type
     assert expr_obj.inferred_type == expected_type
@@ -152,7 +148,7 @@ def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_
 
 def test_binary_mixed_variable_and_literal():
     """
-    e.g. (x + 3.14): if x => "int", unify => "double"
+    e.g. (x + 3.14): if x => "int", unify => "double".
     """
     dict_expr = {
         "type": "BinaryExpression",
@@ -281,9 +277,168 @@ def test_binary_expression_float_plus_double_inserts_conversion():
     final_type = check_expression(expr_obj, symbol_table)
     assert final_type == "double"
     assert expr_obj.inferred_type == "double"
-
     # If your typechecker does AST insertion:
     # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
     # assert isinstance(expr_obj.left, ConversionExpression)
     # assert expr_obj.left.from_type == "float"
     # assert expr_obj.left.to_type == "double"
+
+
+#
+# NEW EXTENDED OPERATOR TESTS
+#
+
+def test_binary_floor_div():
+    """
+    a // b => if either is double => unify => double, else => int.
+    """
+    dict_expr = {
+        "type": "BinaryExpression",
+        "operator": "//",
+        "left": {"type": "LiteralExpression", "value": 12},
+        "right": {"type": "LiteralExpression", "value": 2}
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {}
+
+    inferred = check_expression(expr_obj, symbol_table)
+    # 12 and 2 => both int => result int
+    assert inferred == "int"
+    assert expr_obj.inferred_type == "int"
+
+def test_binary_floor_div_float():
+    """
+    a // b => if either is double => unify => double.
+    """
+    dict_expr = {
+        "type": "BinaryExpression",
+        "operator": "//",
+        "left": {"type": "LiteralExpression", "value": 12.0},  # double
+        "right": {"type": "LiteralExpression", "value": 2}     # int
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {}
+
+    inferred = check_expression(expr_obj, symbol_table)
+    # one side is double => final double
+    assert inferred == "double"
+    assert expr_obj.inferred_type == "double"
+
+def test_binary_modulo():
+    """
+    a % b => unify similarly. If either side is double => result double, else int.
+    """
+    dict_expr = {
+        "type": "BinaryExpression",
+        "operator": "%",
+        "left": {"type": "LiteralExpression", "value": 5},
+        "right": {"type": "LiteralExpression", "value": 2}
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {}
+
+    inferred = check_expression(expr_obj, symbol_table)
+    assert inferred == "int"
+    assert expr_obj.inferred_type == "int"
+
+def test_postfix_increment_int():
+    """
+    a++ => must be numeric => remains that numeric type. If a => int => result int
+    """
+    dict_expr = {
+        "type": "PostfixExpression",
+        "operator": "++",
+        "operand": {
+            "type": "VariableExpression",
+            "name": "a"
+        }
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+
+    symbol_table = {"a": "int"}
+    inferred = check_expression(expr_obj, symbol_table)
+    assert inferred == "int"
+    assert expr_obj.inferred_type == "int"
+
+def test_postfix_increment_bad_type():
+    """
+    a++ => if 'a' is not numeric => error.
+    """
+    dict_expr = {
+        "type": "PostfixExpression",
+        "operator": "++",
+        "operand": {
+            "type": "VariableExpression",
+            "name": "a"
+        }
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+
+    symbol_table = {"a": "string"}  # Suppose 'a' is string
+    with pytest.raises(TypeError, match="Cannot apply postfix '\\+\\+' to 'string'"):
+        check_expression(expr_obj, symbol_table)
+
+def test_compound_assignment_plus_eq():
+    """
+    a += 3 => a = a + 3
+    If a => int => unify( int, int ) => int
+    """
+    dict_expr = {
+        "type": "AssignmentExpression",
+        "left": {
+            "type": "VariableExpression",
+            "name": "a"
+        },
+        "right": {
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+                "type": "VariableExpression",
+                "name": "a"
+            },
+            "right": {
+                "type": "LiteralExpression",
+                "value": 3
+            }
+        }
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {"a": "int"}
+
+    inferred = check_expression(expr_obj, symbol_table)
+    assert inferred == "int"
+    assert expr_obj.inferred_type == "int"
+    assert symbol_table["a"] == "int"
+
+def test_compound_assignment_eq_plus():
+    """
+    a =+ 5 => a = a + 5
+    If a => double => unify( double, int ) => double => symbol_table['a'] => double
+    """
+    dict_expr = {
+        "type": "AssignmentExpression",
+        "left": {
+            "type": "VariableExpression",
+            "name": "a"
+        },
+        "right": {
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
+                "type": "VariableExpression",
+                "name": "a"
+            },
+            "right": {
+                "type": "LiteralExpression",
+                "value": 5
+            }
+        }
+    }
+    expr_obj = node_adapter.validate_python(dict_expr)
+    symbol_table = {"a": "double"}
+
+    inferred = check_expression(expr_obj, symbol_table)
+    assert inferred == "double"
+    assert expr_obj.inferred_type == "double"
+    # ensure 'a' remains or is reaffirmed as "double"
+    assert symbol_table["a"] == "double"

@@ -1,6 +1,8 @@
 # file: lmn/compiler/ast/__init__.py
 from __future__ import annotations
 
+from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
+
 # Common
 from .ast_node import ASTNode
 from .node_kind import NodeKind
@@ -16,6 +18,7 @@ from .expressions.variable_expression import VariableExpression
 from .expressions.binary_expression import BinaryExpression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.fn_expression import FnExpression
+from .expressions.postfix_expression import PostfixExpression
 
 # Statements - submodels
 from .statements.call_statement import CallStatement
@@ -40,6 +43,8 @@ VariableExpression.model_rebuild()
 BinaryExpression.model_rebuild()
 UnaryExpression.model_rebuild()
 FnExpression.model_rebuild()
+AssignmentExpression.model_rebuild()
+PostfixExpression.model_rebuild()
 
 # Statements
 CallStatement.model_rebuild()

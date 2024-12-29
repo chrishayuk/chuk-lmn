@@ -1,4 +1,4 @@
-# extended_operators.lmn
+# 04_3_extended_operators.lmn
 function demonstrateExtendedOperators(a, b)
     # 1. Show float division using '/'
     # (Assume both a and b are interpreted as floats or implicitly cast)
@@ -39,5 +39,5 @@ end
 # Test calls, each prints a series of outputs
 print demonstrateExtendedOperators(3, 5)
 print demonstrateExtendedOperators(10, 10)
-print demonstrateExtendedOperators(12, 2)
+print demonstrateExtendedOperators(12.0, 2.0)
 print demonstrateExtendedOperators(6, 6)

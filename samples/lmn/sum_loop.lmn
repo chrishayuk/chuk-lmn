@@ -1,14 +1,14 @@
-// Sums the first N integers using a for loop
+# Sums the first N integers using a for loop
 function sumFirstN(n)
-  // Initialize total = 0
+  # Initialize total = 0
   let total = 0
 
-  // Loop i from 1 to n
+  # Loop i from 1 to n
   for i = 1 to n
     total = total + i
   end
 
-  // Return the final total
+  # Return the final total
   return total
 end
 

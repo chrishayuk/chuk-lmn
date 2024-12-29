@@ -1,20 +1,20 @@
-// A simple Fibonacci function
+# A simple Fibonacci function
 function fib(n)
-    // 0, 1
+    # 0, 1
     if n < 2
-        // return n
+        # return n
         return n
     else
-        // Otherwise, return fib(n - 1) + fib(n - 2)
+        # Otherwise, return fib(n - 1) + fib(n - 2)
         return fib(n - 1) + fib(n - 2)
     end
 end
 
-// The main entry point
+# The main entry point
 function main()
-    // assign x to be 10
+    # assign x to be 10
     let x = 10
 
-    // Print a message and the fib(x) value
+    # Print a message and the fib(x) value
     print "Fibonacci of" x "is" fib(x)
 end

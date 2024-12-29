@@ -1,4 +1,4 @@
-// hello_functions.lmn
+# 05_hello_functions.lmn
 function sum(a: int, b: int): int
     // declare
     let result: int
@@ -10,5 +10,5 @@ function sum(a: int, b: int): int
     return result
 end
 
-// output the sum
+# output the sum
 print sum(10, 20)

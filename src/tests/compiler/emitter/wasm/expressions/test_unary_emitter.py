@@ -1,3 +1,5 @@
+# file: tests/compiler/emitter/test_unary_expression_emitter.py
+
 import pytest
 from lmn.compiler.emitter.wasm.expressions.unary_expression_emitter import UnaryExpressionEmitter
 
@@ -27,19 +29,19 @@ class MockController:
             raise ValueError(f"Unknown wasm type: {self.wasm_type}")
         
     def infer_type(self, node):
-      """
-      If your emitter code calls 'controller.infer_type(...)', you must define
-      this here in the mock. For tests, you can always return the same 'wasm_type'
-      that was set in the constructor, or parse something from 'node'.
-      """
-      return self.wasm_type
+        """
+        If your emitter code calls 'controller.infer_type(...)', you must define
+        this here in the mock. For tests, you can always return the same 'wasm_type'
+        that was set in the constructor, or parse something from 'node'.
+        """
+        return self.wasm_type
 
 
 def test_unary_plus_i32():
     """
     A simple test for unary plus with i32.
     We expect that we only emit the operand (mock => i32.const 777),
-    and no extra instructions.
+    and no extra instructions for unary plus.
     """
     ue = UnaryExpressionEmitter(MockController("i32"))
     node = {
@@ -51,16 +53,19 @@ def test_unary_plus_i32():
     ue.emit(node, out)
     combined = "\n".join(out)
 
+    # We should have only the line for the operand.
     assert "i32.const 777" in combined
-    # '+' => no additional instructions
+    # '+' => no additional instructions like 'i32.neg' or 'i32.eqz'
     assert "i32.const -1" not in combined
     assert "i32.eqz" not in combined
+    assert "i32.neg" not in combined
 
 
 def test_unary_minus_i32():
     """
     A simple test for unary minus with i32.
-    We expect: i32.const 777, then i32.const -1, then i32.mul
+    The pattern in the emitter is: push operand, push -1, mul => i32.mul
+    for integral negation.
     """
     ue = UnaryExpressionEmitter(MockController("i32"))
     node = {
@@ -72,8 +77,8 @@ def test_unary_minus_i32():
     ue.emit(node, out)
     combined = "\n".join(out)
 
-    assert "i32.const 777" in combined
-    assert "i32.const -1" in combined
+    assert "i32.const 777" in combined   # operand
+    assert "i32.const -1" in combined    # multiplied
     assert "i32.mul" in combined
 
 
@@ -133,7 +138,7 @@ def test_unary_not_i32():
         "  f32.const 777",
         "  f32.neg"
     ]),
-    # "not" for floats not implemented in our emitter => skip
+    # "not" for floats => not implemented in our emitter => skip
 
     # --- f64 cases ---
     ("+",  "f64", [
@@ -149,6 +154,9 @@ def test_unary_extended(operator, wasm_type, expected_lines):
     """
     A parametrized test covering unary operators (+, -, not) across
     i32, i64, f32, and f64 operand types.
+
+    We feed them into UnaryExpressionEmitter, ensuring it produces the 
+    correct lines for each scenario.
     """
     ue = UnaryExpressionEmitter(MockController(wasm_type=wasm_type))
     node = {
@@ -159,7 +167,7 @@ def test_unary_extended(operator, wasm_type, expected_lines):
     out = []
     ue.emit(node, out)
 
-    # Compare the actual lines vs expected lines
+    # Compare the actual lines vs. the expected lines
     assert out == expected_lines, (
         f"\nFor operator='{operator}', wasm_type='{wasm_type}'\n"
         f"Expected lines:\n{expected_lines}\n\nBut got:\n{out}\n"

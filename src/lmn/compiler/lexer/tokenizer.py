@@ -30,8 +30,8 @@ class Tokenizer:
         if self.current_pos >= len(self.input_string):
             return None
 
-        # 1. Check for // comments
-        if self.input_string[self.current_pos:].startswith("//"):
+        # 1. Check for # comments
+        if self.input_string[self.current_pos:].startswith("#"):
             return self.tokenize_comment()
 
         # 2. Match string literals: "..."
@@ -67,8 +67,8 @@ class Tokenizer:
         return None
 
     def tokenize_comment(self):
-        # Move past the "//"
-        self.current_pos += 2
+        # Move past the "#"
+        self.current_pos += 1
         comment_start = self.current_pos
 
         # Consume until newline or EOF
@@ -121,6 +121,7 @@ class Tokenizer:
                 self.current_pos += len(op)
                 return Token(token_type, op)
         return None
+
 
     def match_punctuation(self):
         for punc, token_type in LmnTokenType.get_punctuation_map().items():

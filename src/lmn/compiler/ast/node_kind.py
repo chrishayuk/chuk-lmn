@@ -8,6 +8,8 @@ class NodeKind(str, Enum):
     BINARY = "BinaryExpression"
     UNARY = "UnaryExpression"
     FN = "FnExpression"
+    POSTFIX = "PostfixExpression"
+    ASSIGNMENTEXPRESSION = "AssignmentExpression"
 
     # Statements
     CALL = "CallStatement"
@@ -18,5 +20,5 @@ class NodeKind(str, Enum):
     PRINT = "PrintStatement"
     RETURN = "ReturnStatement"
     LET = "LetStatement"
-    ASSIGNMENT = "AssignmentStatement"
+    ASSIGNMENTSTATEMENT = "AssignmentStatement"
     BLOCK = "BlockStatement"

@@ -1,0 +1,47 @@
+# 07_01_hello_if_else_elseif.lmn
+# Demonstration of optional parentheses in conditions (no strings)
+function checkNumericConditions(x)
+    # Simple if-elseif-else without parentheses
+    if x > 10
+        # print 999 if x > 10
+        print 999
+    elseif x == 10
+        # print 1000 if x == 10
+        print 1000
+    else
+        # print 888 otherwise
+        print 888
+    end
+
+    # Another if statement, this time with parentheses
+    if (x + 5) < 10
+        # print x+5 for demonstration if it's less than 10
+        print (x + 5)
+    else
+        begin
+            # Nested if with parentheses around a more complex expression
+            # for demonstration of operator precedence
+            if ((x + 5) * 2) < (x * x)
+                # print 111 if that expression is true
+                print 111
+            else
+                # else print 222
+                print 222
+            end
+        end
+    end
+
+    # Return x + 42 (just to have a return value)
+    return x + 42
+end
+
+# Let's test a few values to see the results
+# We'll print the input x and then call checkNumericConditions(x)
+print 8
+print checkNumericConditions(8)
+
+print 10
+print checkNumericConditions(10)
+
+print 12
+print checkNumericConditions(12)

@@ -9,7 +9,6 @@ LANG_TO_WASM_MAP: Dict[str, str] = {
     "double": "f64",
 }
 
-
 def lower_type(lang_type: Optional[str]) -> str:
     """
     Convert a single language-level type to WASM-level type.
@@ -20,7 +19,6 @@ def lower_type(lang_type: Optional[str]) -> str:
         return "i32"
     return LANG_TO_WASM_MAP.get(lang_type, "i32")
 
-
 def lower_program_to_wasm_types(program_node):
     """
     Entry point for lowering the entire AST (program_node)
@@ -29,7 +27,6 @@ def lower_program_to_wasm_types(program_node):
     # program_node.body is a list of top-level statements or FunctionDefinitions
     for stmt in program_node.body:
         lower_node(stmt)
-
 
 def lower_node(node):
     """
@@ -121,7 +118,7 @@ def lower_node(node):
                 lower_node(s)
 
     # 4) If the node has a generic .body field (like a FunctionDefinition),
-    #    we should also recurse
+    #    we should also recurse into that.
     if hasattr(node, "body") and node.body:
         for sub_stmt in node.body:
             lower_node(sub_stmt)
@@ -133,16 +130,22 @@ def lower_node(node):
                 p.type_annotation = "int"
             p.type_annotation = lower_type(p.type_annotation)
 
-    # 6) If the node is an expression with .left, .right, .arguments, etc.
+    # 6) For expressions, check .operand (unary), .left/.right (binary), .arguments, etc.
+    if hasattr(node, "operand") and node.operand:
+        lower_node(node.operand)
+
     if hasattr(node, "left") and node.left:
         lower_node(node.left)
+
     if hasattr(node, "right") and node.right:
         lower_node(node.right)
+
     if hasattr(node, "arguments"):
         for arg in node.arguments:
             lower_node(arg)
 
-    # 7) If the node has .expressions (like a PrintStatement)
+    # 7) If the node has .expressions (like a PrintStatement),
+    #    recurse on each expression in that list.
     if hasattr(node, "expressions"):
         for expr in node.expressions:
             lower_node(expr)

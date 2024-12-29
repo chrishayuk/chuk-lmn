@@ -1,6 +1,8 @@
 # file: lmn/compiler/emitter/wasm/wasm_emitter.py
 
+from lmn.compiler.emitter.wasm.expressions.assignment_expression_emitter import AssignmentExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
+from lmn.compiler.emitter.wasm.expressions.postfix_expression_emitter import PostfixExpressionEmitter
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
 from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
 from lmn.compiler.emitter.wasm.statements.assignment_emitter import AssignmentEmitter
@@ -50,6 +52,8 @@ class WasmEmitter:
         self.literal_expr_emitter = LiteralExpressionEmitter(self)
         self.variable_expr_emitter = VariableExpressionEmitter(self)
         self.conversion_expr_emitter = ConversionExpressionEmitter(self)
+        self.postfix_expression_emitter = PostfixExpressionEmitter(self)
+        self.assignment_expression_emitter = AssignmentExpressionEmitter(self)
 
     def emit_program(self, ast):
         """
@@ -189,6 +193,10 @@ class WasmEmitter:
             self.variable_expr_emitter.emit(expr, out_lines)
         elif etype == "ConversionExpression":
             self.conversion_expr_emitter.emit(expr, out_lines)
+        elif etype == "PostfixExpression":
+            self.postfix_expression_emitter.emit(expr, out_lines)
+        elif etype == "AssignmentExpression":
+            self.assignment_expression_emitter.emit(expr, out_lines)
         else:
             # fallback => i32.const 0 is a last-ditch approach if we can't figure out anything
             out_lines.append('  i32.const 0')

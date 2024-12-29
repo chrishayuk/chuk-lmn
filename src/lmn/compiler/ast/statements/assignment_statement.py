@@ -6,7 +6,7 @@ from lmn.compiler.ast.ast_node import ASTNode
 from lmn.compiler.ast.node_kind import NodeKind
 
 class AssignmentStatement(ASTNode):
-    type: Literal[NodeKind.ASSIGNMENT] = NodeKind.ASSIGNMENT
+    type: Literal[NodeKind.ASSIGNMENTSTATEMENT] = NodeKind.ASSIGNMENTSTATEMENT
     variable_name: str  # <- string name for the left-hand side
     expression: "Expression"  # or some expression type
 

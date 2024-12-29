@@ -31,7 +31,16 @@ class LmnTokenType(Enum):
     MINUS = '-'
     MUL = '*'
     DIV = '/'
-    POW = '^'
+
+    # Extended operators
+    MOD         = '%'      # modulo operator
+    FLOORDIV    = '//'     # integer division
+    INC         = '++'     # postfix increment
+    DEC         = '--'     # postfix decrement
+    PLUS_EQ     = '+='     # compound assignment (a += x)
+    MINUS_EQ    = '-='     # compound assignment (a -= x)
+    EQ_PLUS     = '=+'     # alternative compound assignment (a =+ x)
+    EQ_MINUS    = '=-'     # alternative compound assignment (a =- x)
 
     # ------------------------------
     # Punctuation
@@ -139,18 +148,27 @@ class LmnTokenType(Enum):
     @staticmethod
     def get_operator_map():
         return {
-            '==': LmnTokenType.EQEQ,   # equality
+            '==': LmnTokenType.EQEQ,
             '!=': LmnTokenType.NE,
             '<=': LmnTokenType.LE,
             '>=': LmnTokenType.GE,
             '<':  LmnTokenType.LT,
             '>':  LmnTokenType.GT,
-            '=':  LmnTokenType.EQ,    # assignment
+            # Multi-character operators first, so they don't get overshadowed:
+            '//': LmnTokenType.FLOORDIV,
+            '++': LmnTokenType.INC,
+            '--': LmnTokenType.DEC,
+            '+=': LmnTokenType.PLUS_EQ,
+            '-=': LmnTokenType.MINUS_EQ,
+            '=+': LmnTokenType.EQ_PLUS,
+            '=-': LmnTokenType.EQ_MINUS,
+            # Single-character operators
+            '=':  LmnTokenType.EQ,
             '+':  LmnTokenType.PLUS,
             '-':  LmnTokenType.MINUS,
             '*':  LmnTokenType.MUL,
             '/':  LmnTokenType.DIV,
-            '^':  LmnTokenType.POW
+            '%':  LmnTokenType.MOD
         }
 
     @staticmethod

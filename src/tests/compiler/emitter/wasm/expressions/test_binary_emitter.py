@@ -1,18 +1,23 @@
+# file: tests/compiler/emitter/test_binary_expression_emitter.py
+
 import pytest
 from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
 
-#
-# 1) A universal MockController that now just emits a single line per operand
-#    but does NOT unify or infer type. We'll do that in the test's node creation.
-#
-
 class MockController:
+    """
+    Mocks the Emitter's controller for expression emission.
+    We'll produce a single line per expression, e.g. "i32.const 777",
+    based on the expression's 'inferred_type'.
+    """
     def __init__(self):
         self.emit_count = 0
 
     def emit_expression(self, expr, out_lines):
         """
-        We simply look at expr["inferred_type"] to decide which const to emit.
+        Fake emission for sub-expression 'expr'.
+        We look at expr["inferred_type"] and produce "i32.const 777" or similar.
+
+        This way, we can test how BinaryExpressionEmitter merges them.
         """
         inferred_t = expr.get("inferred_type", "i32")
         self.emit_count += 1
@@ -28,11 +33,6 @@ class MockController:
         else:
             raise ValueError(f"Unknown inferred type: {inferred_t}")
 
-#
-# 2) A helper dict that indicates the expected final Wasm opcode
-#    for each operator + final type, matching your _map_operator() logic.
-#
-
 OPERATOR_MAP = {
     "+":  {"i32": "i32.add",  "i64": "i64.add",  "f32": "f32.add",  "f64": "f64.add"},
     "-":  {"i32": "i32.sub",  "i64": "i64.sub",  "f32": "f32.sub",  "f64": "f64.sub"},
@@ -46,19 +46,16 @@ OPERATOR_MAP = {
     "!=": {"i32": "i32.ne",   "i64": "i64.ne",   "f32": "f32.ne",   "f64": "f64.ne"},
 }
 
-#
-# 3) We'll define a small function to unify types *just for the test*, to verify final lines.
-#
-
 def unify_types(t1, t2):
+    """
+    For the test, we define a simple priority-based unify:
+      i32 < i64 < f32 < f64
+    """
     priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
     return t1 if priority[t1] >= priority[t2] else t2
 
-#
-# 4) The set of operators and type pairs to test.
-#
-
 ALL_OPERATORS = list(OPERATOR_MAP.keys())  # +, -, etc.
+
 ALL_TYPE_PAIRS = [
     ("i32", "i32"),
     ("i64", "i64"),
@@ -72,24 +69,21 @@ ALL_TYPE_PAIRS = [
     ("f32", "f64"),  # unify => f64
 ]
 
-#
-# 5) Parametrize over operator + (left_type, right_type).
-#    We'll manually store 'inferred_type' in the AST node
-#    so the emitter doesn't need to unify again.
-#
-
 @pytest.mark.parametrize("op", ALL_OPERATORS)
 @pytest.mark.parametrize("left_t,right_t", ALL_TYPE_PAIRS)
 def test_binary_all_ops(left_t, right_t, op):
-    # 1) Create the emitter with a basic controller
-    from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
+    """
+    For each operator (+, -, /, etc.) and each pair of operand types,
+    we unify to get a final type. Then we build a node with 'inferred_type' = final_type,
+    and check if the emitter produces the correct WASM op.
+
+    We also confirm it emitted the sub-expressions e.g. 'i32.const 777' lines for each side.
+    """
     controller = MockController()
     be = BinaryExpressionEmitter(controller)
 
-    # 2) Determine final type by unifying left_t, right_t
     final_type = unify_types(left_t, right_t)
 
-    # 3) Build a node that ALREADY has 'inferred_type' => final_type
     node = {
         "type": "BinaryExpression",
         "operator": op,
@@ -106,28 +100,34 @@ def test_binary_all_ops(left_t, right_t, op):
         },
     }
 
-    out = []
-    be.emit(node, out)
+    out_lines = []
+    be.emit(node, out_lines)
 
-    # The last line in out is the final Wasm op
-    last_line = out[-1].strip()
+    # Expect two lines for the sub-expressions + 1 line for the final op
+    # e.g. ["  i32.const 777", "  i32.const 777", "  i32.add"]
+    assert len(out_lines) == 3, f"Expected 3 lines, got {len(out_lines)} => {out_lines}"
 
-    # The opcode we expect
+    # Sub-expressions must be '  i32.const 777' or similar
+    assert out_lines[0].strip().endswith("const 777"), "Left operand line mismatch"
+    assert out_lines[1].strip().endswith("const 777"), "Right operand line mismatch"
+
+    # The final op line
+    last_line = out_lines[-1].strip()
     expected_op = OPERATOR_MAP[op][final_type]
-
     assert last_line == expected_op, (
         f"For operator={op}, left={left_t}, right={right_t}, expected '{expected_op}' "
-        f"but got '{last_line}'\nFull out: {out}"
+        f"but got '{last_line}'\nFull out: {out_lines}"
     )
 
-
-#
-# 6) Test the fallback case (unknown operator => 'op_type.add')
-#
-
-@pytest.mark.parametrize("left_t,right_t", [("i32", "i32"), ("f64", "i32"), ("f32", "f64")])
+@pytest.mark.parametrize("left_t,right_t", [
+    ("i32", "i32"),
+    ("f64", "i32"),
+    ("f32", "f64"),
+])
 def test_binary_fallback(left_t, right_t):
-    from lmn.compiler.emitter.wasm.expressions.binary_expression_emitter import BinaryExpressionEmitter
+    """
+    Tests the fallback path for unknown operators => "<final_type>.add".
+    """
     controller = MockController()
     be = BinaryExpressionEmitter(controller)
 
@@ -135,7 +135,7 @@ def test_binary_fallback(left_t, right_t):
 
     node = {
         "type": "BinaryExpression",
-        "operator": "&",  # not recognized
+        "operator": "&",  # not recognized => fallback
         "inferred_type": final_type,
         "left":  {
             "type": "LiteralExpression",
@@ -148,9 +148,9 @@ def test_binary_fallback(left_t, right_t):
             "inferred_type": right_t
         },
     }
-    out = []
-    be.emit(node, out)
+    out_lines = []
+    be.emit(node, out_lines)
 
-    assert out[-1].strip() == f"{final_type}.add", (
-        f"Fallback => expecting '{final_type}.add', got '{out[-1].strip()}'\n{out}"
+    assert out_lines[-1].strip() == f"{final_type}.add", (
+        f"Fallback => expecting '{final_type}.add', got '{out_lines[-1].strip()}'\n{out_lines}"
     )

@@ -1,5 +1,6 @@
-# lmn/compiler/parser/expressions/binary_parser.py
+# file: lmn/compiler/parser/expressions/binary_parser.py
 from lmn.compiler.lexer.token_type import LmnTokenType
+from lmn.compiler.parser.expressions.operator_precedence import OP_PRECEDENCE
 from lmn.compiler.ast import BinaryExpression
 
 class BinaryParser:
@@ -7,53 +8,42 @@ class BinaryParser:
         self.parser = parent_parser
         self.expr_parser = expr_parser
 
-    def parse_binary_expr(self):
+    def parse_binary_expr(self, min_prec=0):
         """
-        Example approach:
-          left = parse_unary_expr()
-          while current_token is a binary operator:
-              op_token = current_token
-              advance()
-              right = parse_unary_expr()
-              left = BinaryExpression(operator=op_token.value, left=left, right=right)
-          return left
+        Precedence-climbing approach:
+          1) Parse left side as a unary_expr
+          2) While the next token is a binary operator with precedence >= min_prec:
+               - consume operator
+               - parse right side at higher precedence (op_prec + 1) for left-associative
+                 or at the same precedence for right-associative
+               - combine into BinaryExpression
+          3) Return the final 'left' expression
         """
         left = self.expr_parser.parse_unary_expr()
 
-        while self._is_binary_operator(self.parser.current_token):
-            op_token = self.parser.current_token
+        while True:
+            token = self.parser.current_token
+            if not token or token.token_type not in OP_PRECEDENCE:
+                break
+
+            op_prec = OP_PRECEDENCE[token.token_type]
+            if op_prec < min_prec:
+                break
+
+            # This operator is valid at this precedence level, so consume it
+            op_token = token
             self.parser.advance()
 
-            right = self.expr_parser.parse_unary_expr()
+            # By default, left-associative => parse right with op_prec + 1
+            next_min_prec = op_prec + 1
 
-            # old code was: left = BinaryExpression(left, op_token, right)
-            # new approach uses named fields => 'operator=op_token.value'
+            right = self.parse_binary_expr(min_prec=next_min_prec)
+
+            # Build the binary expression node
             left = BinaryExpression(
-                operator=op_token.value,  # or op_token.lexeme if that's how you store it
+                operator=op_token.value,
                 left=left,
                 right=right
             )
 
         return left
-
-    def _is_binary_operator(self, token):
-        if not token:
-            return False
-
-        # Distinguish assignment (=) from comparison (==)
-        # by including EQEQ for equality comparison.
-        return token.token_type in [
-            LmnTokenType.PLUS, 
-            LmnTokenType.MINUS, 
-            LmnTokenType.MUL, 
-            LmnTokenType.DIV,
-            LmnTokenType.EQEQ,   # <-- Add '==' for equality
-            LmnTokenType.NE, 
-            LmnTokenType.LT, 
-            LmnTokenType.LE,
-            LmnTokenType.GT, 
-            LmnTokenType.GE, 
-            LmnTokenType.AND, 
-            LmnTokenType.OR
-        ]
-

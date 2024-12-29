@@ -1,54 +1,55 @@
+# 06_hello_scopes
 function sum(a, b)
     begin
-        // temp variable within block
+        # temp variable within block
         let temp = a - b
 
-        // print the temp value
+        # print the temp value
         print "Inside nested block of sum, temp = " temp
 
-        // 'temp' is discarded after this block
+        # 'temp' is discarded after this block
     end
 
-    // create a new variable for the result
+    # create a new variable for the result
     let result = a + b
 
-    // Another nested block, just to show deeper scoping
+    # Another nested block, just to show deeper scoping
     begin
-        // get half of the result
+        # get half of the result
         let half = result / 2
 
-        // print out the half
+        # print out the half
         print "Still inside sum, half = " half
 
-        // 'half' is discarded after this block
+        # 'half' is discarded after this block
     end
 
-    // return the result
+    # return the result
     return result
 end
 
 begin
-    // calculate the sum
+    # calculate the sum
     let x = sum(3, 4)
 
-    // print it
+    # print it
     print "In outer block, x = " x
 
-    // Another nested block to show x is still accessible, but new variables vanish after end
+    # Another nested block to show x is still accessible, but new variables vanish after end
     begin
-        // get z from the result of sum
+        # get z from the result of sum
         let z = x * 2
 
-        // print the result
+        # print the result
         print "Nested block: z = " z
     end
 
-    // z is not accessible here!
+    # z is not accessible here!
     print "Back in outer block, x still = " x
 end
 
-// global var
+# global var
 let globalVar = sum(10, 20)
 
-// print
+# print
 print "globalVar after sum(10, 20): " globalVar

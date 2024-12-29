@@ -60,9 +60,8 @@ def main():
     else:
         # Default LMN code snippet if no file is provided
         code = r"""
-// A simple factorial function for demonstration
 function fact(n)
-  if (n <= 1)
+  if n <= 1
     return 1
   else
     return n * fact(n - 1)
