@@ -144,12 +144,12 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "void",
+            "inferred_type": "int",
             "type": "VariableExpression",
             "name": "x"
           },
           "expression": {
-            "inferred_type": "void",
+            "inferred_type": "int",
             "type": "FnExpression",
             "name": {
               "type": "VariableExpression",
@@ -168,7 +168,7 @@
               }
             ]
           },
-          "inferred_type": "void"
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -179,7 +179,7 @@
               "value": "In outer block, x = "
             },
             {
-              "inferred_type": "void",
+              "inferred_type": "int",
               "type": "VariableExpression",
               "name": "x"
             }
@@ -200,14 +200,9 @@
                 "type": "BinaryExpression",
                 "operator": "*",
                 "left": {
-                  "type": "ConversionExpression",
-                  "from_type": "void",
-                  "to_type": "int",
-                  "source_expr": {
-                    "inferred_type": "void",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "x"
                 },
                 "right": {
                   "inferred_type": "int",
@@ -243,7 +238,7 @@
               "value": "Back in outer block, x still = "
             },
             {
-              "inferred_type": "void",
+              "inferred_type": "int",
               "type": "VariableExpression",
               "name": "x"
             }
@@ -254,12 +249,12 @@
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": "void",
+        "inferred_type": "int",
         "type": "VariableExpression",
         "name": "globalVar"
       },
       "expression": {
-        "inferred_type": "void",
+        "inferred_type": "int",
         "type": "FnExpression",
         "name": {
           "type": "VariableExpression",
@@ -278,7 +273,7 @@
           }
         ]
       },
-      "inferred_type": "void"
+      "inferred_type": "int"
     },
     {
       "type": "PrintStatement",
@@ -289,7 +284,7 @@
           "value": "globalVar after sum(10, 20): "
         },
         {
-          "inferred_type": "void",
+          "inferred_type": "int",
           "type": "VariableExpression",
           "name": "globalVar"
         }

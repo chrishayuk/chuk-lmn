@@ -18,19 +18,56 @@
       ],
       "body": [
         {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "temp"
+              },
+              "expression": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "-",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "a"
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "b"
+                }
+              },
+              "inferred_type": "i32"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": "Inside nested block of sum, temp = "
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "temp"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "LetStatement",
           "variable": {
             "inferred_type": "i32",
             "type": "VariableExpression",
             "name": "result"
           },
-          "expression": null,
-          "type_annotation": "i32",
-          "inferred_type": "i32"
-        },
-        {
-          "type": "AssignmentStatement",
-          "variable_name": "result",
           "expression": {
             "inferred_type": "i32",
             "type": "BinaryExpression",
@@ -49,6 +86,50 @@
           "inferred_type": "i32"
         },
         {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "half"
+              },
+              "expression": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "/",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "result"
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              },
+              "inferred_type": "i32"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": "Still inside sum, half = "
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "half"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "ReturnStatement",
           "expression": {
             "inferred_type": "i32",
@@ -57,32 +138,159 @@
           },
           "inferred_type": "i32"
         }
-      ],
-      "return_type": "i32"
+      ]
+    },
+    {
+      "type": "BlockStatement",
+      "statements": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "i32",
+            "type": "VariableExpression",
+            "name": "x"
+          },
+          "expression": {
+            "inferred_type": "i32",
+            "type": "FnExpression",
+            "name": {
+              "inferred_type": null,
+              "type": "VariableExpression",
+              "name": "sum"
+            },
+            "arguments": [
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 3
+              },
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 4
+              }
+            ]
+          },
+          "inferred_type": "i32"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": "In outer block, x = "
+            },
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        },
+        {
+          "type": "BlockStatement",
+          "statements": [
+            {
+              "type": "LetStatement",
+              "variable": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "z"
+              },
+              "expression": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "x"
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 2
+                }
+              },
+              "inferred_type": "i32"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": "Nested block: z = "
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": "Back in outer block, x still = "
+            },
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "x"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32",
+        "type": "VariableExpression",
+        "name": "globalVar"
+      },
+      "expression": {
+        "inferred_type": "i32",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "sum"
+        },
+        "arguments": [
+          {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 10
+          },
+          {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 20
+          }
+        ]
+      },
+      "inferred_type": "i32"
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
           "inferred_type": "i32",
-          "type": "FnExpression",
-          "name": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "sum"
-          },
-          "arguments": [
-            {
-              "inferred_type": "i32",
-              "type": "LiteralExpression",
-              "value": 10
-            },
-            {
-              "inferred_type": "i32",
-              "type": "LiteralExpression",
-              "value": 20
-            }
-          ]
+          "type": "LiteralExpression",
+          "value": "globalVar after sum(10, 20): "
+        },
+        {
+          "inferred_type": "i32",
+          "type": "VariableExpression",
+          "name": "globalVar"
         }
       ]
     }

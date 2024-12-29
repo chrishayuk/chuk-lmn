@@ -36,7 +36,9 @@ def check_statement(stmt, symbol_table: dict) -> None:
 
         elif stype == "FunctionDefinition":
             check_function_definition(stmt, symbol_table)
-
+        elif stype == "BlockStatement":
+            # <--- Our new branch for block scoping
+            check_block_statement(stmt, symbol_table)
         else:
             raise NotImplementedError(f"Unsupported statement type: {stype}")
 
@@ -63,7 +65,25 @@ def check_print_statement(print_stmt, symbol_table: dict) -> None:
         e_type = check_expression(expr, symbol_table)
         logger.debug(f"Expression '{expr}' resolved to type {e_type}")
 
+def check_block_statement(block_stmt, symbol_table: dict) -> None:
+    """
+    Type-check a block statement by creating a *local copy* of the current symbol table.
+    Any new variables declared in this block go into the local scope. 
+    When the block ends, those new declarations are discarded.
+    """
+    logger.debug("Entering new block scope")
 
+    # 1) Create a local scope so new variables won't leak back
+    local_scope = dict(symbol_table)
+
+    # 2) For each statement in the block, check it with the local scope
+    for stmt in block_stmt.statements:
+        check_statement(stmt, local_scope)
+
+    # 3) After the block ends, discard local_scope changes
+    logger.debug("Exiting block scope; local declarations are discarded.")
+    logger.debug(f"Symbol table remains (outer scope) = {symbol_table}")
+    
 def check_function_definition(func_def, symbol_table: dict) -> None:
     """
     1) Register the function's name, param types, return type in 'symbol_table'.

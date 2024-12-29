@@ -1,76 +1,122 @@
 # file: lmn/compiler/lowering/wasm_lowerer.py
-from typing import Union
 
-# A simple map from language-level to WASM-level
-LANG_TO_WASM_MAP = {
+from typing import Optional, Dict
+
+LANG_TO_WASM_MAP: Dict[str, str] = {
     "int":    "i32",
     "long":   "i64",
     "float":  "f32",
     "double": "f64",
 }
 
-def lower_type(lang_type: str) -> str:
+def lower_type(lang_type: Optional[str]) -> str:
     """
     Convert a single language-level type to WASM-level type.
-    If unknown, default to 'i32' or raise an error.
+    If unknown, default to 'i32'.
     """
+    if not lang_type:
+        # If it's None or empty, treat it as i32
+        return "i32"
     return LANG_TO_WASM_MAP.get(lang_type, "i32")
 
 def lower_program_to_wasm_types(program_node):
     """
-    Recursively walk the entire AST (Program node) and 
-    convert each node's 'inferred_type' or 'type_annotation' 
-    from language-level to WASM-level types.
+    Entry point for lowering the entire AST (program_node) 
+    to WASM-friendly types. Typically, program_node.type == "Program".
     """
-    # e.g. program_node.body is a list of statements or FunctionDefinition
+    # program_node.body is a list of top-level statements or FunctionDefinitions
     for stmt in program_node.body:
         lower_node(stmt)
 
 def lower_node(node):
-    # 1) Convert node.inferred_type if present
-    if getattr(node, "inferred_type", None):
-        node.inferred_type = lower_type(node.inferred_type)
+    """
+    Recursively lower a single node (statement, expression, function, etc.).
+    This function checks node.type or node fields, then visits sub-nodes.
+    """
 
-    # 2) Convert node.type_annotation if present
+    # 1) If the node has inferred_type, convert it to WASM type
+    inferred = getattr(node, "inferred_type", None)
+    if inferred:
+        node.inferred_type = lower_type(inferred)
+
+    # 2) If the node has a type_annotation (e.g., param, let-statement), convert it
     if hasattr(node, "type_annotation") and node.type_annotation:
         node.type_annotation = lower_type(node.type_annotation)
 
-    # 3) If it's a FunctionDefinition, handle return_type
-    if node.type == "FunctionDefinition" and getattr(node, "return_type", None):
-        node.return_type = lower_type(node.return_type)
+    # 3) If the node is a FunctionDefinition, handle params and return_type
+    if node.type == "FunctionDefinition":
+        # If there's a declared return_type, lower it
+        if getattr(node, "return_type", None):
+            node.return_type = lower_type(node.return_type)
 
-    # 4) If it's a LetStatement, handle node.variable
-    if node.type == "LetStatement":
+        # If the function has .params, ensure each param has a type_annotation != None
+        if hasattr(node, "params"):
+            for p in node.params:
+                # If param has no annotation, default to "int" => "i32"
+                if p.type_annotation is None:
+                    p.type_annotation = "int"
+                else:
+                    # If it's something else, e.g. "float", keep it
+                    pass
+                # Now lower it
+                p.type_annotation = lower_type(p.type_annotation)
+
+    # ---- Recursively handle known node types ----
+
+    if node.type == "BlockStatement":
+        # e.g., node.statements is a list of statements
+        if hasattr(node, "statements") and node.statements:
+            for s in node.statements:
+                lower_node(s)
+
+    elif node.type == "LetStatement":
+        # LetStatement might have .variable, .expression
         if node.variable:
             lower_node(node.variable)
         if node.expression:
             lower_node(node.expression)
 
-    # For an AssignmentStatement, you might need to lower the RHS expression
-    if node.type == "AssignmentStatement":
-        # there's no direct node.variable AST, just a variable_name string, 
-        # so you only need to lower node.expression
+    elif node.type == "AssignmentStatement":
+        # assignment: x = expr
         if node.expression:
             lower_node(node.expression)
 
-    # Similarly for ReturnStatement, handle node.expression
-    if node.type == "ReturnStatement":
+    elif node.type == "ReturnStatement":
         if node.expression:
             lower_node(node.expression)
 
-    # If node has a .body (like a function or a block), recurse
+    elif node.type == "IfStatement":
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "then_body", None):
+            for s in node.then_body:
+                lower_node(s)
+        if getattr(node, "else_body", None):
+            for s in node.else_body:
+                lower_node(s)
+
+    elif node.type == "WhileStatement":
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "body", None):
+            for s in node.body:
+                lower_node(s)
+
+    # 4) If the node has a generic .body field (like a FunctionDefinition),
+    #    we should also recurse
     if hasattr(node, "body") and node.body:
         for sub_stmt in node.body:
             lower_node(sub_stmt)
 
-    # If node has .params, each param might have a type_annotation
+    # 5) Even outside a FunctionDefinition, if node has .params, handle them
+    #    (rare, but could happen if your AST design allows it).
     if hasattr(node, "params"):
         for p in node.params:
-            if p.type_annotation:
-                p.type_annotation = lower_type(p.type_annotation)
-            # no need for inferred_type if your param nodes don’t store it
+            if p.type_annotation is None:
+                p.type_annotation = "int"
+            p.type_annotation = lower_type(p.type_annotation)
 
-    # If it’s an expression with .left, .right, .arguments, etc.
+    # 6) If the node is an expression with .left, .right, .arguments, etc.
     if hasattr(node, "left") and node.left:
         lower_node(node.left)
     if hasattr(node, "right") and node.right:
@@ -79,7 +125,7 @@ def lower_node(node):
         for arg in node.arguments:
             lower_node(arg)
 
-    # If it has .expressions (like PrintStatement)
+    # 7) If the node has .expressions (like a PrintStatement)
     if hasattr(node, "expressions"):
         for expr in node.expressions:
             lower_node(expr)

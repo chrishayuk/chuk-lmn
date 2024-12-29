@@ -11,7 +11,6 @@ from lmn.compiler.typechecker.function_checker import check_function_definition
 # Create a single TypeAdapter for the `Node` union
 node_adapter = TypeAdapter(Node)
 
-
 def test_function_definition_basic():
     """
     A function with no statements and no params shouldn't raise errors.
@@ -28,6 +27,9 @@ def test_function_definition_basic():
     # This should run without error
     check_function_definition(func_def_node, symbol_table)
 
+    # Optional: Verify the symbol_table now has 'doNothing' with return_type = None or 'void'
+    # depending on your inference rules. For instance:
+    # assert symbol_table["doNothing"]["return_type"] in (None, "void")
 
 def test_function_definition_with_statement():
     """
@@ -55,6 +57,8 @@ def test_function_definition_with_statement():
     # Should succeed if statement_checker handles PrintStatement
     check_function_definition(func_def_node, symbol_table)
 
+    # For example, you might check that "printHello" is now in the symbol_table
+    # assert "printHello" in symbol_table
 
 def test_function_with_typed_params():
     """
@@ -66,8 +70,8 @@ def test_function_with_typed_params():
         "type": "FunctionDefinition",
         "name": "add",
         "params": [
-            {"name": "a", "type_annotation": "int"},   # => i32
-            {"name": "b", "type_annotation": "float"}  # => f32
+            {"name": "a", "type_annotation": "int"},
+            {"name": "b", "type_annotation": "float"}
         ],
         "body": [
             {
@@ -82,13 +86,12 @@ def test_function_with_typed_params():
     func_def_node = node_adapter.validate_python(dict_func_def)
     symbol_table = {}
 
-    # We expect check_function_definition to put 'a' => i32, 'b' => f32 in the local table
+    # We expect check_function_definition to handle these typed params
     check_function_definition(func_def_node, symbol_table)
 
-    # If your checker merges function params into the top-level table, 
-    # you might test for symbol_table["a"] == "i32" etc.
-    # Or if they remain function-local, you won't see them in the global table.
-
+    # Optionally assert that the function is now in the symbol table with the correct param types
+    # e.g. symbol_table["add"]["param_types"] = ["int", "float"] 
+    # if your code normalizes "float" to "f32", adjust accordingly
 
 def test_function_with_untyped_params():
     """
@@ -101,7 +104,7 @@ def test_function_with_untyped_params():
         "name": "doStuff",
         "params": [
             {"name": "x", "type_annotation": None},
-            {"name": "y"}  # Or omit 'type_annotation' field
+            {"name": "y"}  # Omit 'type_annotation' entirely
         ],
         "body": [
             {
@@ -116,7 +119,10 @@ def test_function_with_untyped_params():
     func_def_node = node_adapter.validate_python(dict_func_def)
     symbol_table = {}
 
-    # The checker might set x => None, y => None in the local table,
-    # or let them be inferred as usage continues.
+    # This should succeed if your language allows untyped params (defaulting them to int, or None).
     check_function_definition(func_def_node, symbol_table)
-    # No error expected for untyped parameters if your language allows them.
+
+    # e.g., the checker might store them as "int" or keep them as None.
+    # assert "doStuff" in symbol_table
+    # param_types = symbol_table["doStuff"]["param_types"]
+    # assert param_types == ["int", "int"] or something else, depending on your language logic

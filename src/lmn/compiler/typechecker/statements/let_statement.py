@@ -16,7 +16,10 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
       let eVal: double = 2.718
     """
     var_name = stmt.variable.name
-    type_annotation = stmt.type_annotation  # e.g. "int", "float", ...
+
+    # Safely get 'type_annotation' if it exists, or None if it doesn't
+    type_annotation = getattr(stmt, "type_annotation", None)  # e.g. "int", "float", ...
+
     expr = stmt.expression
 
     logger.debug(f"Processing 'let' statement for variable '{var_name}'")

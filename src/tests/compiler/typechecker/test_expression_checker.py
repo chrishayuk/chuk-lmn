@@ -2,10 +2,10 @@
 
 import pytest
 from pydantic import TypeAdapter
+
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.expression_checker import check_expression
-
-# If your code inserts explicit conversions, import the ConversionExpression node:
+# If your code inserts explicit conversions, uncomment this:
 # from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
 # Create a single TypeAdapter for the `Node` union
@@ -22,6 +22,7 @@ def test_literal_expression_int():
     }
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
+
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "int"
     assert expr_obj.inferred_type == "int"
@@ -30,6 +31,7 @@ def test_literal_expression_int():
 def test_literal_expression_float():
     """
     If the literal is a float => default is "double".
+    (Depending on your type system, you might choose 'float' or 'double'.)
     """
     dict_expr = {
         "type": "LiteralExpression",
@@ -37,7 +39,10 @@ def test_literal_expression_float():
     }
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
+
     inferred = check_expression(expr_obj, symbol_table)
+    # If your language treats 3.14 as a double by default, this check is correct.
+    # Otherwise, you might expect "float".
     assert inferred == "double"
     assert expr_obj.inferred_type == "double"
 
@@ -51,7 +56,8 @@ def test_variable_expression_found():
         "name": "x"
     }
     expr_obj = node_adapter.validate_python(dict_expr)
-    symbol_table = {"x": "double"}
+    symbol_table = {"x": "double"}  # e.g. x is declared as double in the table
+
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "double"
     assert expr_obj.inferred_type == "double"
@@ -86,6 +92,7 @@ def test_unary_minus_float():
     }
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
+
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "double"
     assert expr_obj.inferred_type == "double"
@@ -105,6 +112,7 @@ def test_unary_not_int():
     }
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
+
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "int"
     assert expr_obj.inferred_type == "int"
@@ -116,6 +124,7 @@ def test_unary_not_int():
 def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_is_float, operator):
     """
     If either side is a float => result is "double", else => "int".
+    This test will run 3 * 2 * 2 = 12 different combos.
     """
     dict_expr = {
         "type": "BinaryExpression",
@@ -131,9 +140,10 @@ def test_binary_expression_arithmetic(left_val, left_is_float, right_val, right_
     }
     expr_obj = node_adapter.validate_python(dict_expr)
     symbol_table = {}
+
     inferred = check_expression(expr_obj, symbol_table)
 
-    # If either side is a float (in Python sense => a floating numeric literal),
+    # If either side is a float (in Python sense => e.g. 3.14),
     # we assume your type system defaults it to "double". Otherwise "int".
     expected_type = "double" if (left_is_float or right_is_float) else "int"
     assert inferred == expected_type
@@ -157,7 +167,8 @@ def test_binary_mixed_variable_and_literal():
         }
     }
     expr_obj = node_adapter.validate_python(dict_expr)
-    symbol_table = {"x": "int"}
+    symbol_table = {"x": "int"}  # x is declared as int
+
     inferred = check_expression(expr_obj, symbol_table)
     assert inferred == "double"
     assert expr_obj.inferred_type == "double"
@@ -180,7 +191,6 @@ def test_fn_expression_simple():
             {"type": "LiteralExpression", "value": 3.14},   # float => "double"
         ]
     }
-
     expr_obj = node_adapter.validate_python(dict_expr)
 
     # Provide a function signature in the symbol table:
@@ -247,8 +257,8 @@ def test_binary_expression_mixed_types(
 @pytest.mark.skip(reason="Requires rewriting to insert ConversionExpression.")
 def test_binary_expression_float_plus_double_inserts_conversion():
     """
-    If left is "float", right is "double" => result "double",
-    typechecker might wrap the left side in a ConversionExpression(float->double).
+    If left is "float", right is "double" => result "double".
+    Typechecker might wrap the left side in a ConversionExpression(float->double).
     Uncomment if your typechecker does AST rewriting.
     """
     dict_expr = {

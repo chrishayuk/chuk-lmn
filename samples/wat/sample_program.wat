@@ -4,8 +4,6 @@
   (import "env" "print_f64" (func $print_f64 (param f64)))
   (func $sum (param $a i32) (param $b i32) (result i32)
     (local $result i32)
-    i32.const 0
-    local.set $result
     local.get $a
     local.get $b
     i32.add
@@ -14,9 +12,12 @@
     return
   )
   (func $__top_level__
+    (local $globalVar i32)
     i32.const 10
     i32.const 20
     call $sum
+    local.set $globalVar
+    local.get $globalVar
     call $print_i32
   )
   (export "sum" (func $sum))

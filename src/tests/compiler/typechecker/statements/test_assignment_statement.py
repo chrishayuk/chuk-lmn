@@ -1,12 +1,17 @@
 # file: tests/compiler/typechecker/statements/test_assignment_statement_typechecker.py
+
 import pytest
+
+# AST Nodes for the statement and various expressions
 from lmn.compiler.ast.statements.assignment_statement import AssignmentStatement
 from lmn.compiler.ast.expressions.literal_expression import LiteralExpression
 from lmn.compiler.ast.expressions.variable_expression import VariableExpression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
+# The checker under test
 from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
 from lmn.compiler.typechecker.utils import unify_types
+
 
 def test_assign_same_type_no_conversion():
     """
@@ -23,7 +28,7 @@ def test_assign_same_type_no_conversion():
     check_assignment_statement(stmt, symbol_table)
     
     assert stmt.inferred_type == "int"
-    # The expression should remain a LiteralExpression
+    # The expression remains a LiteralExpression (no conversion needed).
     assert isinstance(stmt.expression, LiteralExpression)
     assert symbol_table["x"] == "int"
 
@@ -58,7 +63,7 @@ def test_assign_promote_float_to_double():
         assert isinstance(conv.source_expr, LiteralExpression)
         assert conv.source_expr.value == 2.718
     else:
-        # Some languages might skip explicit node insertion
+        # Some languages might skip explicit node insertion.
         pass
 
 
