@@ -9,6 +9,7 @@ LANG_TO_WASM_MAP: Dict[str, str] = {
     "double": "f64",
 }
 
+
 def lower_type(lang_type: Optional[str]) -> str:
     """
     Convert a single language-level type to WASM-level type.
@@ -19,14 +20,16 @@ def lower_type(lang_type: Optional[str]) -> str:
         return "i32"
     return LANG_TO_WASM_MAP.get(lang_type, "i32")
 
+
 def lower_program_to_wasm_types(program_node):
     """
-    Entry point for lowering the entire AST (program_node) 
+    Entry point for lowering the entire AST (program_node)
     to WASM-friendly types. Typically, program_node.type == "Program".
     """
     # program_node.body is a list of top-level statements or FunctionDefinitions
     for stmt in program_node.body:
         lower_node(stmt)
+
 
 def lower_node(node):
     """
@@ -55,9 +58,6 @@ def lower_node(node):
                 # If param has no annotation, default to "int" => "i32"
                 if p.type_annotation is None:
                     p.type_annotation = "int"
-                else:
-                    # If it's something else, e.g. "float", keep it
-                    pass
                 # Now lower it
                 p.type_annotation = lower_type(p.type_annotation)
 
@@ -86,14 +86,32 @@ def lower_node(node):
             lower_node(node.expression)
 
     elif node.type == "IfStatement":
+        # Handle condition
         if getattr(node, "condition", None):
             lower_node(node.condition)
+
+        # Handle then_body
         if getattr(node, "then_body", None):
             for s in node.then_body:
                 lower_node(s)
+
+        # Handle elseif_clauses
+        if getattr(node, "elseif_clauses", None):
+            for clause in node.elseif_clauses:
+                lower_node(clause)
+
+        # Handle else_body
         if getattr(node, "else_body", None):
             for s in node.else_body:
                 lower_node(s)
+
+    elif node.type == "ElseIfClause":
+        # If you treat ElseIfClause as a distinct node type:
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "body", None):
+            for st in node.body:
+                lower_node(st)
 
     elif node.type == "WhileStatement":
         if getattr(node, "condition", None):
@@ -109,7 +127,6 @@ def lower_node(node):
             lower_node(sub_stmt)
 
     # 5) Even outside a FunctionDefinition, if node has .params, handle them
-    #    (rare, but could happen if your AST design allows it).
     if hasattr(node, "params"):
         for p in node.params:
             if p.type_annotation is None:

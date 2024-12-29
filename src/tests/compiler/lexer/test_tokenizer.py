@@ -1,4 +1,4 @@
-# tests/compiler/lexer/test_tokenizer.py
+# file: tests/compiler/lexer/test_tokenizer.py
 
 import pytest
 from lmn.compiler.lexer.tokenizer import Tokenizer, TokenizationError
@@ -9,7 +9,6 @@ def test_empty_input():
     tokens = tokenizer.tokenize()
     assert len(tokens) == 0
 
-
 def test_comment():
     code = "// This is a comment\n"
     tokenizer = Tokenizer(code)
@@ -18,7 +17,6 @@ def test_comment():
     assert tokens[0].token_type == LmnTokenType.COMMENT
     assert tokens[0].value.strip() == "This is a comment"
 
-
 def test_string_literal():
     tokenizer = Tokenizer('"Hello, world!"')
     tokens = tokenizer.tokenize()
@@ -26,9 +24,7 @@ def test_string_literal():
     assert tokens[0].token_type == LmnTokenType.STRING
     assert tokens[0].value == "Hello, world!"
 
-
 def test_keywords():
-    # "set" removed entirely
     code = "function if else end return for in to call print let"
     tokenizer = Tokenizer(code)
     tokens = tokenizer.tokenize()
@@ -49,7 +45,6 @@ def test_keywords():
     ]
     for i, ttype in enumerate(expected_keywords):
         assert tokens[i].token_type == ttype
-
 
 def test_operators():
     code = "= != < <= > >= + - * / ^"
@@ -73,7 +68,6 @@ def test_operators():
     for i, ttype in enumerate(expected):
         assert tokens[i].token_type == ttype
 
-
 def test_punctuation():
     code = "( ) , [ ]"
     tokenizer = Tokenizer(code)
@@ -90,13 +84,12 @@ def test_punctuation():
     for i, ttype in enumerate(expected):
         assert tokens[i].token_type == ttype
 
-
 # -------------------------------------------------------------------
 # UPDATED TEST: test_numbers
 # -------------------------------------------------------------------
 def test_numbers():
     """
-    Check new numeric tokens:
+    Check numeric tokens:
       - '123'    => INT_LITERAL
       - '45.67'  => DOUBLE_LITERAL
       - '0.99'   => DOUBLE_LITERAL
@@ -118,7 +111,6 @@ def test_numbers():
     assert tokens[2].token_type == LmnTokenType.DOUBLE_LITERAL
     assert tokens[2].value == 0.99
 
-
 def test_identifiers():
     code = "variable1 var_2 myFunc main"
     tokenizer = Tokenizer(code)
@@ -129,7 +121,6 @@ def test_identifiers():
     for i, val in enumerate(expected_values):
         assert tokens[i].token_type == LmnTokenType.IDENTIFIER
         assert tokens[i].value == val
-
 
 def test_complex_snippet():
     code = r"""
@@ -166,7 +157,6 @@ end
     # The final token should be END
     assert tokens[-1].token_type == LmnTokenType.END
 
-
 # -------------------------------------------------------------------
 # EXTENDED TESTS
 # -------------------------------------------------------------------
@@ -186,7 +176,6 @@ def test_inline_comment():
     assert tokens[3].value == 10
     assert tokens[4].token_type == LmnTokenType.COMMENT
     assert "inline comment" in tokens[4].value
-
 
 def test_empty_lines_and_whitespace():
     code = """
@@ -210,7 +199,6 @@ def test_empty_lines_and_whitespace():
     assert tokens[5].token_type == LmnTokenType.IDENTIFIER
     assert tokens[5].value == "y"
 
-
 @pytest.mark.skip(reason="Lexer doesn't support backslash escapes.")
 def test_string_with_escapes():
     """
@@ -221,7 +209,6 @@ def test_string_with_escapes():
     tokenizer = Tokenizer(code)
     tokens = tokenizer.tokenize()
     # If it *did* handle escapes, you'd test them here.
-
 
 def test_numeric_variants():
     """
@@ -240,20 +227,19 @@ def test_numeric_variants():
     assert tokens[0].value == 0.0
 
     # 2) '007' => likely INT_LITERAL(7) or LONG_LITERAL(7)
-    #   (leading zeros do not affect the numeric value)
     assert tokens[1].token_type in (LmnTokenType.INT_LITERAL, LmnTokenType.LONG_LITERAL)
     assert tokens[1].value == 7
 
     # 3) '-5' => might be MINUS + INT_LITERAL(5) or a single INT_LITERAL(-5)
-    if tokens[2].token_type == LmnTokenType.MINUS:
-        # Then the next token should be INT_LITERAL or LONG_LITERAL
-        assert tokens[3].token_type in (LmnTokenType.INT_LITERAL, LmnTokenType.LONG_LITERAL)
-        assert tokens[3].value == 5
-    else:
-        # Single token scenario
+    if len(tokens) == 3:
+        # single token => INT_LITERAL(-5), or LONG_LITERAL(-5)
         assert tokens[2].token_type in (LmnTokenType.INT_LITERAL, LmnTokenType.LONG_LITERAL)
         assert tokens[2].value in (-5, -5.0)
-
+    else:
+        # multiple tokens => MINUS, INT_LITERAL(5)
+        assert tokens[2].token_type == LmnTokenType.MINUS
+        assert tokens[3].token_type in (LmnTokenType.INT_LITERAL, LmnTokenType.LONG_LITERAL)
+        assert tokens[3].value == 5
 
 def test_no_whitespace_between_tokens():
     code = "let a=10 print(a)"
@@ -273,7 +259,6 @@ def test_no_whitespace_between_tokens():
     assert tokens[6].token_type == LmnTokenType.IDENTIFIER
     assert tokens[6].value == "a"
     assert tokens[7].token_type == LmnTokenType.RPAREN
-
 
 # -------------------------------------------------------------------
 # NEW TESTS for the new numeric tokens
@@ -333,7 +318,6 @@ def test_numeric_types():
     assert numeric_tokens[7].token_type == LmnTokenType.INT_LITERAL
     assert numeric_tokens[7].value == 42
 
-
 def test_type_keywords():
     """
     Checks if int, long, float, double are recognized as TYPE keywords.
@@ -356,8 +340,6 @@ def test_type_keywords():
 
     assert tokens[3].token_type == LmnTokenType.DOUBLE
     assert tokens[3].value == "double"
-
-
 
 def test_negative_number():
     """
@@ -382,11 +364,75 @@ def test_negative_number():
     else:
         pytest.fail(f"Unexpected token count for '-123': {len(tokens)}")
 
-
 # If you want to test invalid tokens, you could add:
-#
 # def test_invalid_tokens():
 #     code = "let a = 10 #@!"
 #     tokenizer = Tokenizer(code)
 #     with pytest.raises(TokenizationError):
 #         tokenizer.tokenize()
+
+# -------------------------------------------------------------------
+# NEW TESTS FOR begin..end AND if..elseif..else
+# -------------------------------------------------------------------
+
+def test_begin_end():
+    """
+    Ensures 'begin' and 'end' tokens are recognized properly.
+    """
+    code = "begin let x = 10 end"
+    tokenizer = Tokenizer(code)
+    tokens = tokenizer.tokenize()
+
+    # Expect: BEGIN, LET, IDENTIFIER(x), EQ, INT_LITERAL(10), END
+    assert len(tokens) == 6
+    assert tokens[0].token_type == LmnTokenType.BEGIN
+    assert tokens[1].token_type == LmnTokenType.LET
+    assert tokens[2].token_type == LmnTokenType.IDENTIFIER
+    assert tokens[2].value == "x"
+    assert tokens[3].token_type == LmnTokenType.EQ
+    assert tokens[4].token_type == LmnTokenType.INT_LITERAL
+    assert tokens[4].value == 10
+    assert tokens[5].token_type == LmnTokenType.END
+
+
+def test_if_elseif_else():
+    """
+    Checks the token stream for a full if/elseif/else block.
+    """
+    code = """
+    if x > 10
+        print "Greater"
+    elseif x == 10
+        print "Equal"
+    else
+        print "Less"
+    end
+    """
+    tokenizer = Tokenizer(code)
+    tokens = tokenizer.tokenize()
+
+    # Some tokens could be spread across lines; just check total count & sequence
+    # Potential tokens (in approximate order):
+    # IF, IDENTIFIER(x), GT, INT_LITERAL(10),
+    # PRINT, STRING("Greater"),
+    # ELSEIF, IDENTIFIER(x), EQEQ, INT_LITERAL(10),
+    # PRINT, STRING("Equal"),
+    # ELSE,
+    # PRINT, STRING("Less"),
+    # END
+    # Let's do a rough check for them.
+
+    # We'll gather token types to verify
+    token_types = [t.token_type for t in tokens]
+
+    # A minimal check for presence:
+    assert LmnTokenType.IF in token_types
+    assert LmnTokenType.ELSEIF in token_types
+    assert LmnTokenType.ELSE in token_types
+    assert LmnTokenType.END in token_types
+    assert LmnTokenType.PRINT in token_types
+    assert LmnTokenType.IDENTIFIER in token_types
+    assert LmnTokenType.STRING in token_types
+    # For operator '>' and '=='
+    assert LmnTokenType.GT in token_types
+    assert LmnTokenType.EQEQ in token_types

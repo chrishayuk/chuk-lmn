@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 # src/lmn/cli/parser_cli.py
 import argparse
+import logging
 import sys
 import os
 
 from lmn.compiler.lexer.tokenizer import Tokenizer
 from lmn.compiler.parser.parser import Parser
+
+# Basic config for logging
+logging.basicConfig(
+    level=logging.CRITICAL,
+    format="%(levelname)s - %(name)s - %(message)s")
 
 def main():
     # Create an argument parser

@@ -33,7 +33,8 @@ def infer_literal_type(value, target_type: Optional[str] = None) -> str:
       But if the target is "long", use "long".
     - If 'value' is a float, default to "double".
       But if the target is "float", use that.
-    - Otherwise, fallback to "int".
+    - If 'value' is a string, return "string".
+    - Otherwise, fallback to "int" (or raise an error if you don't allow it).
     """
     normalized_target = normalize_type(target_type)
 
@@ -49,8 +50,20 @@ def infer_literal_type(value, target_type: Optional[str] = None) -> str:
             return normalized_target
         return "int"
 
-    # For strings or other cases, you might do something else.
+    if isinstance(value, str):
+        # If your language needs a real string type, return "string"
+        return "string"
+
+    # If you have booleans, None, or other Python types, handle them here:
+    # if isinstance(value, bool):
+    #     return "bool"
+    #
+    # or if you do not allow any other types:
+    # raise TypeError(f"Unsupported literal type: {type(value).__name__}")
+
+    # Otherwise, fallback to "int"
     return "int"
+
 
 def can_assign_to(source: str, target: str) -> bool:
     """

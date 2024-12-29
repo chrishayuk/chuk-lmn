@@ -2,7 +2,8 @@
 from lmn.compiler.lexer.token_type import LmnTokenType
 
 STATEMENT_BOUNDARY_TOKENS = {
-    LmnTokenType.IF,
+    LmnTokenType.IF,       # <-- Add this back
+    LmnTokenType.ELSEIF,   # <-- And this if your language uses 'elseif'
     LmnTokenType.FOR,
     LmnTokenType.LET,
     LmnTokenType.PRINT,

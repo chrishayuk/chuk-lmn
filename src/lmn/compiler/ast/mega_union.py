@@ -41,6 +41,7 @@ ConversionExpression.model_rebuild()
 from lmn.compiler.ast.statements.block_statement import BlockStatement
 from lmn.compiler.ast.statements.function_parameter import FunctionParameter
 from lmn.compiler.ast.statements.if_statement import IfStatement
+from lmn.compiler.ast.statements.else_if_clause import ElseIfClause
 from lmn.compiler.ast.statements.for_statement import ForStatement
 from lmn.compiler.ast.statements.function_definition import FunctionDefinition
 from lmn.compiler.ast.statements.print_statement import PrintStatement
@@ -53,6 +54,7 @@ Statement = Annotated[
     Union[
         # If you want them all in one union, list them here
         IfStatement,
+        ElseIfClause,
         ForStatement,
         AssignmentStatement,
         LetStatement,
@@ -81,6 +83,7 @@ Node = Annotated[
 
 # rebuild models
 IfStatement.model_rebuild()
+ElseIfClause.model_rebuild()
 CallStatement.model_rebuild()
 LetStatement.model_rebuild()
 AssignmentStatement.model_rebuild()

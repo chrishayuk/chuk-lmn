@@ -35,10 +35,17 @@ def check_statement(stmt, symbol_table: dict) -> None:
             check_return_statement(stmt, symbol_table)
 
         elif stype == "FunctionDefinition":
+            # function definitions
             check_function_definition(stmt, symbol_table)
+
         elif stype == "BlockStatement":
-            # <--- Our new branch for block scoping
+            # block scoping
             check_block_statement(stmt, symbol_table)
+
+        elif stype == "IfStatement":
+            # if statement
+            check_if_statement(stmt, symbol_table)
+
         else:
             raise NotImplementedError(f"Unsupported statement type: {stype}")
 
@@ -83,6 +90,53 @@ def check_block_statement(block_stmt, symbol_table: dict) -> None:
     # 3) After the block ends, discard local_scope changes
     logger.debug("Exiting block scope; local declarations are discarded.")
     logger.debug(f"Symbol table remains (outer scope) = {symbol_table}")
+
+def check_if_statement(if_stmt, symbol_table: dict) -> None:
+    """
+    Type-checks an IfStatement node:
+    - condition: Expression
+    - then_body: list of statements
+    - elseif_clauses: list of ElseIfClause
+    - else_body: list of statements
+    """
+    logger.debug("typechecker: check_if_statement called")
+
+    # 1) Check the main `if` condition
+    cond_type = check_expression(if_stmt.condition, symbol_table)
+    logger.debug(f"If condition inferred type: {cond_type}")
+
+    # If your language wants the condition to be "int" or "bool"
+    if cond_type not in ("int", "bool"):
+        raise TypeError(f"If condition must be int/bool, got '{cond_type}'")
+
+    # 2) Type-check each statement in the then_body
+    for stmt in if_stmt.then_body:
+        check_statement(stmt, symbol_table)
+
+    # 3) If you have one or more `elseif` clauses:
+    if hasattr(if_stmt, "elseif_clauses"):
+        for elseif_clause in if_stmt.elseif_clauses:
+            # check its condition
+            elseif_cond_type = check_expression(elseif_clause.condition, symbol_table)
+            if elseif_cond_type not in ("int", "bool"):
+                raise TypeError(f"ElseIf condition must be int/bool, got '{elseif_cond_type}'")
+
+            # check each statement in its body
+            for stmt in elseif_clause.body:
+                check_statement(stmt, symbol_table)
+
+    # 4) If there's an else_body
+    if if_stmt.else_body:
+        for stmt in if_stmt.else_body:
+            check_statement(stmt, symbol_table)
+
+    # 5) Mark the entire IfStatement as having an inferred_type
+    #    Typically "void" (or None) if statements produce no value
+    if_stmt.inferred_type = "void"
+    logger.debug("typechecker: assigned if_stmt.inferred_type = 'void'")
+    logger.debug("typechecker: finished check_if_statement")
+
+
     
 def check_function_definition(func_def, symbol_table: dict) -> None:
     """

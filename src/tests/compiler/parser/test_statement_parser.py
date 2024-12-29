@@ -1,4 +1,4 @@
-# tests/test_statements_parser.py
+# file: tests/test_statements_parser.py
 
 from lmn.compiler.lexer.tokenizer import Tokenizer
 from lmn.compiler.parser.parser import Parser
@@ -323,3 +323,77 @@ def test_parse_complex():
     assert isinstance(else_print.expressions[0], LiteralExpression)
     assert else_print.expressions[0].value == "Done"
     assert else_print.expressions[0].inferred_type is None
+
+# -------------------------------------------------------------------
+# NEW TESTS: If / Elseif / Else
+# -------------------------------------------------------------------
+def test_parse_if_elseif_else():
+    """
+    Extended version of an if/elseif/else, e.g.:
+
+        if x > 10
+          print "Greater"
+        elseif x == 10
+          print "Equal"
+        else
+          print "Less"
+        end
+    """
+    code = """
+    if (x > 10)
+      print "Greater"
+    elseif (x == 10)
+      print "Equal"
+    else
+      print "Less"
+    end
+    """
+    tokens = Tokenizer(code).tokenize()
+    parser = Parser(tokens)
+    program_ast = parser.parse()
+
+    # Expect a single IfStatement in the Program
+    assert len(program_ast.body) == 1
+    if_stmt = program_ast.body[0]
+    assert isinstance(if_stmt, IfStatement)
+
+    # Condition: (x > 10)
+    assert isinstance(if_stmt.condition, BinaryExpression)
+    assert if_stmt.condition.operator == ">"
+    assert isinstance(if_stmt.condition.left, VariableExpression)
+    assert if_stmt.condition.left.name == "x"
+    assert isinstance(if_stmt.condition.right, LiteralExpression)
+    assert if_stmt.condition.right.value == 10
+
+    # then_body: [ print "Greater" ]
+    assert len(if_stmt.then_body) == 1
+    assert isinstance(if_stmt.then_body[0], PrintStatement)
+    print_stmt = if_stmt.then_body[0]
+    # check the string
+    assert len(print_stmt.expressions) == 1
+    assert isinstance(print_stmt.expressions[0], LiteralExpression)
+    assert print_stmt.expressions[0].value == "Greater"
+
+    # We expect at least one elseif
+    # Because your AST might store elseif in e.g. `elseif_clauses`, or as nested IfStatements
+    # We'll assume `if_stmt.elseif_clauses` is a list of IfStatement or custom clause objects.
+    # Example:
+    assert hasattr(if_stmt, "elseif_clauses")
+    assert len(if_stmt.elseif_clauses) == 1
+    first_elseif = if_stmt.elseif_clauses[0]
+    # Condition: (x == 10)
+    assert isinstance(first_elseif.condition, BinaryExpression)
+    assert first_elseif.condition.operator == "=="
+    # body => [ print "Equal" ]
+    assert len(first_elseif.body) == 1
+    elseif_print = first_elseif.body[0]
+    assert isinstance(elseif_print, PrintStatement)
+    assert len(elseif_print.expressions) == 1
+    assert elseif_print.expressions[0].value == "Equal"
+
+    # else_body => [ print "Less" ]
+    assert len(if_stmt.else_body) == 1
+    else_print_stmt = if_stmt.else_body[0]
+    assert isinstance(else_print_stmt, PrintStatement)
+    assert len(else_print_stmt.expressions) == 1
+    assert else_print_stmt.expressions[0].value == "Less"

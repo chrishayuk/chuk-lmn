@@ -14,6 +14,7 @@ class NodeKind(str, Enum):
     FOR = "ForStatement"
     FUNCTION_DEF = "FunctionDefinition"
     IF = "IfStatement"
+    ELSEIF = "ElseIfClause"
     PRINT = "PrintStatement"
     RETURN = "ReturnStatement"
     LET = "LetStatement"

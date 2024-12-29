@@ -1,6 +1,6 @@
 This is the current to do list...
 
-1) If Statements
-3) Loops
-4) Arrays
-5) Strings
+0) Operators
+1) Loops
+2) Strings
+3) Arrays

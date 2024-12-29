@@ -1,0 +1,39 @@
+// Demonstration of optional parentheses in conditions
+
+function checkOptionalParens(x)
+    // Here we mix conditions with and without parentheses.
+
+    // No parentheses
+    if x > 10
+        print "x is greater than 10 (no parentheses used)"
+    elseif x == 10
+        print "x is exactly 10"
+    else
+        print "x is less than 10 (no parentheses used)"
+    end
+
+    // Parentheses used for clarity or precedence
+    if (x + 5) < 10
+        print "(x + 5) is still less than 10 (parentheses used)"
+    else
+        begin
+            // Nested if with parentheses around a more complex expression
+            // for demonstration of operator precedence
+            if ((x + 5) * 2) < (x * x)
+                print "((x + 5) * 2) < (x * x) is true"
+            else
+                print "((x + 5) * 2) < (x * x) is false"
+            end
+        end
+    end
+end
+
+// Try a few values to see the results
+print "Checking for x = 8"
+checkOptionalParens(8)
+
+print "Checking for x = 10"
+checkOptionalParens(10)
+
+print "Checking for x = 12"
+checkOptionalParens(12)

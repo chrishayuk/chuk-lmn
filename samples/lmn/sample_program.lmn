@@ -1,54 +1,47 @@
-function sum(a, b)
-    begin
-        // temp variable within block
-        let temp = a - b
+// Demonstration of optional parentheses in conditions (no strings)
 
-        // print the temp value
-        print "Inside nested block of sum, temp = " temp
-
-        // 'temp' is discarded after this block
+function checkNumericConditions(x)
+    // Simple if-elseif-else without parentheses
+    if x > 10
+        // print 999 if x > 10
+        print 999
+    elseif x == 10
+        // print 1000 if x == 10
+        print 1000
+    else
+        // print 888 otherwise
+        print 888
     end
 
-    // create a new variable for the result
-    let result = a + b
-
-    // Another nested block, just to show deeper scoping
-    begin
-        // get half of the result
-        let half = result / 2
-
-        // print out the half
-        print "Still inside sum, half = " half
-
-        // 'half' is discarded after this block
+    // Another if statement, this time with parentheses
+    if (x + 5) < 10
+        // print x+5 for demonstration if it's less than 10
+        print (x + 5)
+    else
+        begin
+            // Nested if with parentheses around a more complex expression
+            // for demonstration of operator precedence
+            if ((x + 5) * 2) < (x * x)
+                // print 111 if that expression is true
+                print 111
+            else
+                // else print 222
+                print 222
+            end
+        end
     end
 
-    // return the result
-    return result
+    // Return x + 42 (just to have a return value)
+    return x + 42
 end
 
-begin
-    // calculate the sum
-    let x = sum(3, 4)
+// Let's test a few values to see the results
+// We'll print the input x and then call checkNumericConditions(x)
+print 8
+print checkNumericConditions(8)
 
-    // print it
-    print "In outer block, x = " x
+print 10
+print checkNumericConditions(10)
 
-    // Another nested block to show x is still accessible, but new variables vanish after end
-    begin
-        // get z from the result of sum
-        let z = x * 2
-
-        // print the result
-        print "Nested block: z = " z
-    end
-
-    // z is not accessible here!
-    print "Back in outer block, x still = " x
-end
-
-// global var
-let globalVar = sum(10, 20)
-
-// print
-print "globalVar after sum(10, 20): " globalVar
+print 12
+print checkNumericConditions(12)

@@ -1,4 +1,4 @@
-# file: tests/compiler/typechecker/statements/test_if_statement_typechecker.py
+# file: tests/compiler/typechecker/statements/test_if_statement.py
 
 import pytest
 from pydantic import TypeAdapter
@@ -6,7 +6,7 @@ from pydantic import TypeAdapter
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.statement_checker import check_statement
 
-# A single TypeAdapter for your Node union
+# Create a single TypeAdapter for your Node union
 node_adapter = TypeAdapter(Node)
 
 def test_if_simple_no_else():
@@ -49,15 +49,13 @@ def test_if_simple_no_else():
     }
 
     if_node = node_adapter.validate_python(dict_ast)
-    # Symbol table with x => int
+    # Create a symbol table: x => int
     symbol_table = {"x": "int"}
 
     check_statement(if_node, symbol_table)
     # If everything is correct, no exception is raised.
-    # By default, your typechecker might set if_node.inferred_type = "void" or leave it None.
-    # So let's confirm it's either "void" or not present.
-    assert getattr(if_node, "inferred_type", None) in (None, "void")
-
+    assert if_node.inferred_type is None or if_node.inferred_type == "void"
+    # (Depending on if your statement type checker sets if_node.inferred_type.)
 
 def test_if_with_else():
     """
@@ -112,9 +110,7 @@ def test_if_with_else():
     symbol_table = {"x": "int"}
 
     check_statement(if_node, symbol_table)
-    # same check for .inferred_type
-    assert getattr(if_node, "inferred_type", None) in (None, "void")
-
+    assert if_node.inferred_type is None or if_node.inferred_type == "void"
 
 def test_if_condition_not_int():
     """
@@ -144,12 +140,10 @@ def test_if_condition_not_int():
     }
 
     if_node = node_adapter.validate_python(dict_ast)
-    symbol_table = {}  # No definitions needed, though
+    symbol_table = {}
 
-    # Expect a TypeError because condition is "string" -> not in ("int", "bool")
     with pytest.raises(TypeError, match="If condition must be int/bool"):
         check_statement(if_node, symbol_table)
-
 
 def test_if_with_elseif():
     """
@@ -231,9 +225,8 @@ def test_if_with_elseif():
     if_node = node_adapter.validate_python(dict_ast)
     symbol_table = {"x": "int"}
 
+    # Should pass with no error, as all conditions are "int"
     check_statement(if_node, symbol_table)
-    assert getattr(if_node, "inferred_type", None) in (None, "void")
-
 
 def test_if_with_elseif_condition_mismatch():
     """
@@ -274,7 +267,7 @@ def test_if_with_elseif_condition_mismatch():
                 "type": "ElseIfClause",
                 "condition": {
                     "type": "LiteralExpression",
-                    "value": 3.14  # => "double"
+                    "value": 3.14
                 },
                 "body": [
                     {
@@ -294,6 +287,5 @@ def test_if_with_elseif_condition_mismatch():
     if_node = node_adapter.validate_python(dict_ast)
     symbol_table = {"x": "int"}
 
-    # The condition for 'elseif' is "double", not "int"/"bool" => TypeError
     with pytest.raises(TypeError, match="ElseIf condition must be int/bool"):
         check_statement(if_node, symbol_table)

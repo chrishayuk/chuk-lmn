@@ -1,3 +1,5 @@
+# file: lmn/compiler/emitter/wasm/statements/if_emitter.py
+
 class IfEmitter:
     def __init__(self, controller):
         self.controller = controller
@@ -7,47 +9,90 @@ class IfEmitter:
         node: {
           "type": "IfStatement",
           "condition": <expr>,
-          "thenBody": [ list of statement nodes ],
-          "elseBody": [ list of statement nodes or empty ],
-          "result": "i32" or None  (optional, if your IR specifies a return type for the if)
+          "then_body": [ list of statements ],
+          "elseif_clauses": [
+            {
+              "type": "ElseIfClause",
+              "condition": <expr>,
+              "body": [ list of statements ]
+            },
+            ...
+          ],
+          "else_body": [ list of statements ],
+          ...
         }
 
-        We'll produce something like:
-
-          ;; condition is pushed on the stack
-          if                 ;; or if (result i32)
-            ;; thenBody statements
-          else
-            ;; elseBody statements
-          end
-
-        which is valid blockless 'if' syntax in WAT.
+        We'll generate nested 'if/else' blocks for chained elseifs.
         """
 
-        # 1) Emit expression for condition => puts i32 (0 or non-zero) on the WASM stack
-        cond_expr = node["condition"]
-        self.controller.emit_expression(cond_expr, out_lines)
+        # 1) Emit expression for condition => i32 on WASM stack
+        self.controller.emit_expression(node["condition"], out_lines)
 
-        # 2) If your language or IR says this if-statement produces a value (e.g. i32),
-        #    you could do something like:
-        # result_type = node.get("result")
-        # if result_type:
-        #     out_lines.append(f'  if (result {result_type})')
-        # else:
-        #     out_lines.append('  if')
-        #
-        # For a blockless if with no result, just:
+        # 2) Insert the 'if' instruction
         out_lines.append('  if')
 
-        # 3) Then-branch statements
-        for statement in node["thenBody"]:
+        # 3) Then-branch
+        then_body = node.get("then_body", [])
+        for statement in then_body:
             self.controller.emit_statement(statement, out_lines)
 
-        # 4) Else-branch, only if elseBody is not empty
-        if node["elseBody"]:
-            out_lines.append('  else')
-            for statement in node["elseBody"]:
-                self.controller.emit_statement(statement, out_lines)
+        # 4) If there's either elseif_clauses or else_body, we do an 'else' block
+        has_elseif = bool(node.get("elseif_clauses"))
+        has_else   = bool(node.get("else_body"))
 
-        # 5) End
+        if has_elseif or has_else:
+            out_lines.append('  else')
+            clauses = node.get("elseif_clauses", [])
+            if clauses:
+                # handle chain of elseifs
+                self._emit_elseif_chain(clauses, node.get("else_body", []), out_lines)
+            else:
+                # no elseif => just else_body
+                for statement in node["else_body"]:
+                    self.controller.emit_statement(statement, out_lines)
+
+        # 5) end
         out_lines.append('  end')
+
+    def _emit_elseif_chain(self, clauses, final_else_body, out_lines):
+        """
+        Recursively emit a chain of ElseIfClause items as nested ifs.
+        E.g. multiple elseifs become nested 'else if' in WASM by chaining:
+
+          if (cond1)
+            ...
+          else
+            if (cond2)
+              ...
+            else
+              ...
+            end
+          end
+        """
+
+        # 1) Grab the first clause
+        clause = clauses[0]
+
+        # 2) Emit the clause condition => i32
+        self.controller.emit_expression(clause["condition"], out_lines)
+
+        out_lines.append('    if')  # Indented or not, purely aesthetic
+
+        # 3) Then-branch => the clause.body
+        for statement in clause["body"]:
+            self.controller.emit_statement(statement, out_lines)
+
+        # 4) If there's more clauses, chain them; else final_else_body
+        remaining = clauses[1:]
+        if remaining:
+            out_lines.append('    else')
+            self._emit_elseif_chain(remaining, final_else_body, out_lines)
+        else:
+            # final else block
+            if final_else_body:
+                out_lines.append('    else')
+                for statement in final_else_body:
+                    self.controller.emit_statement(statement, out_lines)
+
+        # 5) end
+        out_lines.append('    end')

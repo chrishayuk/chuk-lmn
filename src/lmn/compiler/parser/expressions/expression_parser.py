@@ -4,7 +4,7 @@ from lmn.compiler.parser.expressions.unary_parser import UnaryParser
 from lmn.compiler.parser.expressions.binary_parser import BinaryParser
 from lmn.compiler.parser.expressions.primary_parser import PrimaryParser
 from lmn.compiler.lexer.token_type import LmnTokenType
-from lmn.compiler.parser.expressions.statement_boundaries import STATEMENT_BOUNDARY_TOKENS
+from lmn.compiler.parser.statements.statement_boundaries import STATEMENT_BOUNDARY_TOKENS
 
 class ExpressionParser:
     """

@@ -3,205 +3,51 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "sum",
+      "name": "checkNumericConditions",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "a",
-          "type_annotation": "i32"
-        },
-        {
-          "type": "FunctionParameter",
-          "name": "b",
+          "name": "x",
           "type_annotation": "i32"
         }
       ],
       "body": [
         {
-          "type": "BlockStatement",
-          "statements": [
-            {
-              "type": "LetStatement",
-              "variable": {
-                "inferred_type": "i32",
-                "type": "VariableExpression",
-                "name": "temp"
-              },
-              "expression": {
-                "inferred_type": "i32",
-                "type": "BinaryExpression",
-                "operator": "-",
-                "left": {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "a"
-                },
-                "right": {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "b"
-                }
-              },
-              "inferred_type": "i32"
-            },
-            {
-              "type": "PrintStatement",
-              "expressions": [
-                {
-                  "inferred_type": "i32",
-                  "type": "LiteralExpression",
-                  "value": "Inside nested block of sum, temp = "
-                },
-                {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "temp"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "i32",
-            "type": "VariableExpression",
-            "name": "result"
-          },
-          "expression": {
+          "type": "IfStatement",
+          "condition": {
             "inferred_type": "i32",
             "type": "BinaryExpression",
-            "operator": "+",
+            "operator": ">",
             "left": {
               "inferred_type": "i32",
               "type": "VariableExpression",
-              "name": "a"
+              "name": "x"
             },
             "right": {
               "inferred_type": "i32",
-              "type": "VariableExpression",
-              "name": "b"
+              "type": "LiteralExpression",
+              "value": 10
             }
           },
-          "inferred_type": "i32"
-        },
-        {
-          "type": "BlockStatement",
-          "statements": [
-            {
-              "type": "LetStatement",
-              "variable": {
-                "inferred_type": "i32",
-                "type": "VariableExpression",
-                "name": "half"
-              },
-              "expression": {
-                "inferred_type": "i32",
-                "type": "BinaryExpression",
-                "operator": "/",
-                "left": {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "result"
-                },
-                "right": {
-                  "inferred_type": "i32",
-                  "type": "LiteralExpression",
-                  "value": 2
-                }
-              },
-              "inferred_type": "i32"
-            },
+          "then_body": [
             {
               "type": "PrintStatement",
               "expressions": [
                 {
                   "inferred_type": "i32",
                   "type": "LiteralExpression",
-                  "value": "Still inside sum, half = "
-                },
-                {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "half"
+                  "value": 999
                 }
               ]
             }
-          ]
-        },
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "inferred_type": "i32",
-            "type": "VariableExpression",
-            "name": "result"
-          },
-          "inferred_type": "i32"
-        }
-      ]
-    },
-    {
-      "type": "BlockStatement",
-      "statements": [
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "i32",
-            "type": "VariableExpression",
-            "name": "x"
-          },
-          "expression": {
-            "inferred_type": "i32",
-            "type": "FnExpression",
-            "name": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "sum"
-            },
-            "arguments": [
-              {
-                "inferred_type": "i32",
-                "type": "LiteralExpression",
-                "value": 3
-              },
-              {
-                "inferred_type": "i32",
-                "type": "LiteralExpression",
-                "value": 4
-              }
-            ]
-          },
-          "inferred_type": "i32"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
+          ],
+          "elseif_clauses": [
             {
-              "inferred_type": "i32",
-              "type": "LiteralExpression",
-              "value": "In outer block, x = "
-            },
-            {
-              "inferred_type": "i32",
-              "type": "VariableExpression",
-              "name": "x"
-            }
-          ]
-        },
-        {
-          "type": "BlockStatement",
-          "statements": [
-            {
-              "type": "LetStatement",
-              "variable": {
-                "inferred_type": "i32",
-                "type": "VariableExpression",
-                "name": "z"
-              },
-              "expression": {
+              "type": "ElseIfClause",
+              "condition": {
                 "inferred_type": "i32",
                 "type": "BinaryExpression",
-                "operator": "*",
+                "operator": "==",
                 "left": {
                   "inferred_type": "i32",
                   "type": "VariableExpression",
@@ -210,74 +56,190 @@
                 "right": {
                   "inferred_type": "i32",
                   "type": "LiteralExpression",
-                  "value": 2
+                  "value": 10
                 }
               },
-              "inferred_type": "i32"
-            },
+              "body": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "i32",
+                      "type": "LiteralExpression",
+                      "value": 1000
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "else_body": [
             {
               "type": "PrintStatement",
               "expressions": [
                 {
                   "inferred_type": "i32",
                   "type": "LiteralExpression",
-                  "value": "Nested block: z = "
-                },
-                {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "z"
+                  "value": 888
                 }
               ]
             }
-          ]
+          ],
+          "inferred_type": "i32"
         },
         {
-          "type": "PrintStatement",
-          "expressions": [
-            {
+          "type": "IfStatement",
+          "condition": {
+            "inferred_type": "i32",
+            "type": "BinaryExpression",
+            "operator": "<",
+            "left": {
+              "inferred_type": "i32",
+              "type": "BinaryExpression",
+              "operator": "+",
+              "left": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "x"
+              },
+              "right": {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 5
+              }
+            },
+            "right": {
               "inferred_type": "i32",
               "type": "LiteralExpression",
-              "value": "Back in outer block, x still = "
-            },
+              "value": 10
+            }
+          },
+          "then_body": [
             {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32",
+                  "type": "BinaryExpression",
+                  "operator": "+",
+                  "left": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "x"
+                  },
+                  "right": {
+                    "inferred_type": "i32",
+                    "type": "LiteralExpression",
+                    "value": 5
+                  }
+                }
+              ]
+            }
+          ],
+          "elseif_clauses": [],
+          "else_body": [
+            {
+              "type": "BlockStatement",
+              "statements": [
+                {
+                  "type": "IfStatement",
+                  "condition": {
+                    "inferred_type": "i32",
+                    "type": "BinaryExpression",
+                    "operator": "<",
+                    "left": {
+                      "inferred_type": "i32",
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "inferred_type": "i32",
+                        "type": "BinaryExpression",
+                        "operator": "+",
+                        "left": {
+                          "inferred_type": "i32",
+                          "type": "VariableExpression",
+                          "name": "x"
+                        },
+                        "right": {
+                          "inferred_type": "i32",
+                          "type": "LiteralExpression",
+                          "value": 5
+                        }
+                      },
+                      "right": {
+                        "inferred_type": "i32",
+                        "type": "LiteralExpression",
+                        "value": 2
+                      }
+                    },
+                    "right": {
+                      "inferred_type": "i32",
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "inferred_type": "i32",
+                        "type": "VariableExpression",
+                        "name": "x"
+                      },
+                      "right": {
+                        "inferred_type": "i32",
+                        "type": "VariableExpression",
+                        "name": "x"
+                      }
+                    }
+                  },
+                  "then_body": [
+                    {
+                      "type": "PrintStatement",
+                      "expressions": [
+                        {
+                          "inferred_type": "i32",
+                          "type": "LiteralExpression",
+                          "value": 111
+                        }
+                      ]
+                    }
+                  ],
+                  "elseif_clauses": [],
+                  "else_body": [
+                    {
+                      "type": "PrintStatement",
+                      "expressions": [
+                        {
+                          "inferred_type": "i32",
+                          "type": "LiteralExpression",
+                          "value": 222
+                        }
+                      ]
+                    }
+                  ],
+                  "inferred_type": "i32"
+                }
+              ]
+            }
+          ],
+          "inferred_type": "i32"
+        },
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "inferred_type": "i32",
+            "type": "BinaryExpression",
+            "operator": "+",
+            "left": {
               "inferred_type": "i32",
               "type": "VariableExpression",
               "name": "x"
+            },
+            "right": {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 42
             }
-          ]
+          },
+          "inferred_type": "i32"
         }
       ]
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "i32",
-        "type": "VariableExpression",
-        "name": "globalVar"
-      },
-      "expression": {
-        "inferred_type": "i32",
-        "type": "FnExpression",
-        "name": {
-          "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "sum"
-        },
-        "arguments": [
-          {
-            "inferred_type": "i32",
-            "type": "LiteralExpression",
-            "value": 10
-          },
-          {
-            "inferred_type": "i32",
-            "type": "LiteralExpression",
-            "value": 20
-          }
-        ]
-      },
-      "inferred_type": "i32"
     },
     {
       "type": "PrintStatement",
@@ -285,12 +247,90 @@
         {
           "inferred_type": "i32",
           "type": "LiteralExpression",
-          "value": "globalVar after sum(10, 20): "
-        },
+          "value": 8
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
           "inferred_type": "i32",
-          "type": "VariableExpression",
-          "name": "globalVar"
+          "type": "FnExpression",
+          "name": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "checkNumericConditions"
+          },
+          "arguments": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "LiteralExpression",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "FnExpression",
+          "name": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "checkNumericConditions"
+          },
+          "arguments": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "LiteralExpression",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "FnExpression",
+          "name": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "checkNumericConditions"
+          },
+          "arguments": [
+            {
+              "inferred_type": "i32",
+              "type": "LiteralExpression",
+              "value": 12
+            }
+          ]
         }
       ]
     }

@@ -21,6 +21,7 @@ class LmnTokenType(Enum):
     # Operators
     # ------------------------------
     EQ = '='
+    EQEQ  = '=='
     NE = '!='
     LT = '<'
     LE = '<='
@@ -138,12 +139,13 @@ class LmnTokenType(Enum):
     @staticmethod
     def get_operator_map():
         return {
+            '==': LmnTokenType.EQEQ,   # equality
             '!=': LmnTokenType.NE,
             '<=': LmnTokenType.LE,
             '>=': LmnTokenType.GE,
             '<':  LmnTokenType.LT,
             '>':  LmnTokenType.GT,
-            '=':  LmnTokenType.EQ,
+            '=':  LmnTokenType.EQ,    # assignment
             '+':  LmnTokenType.PLUS,
             '-':  LmnTokenType.MINUS,
             '*':  LmnTokenType.MUL,

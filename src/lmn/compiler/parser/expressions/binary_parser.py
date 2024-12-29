@@ -39,9 +39,21 @@ class BinaryParser:
     def _is_binary_operator(self, token):
         if not token:
             return False
-        # Keep the same checks for recognized binary operators
+
+        # Distinguish assignment (=) from comparison (==)
+        # by including EQEQ for equality comparison.
         return token.token_type in [
-            LmnTokenType.PLUS, LmnTokenType.MINUS, LmnTokenType.MUL, LmnTokenType.DIV,
-            LmnTokenType.EQ, LmnTokenType.NE, LmnTokenType.LT, LmnTokenType.LE,
-            LmnTokenType.GT, LmnTokenType.GE, LmnTokenType.AND, LmnTokenType.OR
+            LmnTokenType.PLUS, 
+            LmnTokenType.MINUS, 
+            LmnTokenType.MUL, 
+            LmnTokenType.DIV,
+            LmnTokenType.EQEQ,   # <-- Add '==' for equality
+            LmnTokenType.NE, 
+            LmnTokenType.LT, 
+            LmnTokenType.LE,
+            LmnTokenType.GT, 
+            LmnTokenType.GE, 
+            LmnTokenType.AND, 
+            LmnTokenType.OR
         ]
+
