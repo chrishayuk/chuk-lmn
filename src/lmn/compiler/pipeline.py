@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 def compile_code_to_wat(
     code: str,
-    also_produce_wasm: bool = False
+    also_produce_wasm: bool = False,
+    import_memory: bool = False
 ) -> (str, bytes or None):
     """
     End-to-end compiler pipeline:
@@ -28,10 +29,13 @@ def compile_code_to_wat(
 
     :param code: The LMN source code as a string.
     :param also_produce_wasm: If True, also run 'wat2wasm' to produce WASM bytes in memory.
-    :return: A tuple of (wat_text, wasm_bytes).
-             - wat_text is the final .wat string.
-             - wasm_bytes is the compiled WASM binary (or None if also_produce_wasm=False).
-    :raises: Exceptions on parse, type-check, or lowering errors; or if 'wat2wasm' fails.
+    :param import_memory: If True, the WasmEmitter will import memory from "env"
+                         instead of defining it. 
+                         This allows multiple modules to share one memory in the host environment.
+    :return: A tuple (wat_text, wasm_bytes)
+             - wat_text is the final .wat string
+             - wasm_bytes is the compiled WASM binary or None if also_produce_wasm=False
+    :raises: Exceptions on parse/type/lowering errors; or if 'wat2wasm' fails.
     """
 
     # 1) Lex
@@ -44,28 +48,27 @@ def compile_code_to_wat(
     ast_program_obj = parser.parse()
     logger.debug("compile_code_to_wat: parsed AST object: %r", ast_program_obj)
 
-    # 3) Type-check on the AST object (object-based)
+    # 3) Type-check
     type_check_program(ast_program_obj)
 
-    # 4) Lower the AST object to WASM-level types
+    # 4) Lower
     lower_program_to_wasm_types(ast_program_obj)
 
-    # 5) Convert the now-lowered AST object to a dict (the emitter needs dict-based)
+    # 5) Convert the now-lowered AST object to a dict (the emitter is dict-based)
     ast_dict = ast_program_obj.to_dict()
 
     # 6) Emit WAT
-    emitter = WasmEmitter()
+    # Pass `import_memory` to the emitter’s constructor
+    emitter = WasmEmitter(import_memory=import_memory)
     wat_text = emitter.emit_program(ast_dict)
 
-    # 7) If also_produce_wasm=True, run wat2wasm in memory
+    # 7) If also_produce_wasm => run wat2wasm in memory
     wasm_bytes = None
     if also_produce_wasm:
-        # We'll create a temp .wat file, run wat2wasm, and read the resulting bytes
         with tempfile.NamedTemporaryFile(suffix=".wat", delete=False) as tmp_wat:
             tmp_wat.write(wat_text.encode("utf-8"))
             tmp_wat_path = tmp_wat.name
 
-        # We'll produce a .wasm in another temp file
         wasm_path = tmp_wat_path.replace(".wat", ".wasm")
 
         try:
@@ -81,12 +84,11 @@ def compile_code_to_wat(
             except OSError:
                 pass
 
-        # read the wasm bytes
         try:
             with open(wasm_path, "rb") as f_wasm:
                 wasm_bytes = f_wasm.read()
         finally:
-            # remove the .wasm file
+            # remove .wasm file
             try:
                 os.remove(wasm_path)
             except OSError:

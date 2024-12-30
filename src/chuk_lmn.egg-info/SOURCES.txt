@@ -10,6 +10,7 @@ src/lmn/__init__.py
 src/lmn/cli/ast_to_wat.py
 src/lmn/cli/ast_wasm_lowerer.py
 src/lmn/cli/lmn_compiler.py
+src/lmn/cli/lmn_repl.py
 src/lmn/cli/parser_cli.py
 src/lmn/cli/tokenizer_cli.py
 src/lmn/cli/typechecker.py

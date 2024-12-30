@@ -8,11 +8,11 @@
   (memory (export "memory") 1)
   (func $__top_level__
     (local $colors i32)
+    (local $decVal f64)
     (local $user i32)
     (local $x i32)
-    (local $decVal f64)
-    (local $bigNum i64)
     (local $greeting i32)
+    (local $bigNum i64)
     (local $jsonData i32)
     i32.const 1024
     local.set $greeting
