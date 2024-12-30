@@ -6,7 +6,9 @@ from pydantic import Field
 # 1) Import all expression submodels
 #    (If any submodel references 'Node', we'll skip rebuilding until after Node is declared.)
 #
+from lmn.compiler.ast.expressions.array_literal_expression import ArrayLiteralExpression
 from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
+from lmn.compiler.ast.expressions.json_literal_expression import JsonLiteralExpression
 from lmn.compiler.ast.expressions.literal_expression import LiteralExpression
 from lmn.compiler.ast.expressions.postfix_expression import PostfixExpression
 from lmn.compiler.ast.expressions.variable_expression import VariableExpression
@@ -25,7 +27,9 @@ Expression = Annotated[
         FnExpression,
         ConversionExpression,
         PostfixExpression,
-        AssignmentExpression
+        AssignmentExpression,
+        JsonLiteralExpression,
+        ArrayLiteralExpression
     ],
     Field(discriminator="type")
 ]
@@ -38,7 +42,9 @@ UnaryExpression.model_rebuild()
 PostfixExpression.model_rebuild()
 FnExpression.model_rebuild()
 AssignmentExpression.model_rebuild()
-ConversionExpression.model_rebuild() 
+ConversionExpression.model_rebuild()
+JsonLiteralExpression.model_rebuild()
+ArrayLiteralExpression.model_rebuild()
 
 #
 # 2) Import statement submodels

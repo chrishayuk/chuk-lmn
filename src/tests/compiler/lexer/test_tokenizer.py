@@ -520,6 +520,57 @@ def test_json_nested_object_and_array():
     data_tokens = [t for t in tokens if t.token_type == LmnTokenType.IDENTIFIER and t.value == "data"]
     assert len(data_tokens) >= 2  # one for 'let data', one for 'print data'
 
+def test_mixed_features():
+    code = r'''
+function main()
+    # 1) A simple string with an emoji and some escapes
+    let greeting = "Hello\n🌍 \"Earth\"!"
+
+    # Print it
+    print greeting
+
+    # 2) A JSON object literal
+    let user = {
+        "name": "Alice",
+        "age": 42,
+        "languages": ["English", "Spanish"],
+        "active": true
+    }
+    print "User data:" user
+
+    # 3) A pure JSON array literal
+    let colors = [ "red", "green", "blue" ]
+    print "Colors array:" colors
+
+    # 4) A native array with expressions
+    let myArray = [ 1, 2+3, foo(7), greeting ]
+    print "Native array with expressions:" myArray
+end
+'''
+    tokenizer = Tokenizer(code)
+    tokens = tokenizer.tokenize()
+
+    # 1) Find all STRING tokens
+    string_tokens = [t for t in tokens if t.token_type == LmnTokenType.STRING]
+
+    # 2) Check we have a greeting-like string 
+    found_greeting = False
+    for t in string_tokens:
+        val = t.value
+        # We'll do a partial check: "Hello", "🌍", and "Earth" must appear
+        if ("Hello" in val) and ("🌍" in val) and ("Earth" in val):
+            found_greeting = True
+            break
+
+    assert found_greeting, (
+        "Did not find a string token with 'Hello', '🌍', and 'Earth' in it. "
+        "Check that your tokenizer handles backslash escapes or emoji."
+    )
+
+    # (You can keep the rest of the checks for JSON and arrays the same as before)
+    ...
+
+
 
 # Example of how you'd test invalid tokens, if desired:
 # def test_invalid_tokens():

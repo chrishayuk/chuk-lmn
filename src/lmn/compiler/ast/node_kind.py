@@ -10,6 +10,8 @@ class NodeKind(str, Enum):
     FN = "FnExpression"
     POSTFIX = "PostfixExpression"
     ASSIGNMENTEXPRESSION = "AssignmentExpression"
+    ARRAY_LITERAL = "ArrayLiteralExpression"
+    JSON_LITERAL = "JsonLiteralExpression"
 
     # Statements
     CALL = "CallStatement"

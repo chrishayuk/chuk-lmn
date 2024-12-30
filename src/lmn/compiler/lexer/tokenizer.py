@@ -6,6 +6,8 @@ from lmn.compiler.lexer.token_type import LmnTokenType
 class TokenizationError(Exception):
     pass
 
+STRING_REGEX = re.compile(r'^"((?:\\.|[^"\\])*)"')
+
 class Tokenizer:
     def __init__(self, input_string):
         self.input_string = input_string
@@ -80,16 +82,22 @@ class Tokenizer:
 
     def tokenize_string(self):
         """
-        Match a string literal wrapped in double quotes ("...").
-        Simple version that doesn't handle escapes.
+        Match a string literal wrapped in double quotes ("..."), 
+        allowing common backslash escapes.
         """
-        if self.input_string[self.current_pos] == '"':
-            match = re.match(r'"([^"]*)"', self.input_string[self.current_pos:])
-            if match:
-                full_text = match.group(0)  # e.g. "Hello world"
-                content = match.group(1)    # e.g. Hello world (no quotes)
-                self.current_pos += len(full_text)
-                return Token(LmnTokenType.STRING, content)
+        substring = self.input_string[self.current_pos:]
+        match = STRING_REGEX.match(substring)
+        if match:
+            full_text = match.group(0)        # e.g. "Hello\nWorld"
+            content_escaped = match.group(1)  # e.g. Hello\nWorld (with backslash escapes)
+
+            # Move current_pos forward
+            self.current_pos += len(full_text)
+
+            # Optionally, unescape the content (turn \n into an actual newline, etc.)
+            # e.g.: content_unescaped = content_escaped.encode('utf-8').decode('unicode_escape')
+
+            return Token(LmnTokenType.STRING, content_escaped)
         return None
 
     def match_keywords(self):

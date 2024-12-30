@@ -1,4 +1,4 @@
-# lmn/compiler/parser/parser.py
+# file: lmn/compiler/parser/parser.py
 from typing import List, Optional
 from lmn.compiler.lexer.token import Token
 from lmn.compiler.lexer.token_type import LmnTokenType
@@ -11,8 +11,8 @@ class Parser:
     def __init__(self, tokens: List[Token]):
         """
         The main Parser class, responsible for orchestrating the parse of a token list
-        into a high-level Program AST. 
-        It delegates statement-specific parsing to StatementParser 
+        into a high-level Program AST.
+        It delegates statement-specific parsing to StatementParser
         and expression-level parsing to ExpressionParser.
         """
         self.tokens = tokens
@@ -25,7 +25,7 @@ class Parser:
 
     def advance(self):
         """
-        Moves to the next token (if any). 
+        Moves to the next token (if any).
         Sets current_token to None if we pass the end of the list.
         """
         self.current_pos += 1
@@ -44,9 +44,22 @@ class Parser:
             return self.tokens[pos]
         return None
 
+    def save_state(self):
+        """
+        Returns a snapshot of our current parsing state (position, current_token).
+        Allows us to restore later if needed.
+        """
+        return (self.current_pos, self.current_token)
+
+    def restore_state(self, state):
+        """
+        Restores the parser to the previously saved state.
+        """
+        (self.current_pos, self.current_token) = state
+
     def parse(self) -> Program:
         """
-        Parses the list of tokens into a Program node. 
+        Parses the list of tokens into a Program node.
         - Skips COMMENT and NEWLINE tokens as they are not meaningful statements.
         - Delegates statement parsing to the StatementParser.
         - If statement_parser returns None, we advance one token to avoid infinite loops.
@@ -54,7 +67,7 @@ class Parser:
         program = Program()
 
         while self.current_token is not None:
-            # Skip COMMENT and NEWLINE to avoid extra statements for blank lines
+            # Skip COMMENT and NEWLINE
             if self.current_token.token_type in (LmnTokenType.COMMENT, LmnTokenType.NEWLINE):
                 self.advance()
                 continue
@@ -62,11 +75,10 @@ class Parser:
             # Attempt to parse a statement
             stmt = self.statement_parser.parse_statement()
             if stmt:
-                # If we got a valid statement, add it to the Program
+                # Got a valid statement => add to the program
                 program.add_statement(stmt)
             else:
-                # If parse_statement() returned None, consume the current token
-                # to avoid an infinite loop
+                # No valid statement => consume current token to avoid infinite loop
                 self.advance()
 
         return program

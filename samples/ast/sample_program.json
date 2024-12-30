@@ -3,307 +3,144 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "demonstrateExtendedOperators",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "a"
-        },
-        {
-          "type": "FunctionParameter",
-          "name": "b"
-        }
-      ],
+      "name": "main",
+      "params": [],
       "body": [
         {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "BinaryExpression",
-              "operator": "/",
-              "left": {
-                "type": "VariableExpression",
-                "name": "a"
-              },
-              "right": {
-                "type": "VariableExpression",
-                "name": "b"
-              }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "BinaryExpression",
-              "operator": "//",
-              "left": {
-                "type": "VariableExpression",
-                "name": "a"
-              },
-              "right": {
-                "type": "VariableExpression",
-                "name": "b"
-              }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "BinaryExpression",
-              "operator": "%",
-              "left": {
-                "type": "VariableExpression",
-                "name": "a"
-              },
-              "right": {
-                "type": "VariableExpression",
-                "name": "b"
-              }
-            },
-            {
-              "type": "PostfixExpression",
-              "operator": "++",
-              "operand": {
-                "type": "VariableExpression",
-                "name": "a"
-              }
-            }
-          ]
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "greeting"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": "Hello\\n\ud83c\udf0d \\\"Earth\\\"!"
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
               "type": "VariableExpression",
-              "name": "a"
-            },
-            {
-              "type": "PostfixExpression",
-              "operator": "--",
-              "operand": {
-                "type": "VariableExpression",
-                "name": "b"
-              }
+              "name": "greeting"
             }
           ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "user"
+          },
+          "expression": {
+            "type": "JsonLiteralExpression",
+            "value": {
+              "name": "Alice",
+              "age": 42,
+              "languages": [
+                "English",
+                "Spanish"
+              ],
+              "active": true
+            }
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "type": "VariableExpression",
-              "name": "b"
+              "type": "LiteralExpression",
+              "value": "User data:"
             },
             {
-              "type": "AssignmentExpression",
-              "left": {
-                "type": "VariableExpression",
-                "name": "a"
+              "type": "VariableExpression",
+              "name": "user"
+            }
+          ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "colors"
+          },
+          "expression": {
+            "type": "JsonLiteralExpression",
+            "value": [
+              "red",
+              "green",
+              "blue"
+            ]
+          }
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "Colors array:"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "colors"
+            }
+          ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "myArray"
+          },
+          "expression": {
+            "type": "ArrayLiteralExpression",
+            "elements": [
+              {
+                "type": "LiteralExpression",
+                "value": 1
               },
-              "right": {
+              {
                 "type": "BinaryExpression",
                 "operator": "+",
                 "left": {
-                  "type": "VariableExpression",
-                  "name": "a"
+                  "type": "LiteralExpression",
+                  "value": 2
                 },
                 "right": {
                   "type": "LiteralExpression",
                   "value": 3
                 }
-              }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "a"
-            },
-            {
-              "type": "AssignmentExpression",
-              "left": {
-                "type": "VariableExpression",
-                "name": "b"
               },
-              "right": {
-                "type": "BinaryExpression",
-                "operator": "-",
-                "left": {
+              {
+                "type": "FnExpression",
+                "name": {
                   "type": "VariableExpression",
-                  "name": "b"
+                  "name": "foo"
                 },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 2
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "b"
-            },
-            {
-              "type": "AssignmentExpression",
-              "left": {
-                "type": "VariableExpression",
-                "name": "a"
+                "arguments": [
+                  {
+                    "type": "LiteralExpression",
+                    "value": 7
+                  }
+                ]
               },
-              "right": {
-                "type": "BinaryExpression",
-                "operator": "+",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "a"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 10
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "a"
-            },
-            {
-              "type": "AssignmentExpression",
-              "left": {
+              {
                 "type": "VariableExpression",
-                "name": "b"
-              },
-              "right": {
-                "type": "BinaryExpression",
-                "operator": "-",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "b"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 5
-                }
+                "name": "greeting"
               }
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "b"
-            }
-          ]
-        },
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "type": "VariableExpression",
-            "name": "b"
+            ]
           }
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+        },
         {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "demonstrateExtendedOperators"
-          },
-          "arguments": [
+          "type": "PrintStatement",
+          "expressions": [
             {
               "type": "LiteralExpression",
-              "value": 3
+              "value": "Native array with expressions:"
             },
             {
-              "type": "LiteralExpression",
-              "value": 5
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "demonstrateExtendedOperators"
-          },
-          "arguments": [
-            {
-              "type": "LiteralExpression",
-              "value": 10
-            },
-            {
-              "type": "LiteralExpression",
-              "value": 10
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "demonstrateExtendedOperators"
-          },
-          "arguments": [
-            {
-              "type": "LiteralExpression",
-              "value": 12
-            },
-            {
-              "type": "LiteralExpression",
-              "value": 2
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "demonstrateExtendedOperators"
-          },
-          "arguments": [
-            {
-              "type": "LiteralExpression",
-              "value": 6
-            },
-            {
-              "type": "LiteralExpression",
-              "value": 6
+              "type": "VariableExpression",
+              "name": "myArray"
             }
           ]
         }
