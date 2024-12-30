@@ -7,7 +7,8 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "n"
+          "name": "n",
+          "type_annotation": "int"
         }
       ],
       "body": [
@@ -27,6 +28,28 @@
               "type": "LiteralExpression",
               "value": 2
             }
+          },
+          "inferred_type": "int"
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "typedDouble",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "nums",
+          "type_annotation": "int[]"
+        }
+      ],
+      "body": [
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 0
           },
           "inferred_type": "int"
         }
@@ -101,7 +124,7 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "json",
+            "inferred_type": "string[]",
             "type": "VariableExpression",
             "name": "colors"
           },
@@ -114,7 +137,7 @@
               "blue"
             ]
           },
-          "inferred_type": "json"
+          "inferred_type": "string[]"
         },
         {
           "type": "PrintStatement",
@@ -125,9 +148,69 @@
               "value": "Colors array:"
             },
             {
-              "inferred_type": "json",
+              "inferred_type": "string[]",
               "type": "VariableExpression",
               "name": "colors"
+            }
+          ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "int[]",
+            "type": "VariableExpression",
+            "name": "typedNums"
+          },
+          "expression": {
+            "inferred_type": "json",
+            "type": "JsonLiteralExpression",
+            "value": [
+              1,
+              2,
+              3,
+              10
+            ]
+          },
+          "type_annotation": "int[]",
+          "inferred_type": "int[]"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "typedNums is"
+            },
+            {
+              "inferred_type": "int[]",
+              "type": "VariableExpression",
+              "name": "typedNums"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "typedDouble(typedNums) =>"
+            },
+            {
+              "inferred_type": "int",
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "typedDouble"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "int[]",
+                  "type": "VariableExpression",
+                  "name": "typedNums"
+                }
+              ]
             }
           ]
         },

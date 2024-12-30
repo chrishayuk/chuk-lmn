@@ -84,34 +84,34 @@ class FunctionDefinitionParser:
     def _parse_parameters(self):
         """
         Parses zero or more parameters, e.g.:
-           a, b: string, c, ...
-        where each parameter is:
-           <name> ( ':' <type> )?
+        a, b: string, c: int[], ...
         Returns a list of `FunctionParameter`.
         """
         params = []
 
-        # If we see a right-parenthesis here, it means zero parameters.
+        # If the next token is ')', we have zero parameters
         if self.parser.current_token.token_type == LmnTokenType.RPAREN:
             return params
 
         while True:
+            # 1) Expect an IDENTIFIER for the param name
             param_token = self._expect(
                 LmnTokenType.IDENTIFIER,
                 "Expected parameter name"
             )
             param_name = param_token.value
-            self.parser.advance()  # consume the parameter name
+            self.parser.advance()  # consume the param name
 
-            # Optional type annotation
             param_type = None
+
+            # 2) Optional ': type'
             if (
                 self.parser.current_token
                 and self.parser.current_token.token_type == LmnTokenType.COLON
             ):
                 self.parser.advance()  # consume ':'
 
-                # Accept built-in type tokens AND IDENTIFIER
+                # Now we expect a base type token (IDENTIFIER, INT, LONG, FLOAT, DOUBLE)
                 valid_type_tokens = [
                     LmnTokenType.IDENTIFIER,
                     LmnTokenType.INT,
@@ -119,7 +119,6 @@ class FunctionDefinitionParser:
                     LmnTokenType.FLOAT,
                     LmnTokenType.DOUBLE,
                 ]
-
                 if (
                     not self.parser.current_token
                     or self.parser.current_token.token_type not in valid_type_tokens
@@ -129,8 +128,23 @@ class FunctionDefinitionParser:
                     )
 
                 type_token = self.parser.current_token
-                param_type = type_token.value  # e.g. 'int', 'float', ...
+                param_type = type_token.value  # e.g., "int", "float", ...
                 self.parser.advance()  # consume the type token
+
+                # 3) Check if the next tokens are '[ ]' for an array type
+                if (
+                    self.parser.current_token
+                    and self.parser.current_token.token_type == LmnTokenType.LBRACKET
+                ):
+                    # Must match a following RBRACKET
+                    self.parser.advance()  # consume '['
+                    if not self.parser.current_token or \
+                    self.parser.current_token.token_type != LmnTokenType.RBRACKET:
+                        raise SyntaxError("Expected ']' for array type annotation")
+                    self.parser.advance()  # consume ']'
+
+                    # Append '[]' to the type
+                    param_type += "[]"
 
             # Create the FunctionParameter
             function_param = FunctionParameter(
@@ -144,11 +158,12 @@ class FunctionDefinitionParser:
                 self.parser.current_token
                 and self.parser.current_token.token_type == LmnTokenType.COMMA
             ):
-                self.parser.advance()  # consume comma
+                self.parser.advance()  # consume ','
             else:
                 break
 
         return params
+
 
     def _parse_block(self, until_tokens):
         """

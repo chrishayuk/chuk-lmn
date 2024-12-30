@@ -15,6 +15,7 @@ class LetStatement(ASTNode):
 
     # optional expression
     expression: Optional["Expression"] = None
+    inferred_type: Optional[str] = None
 
     def __str__(self):
         # If expression is None, just print 'set variable'

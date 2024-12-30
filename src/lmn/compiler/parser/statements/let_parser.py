@@ -14,6 +14,7 @@ class LetParser:
             let y
             let ratio: float
             let eVal: double = 2.718
+            let typedNums: int[] = [1, 2, 3]
         """
         # 1) Consume the 'let' token (already current_token)
         self.parser.advance()  # move past LmnTokenType.LET
@@ -32,16 +33,33 @@ class LetParser:
             # consume ':'
             self.parser.advance()
 
-            # Next token should be a type keyword, e.g. INT/LONG/FLOAT/DOUBLE
-            if (self.parser.current_token
-                and self.parser.current_token.token_type in (
-                    LmnTokenType.INT,
-                    LmnTokenType.LONG,
-                    LmnTokenType.FLOAT,
-                    LmnTokenType.DOUBLE,
-                )):
+            valid_type_tokens = (
+                LmnTokenType.INT,
+                LmnTokenType.LONG,
+                LmnTokenType.FLOAT,
+                LmnTokenType.DOUBLE,
+            )
+            if (
+                self.parser.current_token
+                and self.parser.current_token.token_type in valid_type_tokens
+            ):
                 type_annotation = self.parser.current_token.value  # e.g. "int"
                 self.parser.advance()  # consume that type keyword
+
+                # NEW CODE: optional bracket pair => int -> int[]
+                if (
+                    self.parser.current_token
+                    and self.parser.current_token.token_type == LmnTokenType.LBRACKET
+                ):
+                    self.parser.advance()  # consume '['
+                    if not self.parser.current_token or \
+                    self.parser.current_token.token_type != LmnTokenType.RBRACKET:
+                        raise SyntaxError("Expected ']' for array type annotation in 'let' statement")
+                    self.parser.advance()  # consume ']'
+
+                    # Append '[]' to e.g. "int" => "int[]"
+                    type_annotation += "[]"
+
             else:
                 raise SyntaxError(
                     "Expected a type keyword (int, long, float, double) after ':'"
@@ -59,3 +77,4 @@ class LetParser:
             expression=initializer_expr,
             type_annotation=type_annotation
         )
+

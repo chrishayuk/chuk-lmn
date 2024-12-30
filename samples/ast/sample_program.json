@@ -7,7 +7,8 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "n"
+          "name": "n",
+          "type_annotation": "int"
         }
       ],
       "body": [
@@ -24,6 +25,26 @@
               "type": "LiteralExpression",
               "value": 2
             }
+          }
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "typedDouble",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "nums",
+          "type_annotation": "int[]"
+        }
+      ],
+      "body": [
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 0
           }
         }
       ]
@@ -110,6 +131,58 @@
             {
               "type": "VariableExpression",
               "name": "colors"
+            }
+          ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "typedNums"
+          },
+          "expression": {
+            "type": "JsonLiteralExpression",
+            "value": [
+              1,
+              2,
+              3,
+              10
+            ]
+          },
+          "type_annotation": "int[]"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "typedNums is"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "typedNums"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "typedDouble(typedNums) =>"
+            },
+            {
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "typedDouble"
+              },
+              "arguments": [
+                {
+                  "type": "VariableExpression",
+                  "name": "typedNums"
+                }
+              ]
             }
           ]
         },

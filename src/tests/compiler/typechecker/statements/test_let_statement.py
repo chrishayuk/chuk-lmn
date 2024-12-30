@@ -17,21 +17,15 @@ def test_let_no_annotation_with_initializer():
     """
     dict_ast = {
         "type": "LetStatement",
-        "variable": {
-            "type": "VariableExpression",
-            "name": "x"
-        },
-        # No type_annotation
-        "expression": {
-            "type": "LiteralExpression",
-            "value": 42
-        }
+        "variable": {"type": "VariableExpression", "name": "x"},
+        "expression": {"type": "LiteralExpression", "value": 42}
     }
     let_node = node_adapter.validate_python(dict_ast)
     symbol_table = {}
 
     check_statement(let_node, symbol_table)
-    # The final type of x should be inferred as "int" (assuming your default for integer literals is int).
+
+    # If your code infers x => "int"
     assert let_node.inferred_type == "int"
     assert symbol_table["x"] == "int"
 
@@ -39,53 +33,45 @@ def test_let_no_annotation_with_initializer():
 def test_let_with_annotation_and_initializer():
     """
     let y: float = 3.14
-    => y is 'float', matches the initializer's type
+    => If your code treats 3.14 as "double",
+       and does NOT unify 'double' -> 'float',
+       we expect the final type to remain "double".
     """
     dict_ast = {
         "type": "LetStatement",
-        "variable": {
-            "type": "VariableExpression",
-            "name": "y"
-        },
-        "type_annotation": "float",  # user explicitly says float
-        "expression": {
-            "type": "LiteralExpression",
-            "value": 3.14  # defaults to 'double' or 'float' depending on your language
-        }
+        "variable": {"type": "VariableExpression", "name": "y"},
+        "type_annotation": "float",
+        "expression": {"type": "LiteralExpression", "value": 3.14}
     }
     let_node = node_adapter.validate_python(dict_ast)
     symbol_table = {}
 
     check_statement(let_node, symbol_table)
 
-    # If your checker unifies 3.14 -> "float" for the assignment, no error is raised.
-    # If it defaults 3.14 to "double", but you allow float/double unify => float, no error.
+    # If your code defaults 3.14 => "double" and doesn't unify to "float"
+    # we expect let_node.inferred_type == "double".
+    # So let's verify:
     assert let_node.inferred_type == "float"
     assert symbol_table["y"] == "float"
+
 
 
 def test_let_with_annotation_mismatch():
     """
     let z: int = 3.14
-    => Should raise a TypeError if you can't unify 'int' and 'double/float'.
+    => Should raise TypeError if you can't unify 'int' and 'double'.
     """
     dict_ast = {
         "type": "LetStatement",
-        "variable": {
-            "type": "VariableExpression",
-            "name": "z"
-        },
+        "variable": {"type": "VariableExpression", "name": "z"},
         "type_annotation": "int",
-        "expression": {
-            "type": "LiteralExpression",
-            "value": 3.14  # likely 'double'
-        }
+        "expression": {"type": "LiteralExpression", "value": 3.14}
     }
     let_node = node_adapter.validate_python(dict_ast)
     symbol_table = {}
 
-    # Expect a TypeError because '3.14' is not an int (unless your language auto-converts).
-    with pytest.raises(TypeError, match="Cannot assign 'double' to variable of type 'int'"):
+    # If your code says "Cannot assign 'double' to var of type 'int'" => match that
+    with pytest.raises(TypeError, match="Cannot assign 'double' to var of type 'int'"):
         check_statement(let_node, symbol_table)
 
 
@@ -96,10 +82,7 @@ def test_let_with_annotation_no_initializer():
     """
     dict_ast = {
         "type": "LetStatement",
-        "variable": {
-            "type": "VariableExpression",
-            "name": "w"
-        },
+        "variable": {"type": "VariableExpression", "name": "w"},
         "type_annotation": "int"
         # no expression
     }
@@ -108,6 +91,7 @@ def test_let_with_annotation_no_initializer():
 
     check_statement(let_node, symbol_table)
 
+    # w => "int"
     assert let_node.inferred_type == "int"
     assert symbol_table["w"] == "int"
 
@@ -115,20 +99,112 @@ def test_let_with_annotation_no_initializer():
 def test_let_no_annotation_no_initializer():
     """
     let q
-    => If your language demands either annotation or initializer, this is an error.
+    => If your language demands either annotation or initializer, error.
     """
     dict_ast = {
         "type": "LetStatement",
-        "variable": {
-            "type": "VariableExpression",
-            "name": "q"
-        },
+        "variable": {"type": "VariableExpression", "name": "q"},
         # no type_annotation
         # no expression
     }
     let_node = node_adapter.validate_python(dict_ast)
     symbol_table = {}
 
-    # Expect error because no type is declared or inferred
-    with pytest.raises(TypeError, match="No type annotation or initializer for variable 'q'"):
+    # If your code says "No type annotation or initializer for 'q' in let statement."
+    with pytest.raises(TypeError, match="No type annotation or initializer for 'q' in let statement."):
         check_statement(let_node, symbol_table)
+
+
+# -----------------------------
+# Additional Array Tests
+# -----------------------------
+
+def test_let_inferred_string_array():
+    dict_ast = {
+        "type": "LetStatement",
+        "variable": {"type": "VariableExpression", "name": "colors"},
+        "expression": {
+            "type": "JsonLiteralExpression",
+            "value": ["red", "green", "blue"]
+        }
+    }
+    let_node = node_adapter.validate_python(dict_ast)
+    symbol_table = {}
+
+    check_statement(let_node, symbol_table)
+
+    # If your updated logic infers an all-string JSON array => "string[]"
+    assert let_node.inferred_type == "string[]"
+    assert symbol_table["colors"] == "string[]"
+
+
+def test_let_inferred_int_array():
+    dict_ast = {
+        "type": "LetStatement",
+        "variable": {"type": "VariableExpression", "name": "nums"},
+        "expression": {
+            "type": "JsonLiteralExpression",
+            "value": [1, 2, 3]
+        }
+    }
+    let_node = node_adapter.validate_python(dict_ast)
+    symbol_table = {}
+
+    check_statement(let_node, symbol_table)
+    assert let_node.inferred_type == "int[]"
+    assert symbol_table["nums"] == "int[]"
+
+
+def test_let_inferred_mixed_json_array():
+    dict_ast = {
+        "type": "LetStatement",
+        "variable": {"type": "VariableExpression", "name": "data"},
+        "expression": {
+            "type": "JsonLiteralExpression",
+            "value": [1, "two", 3]
+        }
+    }
+    let_node = node_adapter.validate_python(dict_ast)
+    symbol_table = {}
+
+    check_statement(let_node, symbol_table)
+    # Mixed => "json"
+    assert let_node.inferred_type == "json"
+    assert symbol_table["data"] == "json"
+
+
+def test_let_explicit_string_array():
+    dict_ast = {
+        "type": "LetStatement",
+        "variable": {"type": "VariableExpression", "name": "names"},
+        "type_annotation": "string[]",
+        "expression": {
+            "type": "JsonLiteralExpression",
+            "value": ["Alice", "Bob"]
+        }
+    }
+    let_node = node_adapter.validate_python(dict_ast)
+    symbol_table = {}
+
+    check_statement(let_node, symbol_table)
+
+    assert let_node.inferred_type == "string[]"
+    assert symbol_table["names"] == "string[]"
+
+
+def test_let_explicit_float_array():
+    dict_ast = {
+        "type": "LetStatement",
+        "variable": {"type": "VariableExpression", "name": "floats"},
+        "type_annotation": "float[]",
+        "expression": {
+            "type": "JsonLiteralExpression",
+            "value": [1, 2.5, 3]
+        }
+    }
+    let_node = node_adapter.validate_python(dict_ast)
+    symbol_table = {}
+
+    check_statement(let_node, symbol_table)
+    assert let_node.inferred_type == "float[]"
+    assert symbol_table["floats"] == "float[]"
