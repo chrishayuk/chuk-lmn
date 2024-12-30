@@ -129,7 +129,7 @@
             "name": "colors"
           },
           "expression": {
-            "inferred_type": "json",
+            "inferred_type": "string[]",
             "type": "JsonLiteralExpression",
             "value": [
               "red",
@@ -162,7 +162,7 @@
             "name": "typedNums"
           },
           "expression": {
-            "inferred_type": "json",
+            "inferred_type": "int[]",
             "type": "JsonLiteralExpression",
             "value": [
               1,
@@ -171,8 +171,8 @@
               10
             ]
           },
-          "type_annotation": "int[]",
-          "inferred_type": "int[]"
+          "inferred_type": "int[]",
+          "type_annotation": "int[]"
         },
         {
           "type": "PrintStatement",
