@@ -30,6 +30,9 @@ LANG_TO_WASM_MAP: Dict[str, str] = {
     # For JSON objects/arrays you can store as references too:
     "json":     "i32_json",
     "array":    "i32_ptr",
+
+    # IMPORTANT: Add this so single "string" is lowered to a pointer type, not i32
+    "string":   "i32_ptr",
 }
 
 

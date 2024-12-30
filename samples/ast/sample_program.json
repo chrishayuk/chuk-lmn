@@ -2,247 +2,169 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "foo",
-      "params": [
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "greeting"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": "Hello\\nWorld!"
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "FunctionParameter",
-          "name": "n",
-          "type_annotation": "int"
-        }
-      ],
-      "body": [
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "type": "BinaryExpression",
-            "operator": "*",
-            "left": {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 2
-            }
-          }
+          "type": "VariableExpression",
+          "name": "greeting"
         }
       ]
     },
     {
-      "type": "FunctionDefinition",
-      "name": "typedDouble",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "nums",
-          "type_annotation": "int[]"
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "user"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
         }
-      ],
-      "body": [
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "ReturnStatement",
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 0
-          }
+          "type": "LiteralExpression",
+          "value": "User data:"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "user"
         }
       ]
     },
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "colors"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": [
+          "red",
+          "green",
+          "blue"
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "greeting"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": "Hello\\n\ud83c\udf0d \\\"Earth\\\"!"
-          }
+          "type": "LiteralExpression",
+          "value": "Colors array:"
         },
         {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "greeting"
-            }
-          ]
+          "type": "VariableExpression",
+          "name": "colors"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 123
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "x"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "bigNum"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 4294967298
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "bigNum"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "decVal"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 3.14
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "decVal"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "jsonData"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "jsonData:"
         },
         {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "user"
-          },
-          "expression": {
-            "type": "JsonLiteralExpression",
-            "value": {
-              "name": "Alice",
-              "age": 42,
-              "languages": [
-                "English",
-                "Spanish"
-              ],
-              "active": true
-            }
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "User data:"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "user"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "colors"
-          },
-          "expression": {
-            "type": "JsonLiteralExpression",
-            "value": [
-              "red",
-              "green",
-              "blue"
-            ]
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "Colors array:"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "colors"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "typedNums"
-          },
-          "expression": {
-            "type": "JsonLiteralExpression",
-            "value": [
-              1,
-              2,
-              3,
-              10
-            ]
-          },
-          "type_annotation": "int[]"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "typedNums is"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "typedNums"
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "typedDouble(typedNums) =>"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "typedDouble"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "typedNums"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "myArray"
-          },
-          "expression": {
-            "type": "ArrayLiteralExpression",
-            "elements": [
-              {
-                "type": "LiteralExpression",
-                "value": 1
-              },
-              {
-                "type": "BinaryExpression",
-                "operator": "+",
-                "left": {
-                  "type": "LiteralExpression",
-                  "value": 2
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 3
-                }
-              },
-              {
-                "type": "FnExpression",
-                "name": {
-                  "type": "VariableExpression",
-                  "name": "foo"
-                },
-                "arguments": [
-                  {
-                    "type": "LiteralExpression",
-                    "value": 7
-                  }
-                ]
-              },
-              {
-                "type": "VariableExpression",
-                "name": "greeting"
-              }
-            ]
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "Native array with expressions:"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "myArray"
-            }
-          ]
+          "type": "VariableExpression",
+          "name": "jsonData"
         }
       ]
     }

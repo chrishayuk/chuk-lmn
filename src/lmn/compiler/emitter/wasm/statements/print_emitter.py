@@ -1,4 +1,4 @@
-# file: compiler/emitter/wasm/statements/print_emitter.py
+# file: lmn/compiler/emitter/wasm/statements/print_emitter.py
 
 class PrintEmitter:
     def __init__(self, controller):
@@ -17,18 +17,18 @@ class PrintEmitter:
             },
             {
               "type": "LiteralExpression",
-              "value": 4294967296,
-              "inferred_type": "i64"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": 3.14,
-              "inferred_type": "f64"
-            },
-            {
-              "type": "LiteralExpression",
               "value": "Hello world",
-              "inferred_type": "string"  # or 'i32' if everything is forced to i32
+              "inferred_type": "string"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": "[1,2,3]",
+              "inferred_type": "i32_ptr"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": "{'name':'Alice'}",
+              "inferred_type": "i32_json"
             },
             ...
           ]
@@ -37,22 +37,10 @@ class PrintEmitter:
 
         exprs = node["expressions"]
         for ex in exprs:
-            # 1) Check if it's a string literal
-            if (ex["type"] == "LiteralExpression"
-                and isinstance(ex["value"], str)):
-
-                # A) Option 1: Just log a comment
-                string_val = ex["value"]
-                out_lines.append(f'  ;; skipping string literal: {string_val}')
-                # B) Or produce a placeholder if you prefer:
-                # out_lines.append('  i32.const 0  ;; placeholder for string')
-                # out_lines.append('  call $print_i32')
-                continue
-
-            # 2) Otherwise treat it as numeric
+            # 1) Emit code to push the expression's value on the stack
             self.controller.emit_expression(ex, out_lines)
 
-            # 3) Based on the inferred type, call the matching print function
+            # 2) Based on the 'inferred_type', pick an appropriate print function
             inferred_type = ex.get("inferred_type", "i32")  # fallback to i32 if missing
 
             if inferred_type == "i64":
@@ -65,6 +53,23 @@ class PrintEmitter:
                 # If you only have `print_f64` imported, promote f32 -> f64
                 out_lines.append("  f64.promote_f32")
                 out_lines.append("  call $print_f64")
+
+            elif inferred_type in ("string", "i32_ptr"):
+                """
+                Here we assume you have an import like:
+                (import "env" "print_string" (func $print_string (param i32)))
+
+                'string' => was a textual literal => data segment offset
+                'i32_ptr' => an array pointer offset, but let's print as if it's textual or handle it differently
+                """
+                out_lines.append("  call $print_string")
+
+            elif inferred_type == "i32_json":
+                """
+                If you want to treat JSON differently, you might have an import for printing JSON:
+                (import "env" "print_json" (func $print_json (param i32)))
+                """
+                out_lines.append("  call $print_json")
 
             else:
                 # default => treat as i32

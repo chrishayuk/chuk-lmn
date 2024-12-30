@@ -1,6 +1,21 @@
 # LMN Compiler Pipeline
 This repository demonstrates a sample pipeline for compiling **LMN** code into **WebAssembly (WASM)**. 
 
+
+# Just compile to WAT, print on stdout:
+uv run lmn-compiler samples/lmn/sample_program.lmn
+
+# Save WAT to out.wat but no .wasm:
+uv run lmn-compiler samples/lmn/sample_program.lmn --wat ./samples/wat/sample_program.wat
+
+# Directly compile to .wasm with no .wat left behind:
+uv run lmn-compiler samples/lmn/sample_program.lmn --wasm ./samples/wasm/sample_program.wasm
+
+# Compile to .wat AND .wasm
+uv run lmn-compiler samples/lmn/sample_program.lmn --wat ./samples/wat/sample_program.wat --wasm ./samples/wasm/sample_program.wasm
+
+
+
 ### Step 1: Tokenize
 This will convert the program to tokens and output them in a text file.
 

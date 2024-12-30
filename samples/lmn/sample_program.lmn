@@ -1,44 +1,36 @@
-# file: 09_mix_features.lmn
+# file: samples/lmn/test_features.lmn
 
-# A simple function 'foo' that takes one integer param 'n' and returns 2*n
-function foo(n: int)
-    return n * 2
-end
+# 1) A simple string literal
+let greeting = "Hello\nWorld!"
+print greeting
 
-# Another function that takes a typed array of int.
-# Since 'for' loops aren't implemented yet, we'll just return 0 for now.
-function typedDouble(nums: int[])
-    # Future: you could sum or process 'nums' if you had loops / indexing
-    return 0
-end
+# 2) A JSON object literal
+let user = {
+    "name": "Alice",
+    "age": 42
+}
+print "User data:" user
 
-function main()
-    # 1) A simple string with an emoji and some escapes
-    let greeting = "Hello\n🌍 \"Earth\"!"
+# 3) A bracket-literal array of strings => typed as string[]
+let colors = [ "red", "green", "blue" ]
+print "Colors array:" colors
 
-    # Print it
-    print greeting
+# 4) Some numeric prints
+let x = 123
+print x
 
-    # 2) A JSON object literal (untyped => 'json')
-    let user = {
-        "name": "Alice",
-        "age": 42,
-        "languages": ["English", "Spanish"],
-        "active": true
-    }
-    print "User data:" user
+# Large integer => might unify to i64
+let bigNum = 4294967298
+print bigNum
 
-    # 3) A strict JSON array => 'json'
-    let colors = [ "red", "green", "blue" ]
-    print "Colors array:" colors
+# Decimal => f32/f64
+let decVal = 3.14
+print decVal
 
-    # 4) A typed array of int. No 'for' loop to process it, but we can pass it to typedDouble(...)
-    let typedNums: int[] = [1, 2, 3, 10]
-    print "typedNums is" typedNums
-    print "typedDouble(typedNums) =>" typedDouble(typedNums)
-
-    # 5) A native array with arbitrary expressions (untyped => 'any[]' or 'array')
-    #    includes an arithmetic expr (2+3) and a call to foo(7)
-    let myArray = [ 1, 2+3, foo(7), greeting ]
-    print "Native array with expressions:" myArray
-end
+# 5) Another JSON object, just to show printing
+let jsonData = {
+    "foo": "bar",
+    "nums": [10, 20, 30],
+    "active": true
+}
+print "jsonData:" jsonData

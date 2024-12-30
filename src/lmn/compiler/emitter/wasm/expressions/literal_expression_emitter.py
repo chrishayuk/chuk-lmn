@@ -8,6 +8,8 @@ class LiteralExpressionEmitter:
     def __init__(self, controller):
         """
         'controller' references the main WasmEmitter or similar.
+        We assume `controller._add_data_segment(text)` is available
+        and returns an integer offset in memory.
         """
         self.controller = controller
 
@@ -19,6 +21,18 @@ class LiteralExpressionEmitter:
             "value": 2.718,
             "inferred_type": "f32"
           }
+        or a string:
+          {
+            "type": "LiteralExpression",
+            "value": "Hello\n🌍 \"Earth\"!",
+            "inferred_type": "string"
+          }
+        or an array literal:
+          {
+            "type": "LiteralExpression",
+            "value": "[1,2,3]",
+            "inferred_type": "i32_ptr"
+          }
         """
         inferred_t = node.get("inferred_type")
         literal_value = str(node["value"]).strip()
@@ -28,46 +42,51 @@ class LiteralExpressionEmitter:
             literal_value, inferred_t
         )
 
-        # If we have a recognized inferred_t in ('i32', 'i64', 'f32', 'f64'), use it
+        # (A) If the AST says this is a numeric type => do numeric approach
         if inferred_t in ("i32", "i64", "f32", "f64"):
-            logger.debug("Using provided inferred_type=%s for literal='%s'", inferred_t, literal_value)
-            if inferred_t == "i32":
-                line = f"  i32.const {literal_value}"
-            elif inferred_t == "i64":
-                line = f"  i64.const {literal_value}"
-            elif inferred_t == "f32":
-                line = f"  f32.const {literal_value}"
-            else:  # "f64"
-                line = f"  f64.const {literal_value}"
-            logger.debug("Emitting => %s", line.strip())
-            out_lines.append(line)
+            logger.debug(
+                "Using provided numeric inferred_type=%s for literal='%s'",
+                inferred_t, literal_value
+            )
+            self._emit_numeric_literal(inferred_t, literal_value, out_lines)
+
+        # (B) If the AST says it's a pointer-literal type (e.g. "string", "i32_ptr", "i32_json")
+        elif inferred_t in ("string", "i32_ptr", "i32_json"):
+            logger.debug("Non-numeric literal => store in data segment => push pointer offset")
+            offset = self.controller._add_data_segment(literal_value)
+            out_lines.append(f"  i32.const {offset}")
+
         else:
-            # Fallback if no 'inferred_type'
+            # (C) No recognized 'inferred_type' => fallback numeric guess
             logger.debug(
                 "No recognized 'inferred_type' for literal='%s'; falling back to _infer_wasm_type()",
                 literal_value
             )
             num_type = self._infer_wasm_type(literal_value)
-            if num_type == 'i32':
-                line = f'  i32.const {literal_value}'
-            elif num_type == 'i64':
-                line = f'  i64.const {literal_value}'
-            elif num_type == 'f32':
-                line = f'  f32.const {literal_value}'
-            elif num_type == 'f64':
-                line = f'  f64.const {literal_value}'
-            else:
-                raise ValueError(f"Unsupported numeric type for literal: {literal_value}")
+            self._emit_numeric_literal(num_type, literal_value, out_lines)
 
-            logger.debug(
-                "Fallback type -> %s, Emitting => %s",
-                num_type, line.strip()
-            )
-            out_lines.append(line)
+
+    def _emit_numeric_literal(self, wasm_type, literal_value, out_lines):
+        """
+        Emit instructions for numeric WASM types: i32, i64, f32, f64.
+        """
+        if wasm_type == "i32":
+            out_lines.append(f"  i32.const {literal_value}")
+        elif wasm_type == "i64":
+            out_lines.append(f"  i64.const {literal_value}")
+        elif wasm_type == "f32":
+            out_lines.append(f"  f32.const {literal_value}")
+        elif wasm_type == "f64":
+            out_lines.append(f"  f64.const {literal_value}")
+        else:
+            raise ValueError(f"Unsupported numeric type {wasm_type} for literal '{literal_value}'")
+
 
     def _infer_wasm_type(self, literal_str):
         """
         Naive fallback if there's no 'inferred_type'.
+        We do numeric detection: if there's a '.' or 'e' => float => f64,
+        else parse as int => i32 or i64 range. Otherwise fallback to f64.
         """
         logger.debug("_infer_wasm_type() => analyzing literal_str='%s'", literal_str)
         is_float_syntax = ('.' in literal_str) or ('e' in literal_str.lower())

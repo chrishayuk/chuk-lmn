@@ -2,6 +2,7 @@
 
 from lmn.compiler.emitter.wasm.expressions.assignment_expression_emitter import AssignmentExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
+from lmn.compiler.emitter.wasm.expressions.json_literal_expression_emitter import JsonLiteralExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.postfix_expression_emitter import PostfixExpressionEmitter
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
 from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
@@ -35,6 +36,10 @@ class WasmEmitter:
         self.func_local_map = {}
         self.local_counter = 0
 
+        # (1) Add data segment support
+        self.data_segments = []            # list of (offset, bytes)
+        self.current_data_offset = 1024    # start storing data at some offset
+
         # Statement emitters
         self.if_emitter = IfEmitter(self)
         self.let_emitter = LetEmitter(self)
@@ -54,6 +59,11 @@ class WasmEmitter:
         self.conversion_expr_emitter = ConversionExpressionEmitter(self)
         self.postfix_expression_emitter = PostfixExpressionEmitter(self)
         self.assignment_expression_emitter = AssignmentExpressionEmitter(self)
+        self.json_literal_expression_emitter = JsonLiteralExpressionEmitter(self)
+
+    # -------------------------------------------------------------------------
+    # Program-level Emission
+    # -------------------------------------------------------------------------
 
     def emit_program(self, ast):
         """
@@ -80,6 +90,19 @@ class WasmEmitter:
 
         return self.build_module()
 
+    def emit_function_definition(self, node):
+        """
+        Delegates to self.function_emitter; 
+        adds the function name to self.function_names for exporting.
+        """
+        func_name = node.get("name", f"fn_{self.function_counter}")
+        self.function_counter += 1
+        self.function_names.append(func_name)
+
+        func_lines = []
+        self.function_emitter.emit_function(node, func_lines)
+        self.functions.append(func_lines)
+
     def emit_top_level_statements_function(self, statements):
         """
         Creates a function __top_level__ for statements that are not inside any user function.
@@ -104,21 +127,23 @@ class WasmEmitter:
         # Insert local declarations (ex: (local $myVar i64))
         local_decls = []
         for var_name in self.new_locals:
-            var_type = self.func_local_map[var_name]["type"]
-            local_decls.append(f'  (local {var_name} {var_type})')
+            internal_type = self.func_local_map[var_name]["type"]
+            # Convert any 'i32_ptr'/'i32_json' etc. => plain 'i32' or 'i64'
+            wat_type = self._wasm_basetype(internal_type)
+            local_decls.append(f'  (local {var_name} {wat_type})')
 
         # Insert them at index 1, right after '(func $name'
         func_lines[1:1] = local_decls
 
-        # Notice: We do NOT do anything like "i32.const 0 / local.set" for each local here.
-        # That is the job of LetEmitter or AssignmentEmitter if there's no expression.
-
         func_lines.append(')')
         self.functions.append(func_lines)
 
+
     def build_module(self):
         """
-        Builds the final WAT module with imports and function exports.
+        Builds the final WAT module with imports, function definitions,
+        data segments, and function exports, and calculates how many
+        memory pages we need to hold our data segments.
         """
         lines = []
         lines.append('(module')
@@ -128,30 +153,59 @@ class WasmEmitter:
         lines.append('  (import "env" "print_i64" (func $print_i64 (param i64)))')
         lines.append('  (import "env" "print_f64" (func $print_f64 (param f64)))')
 
-        # Insert each function
+        # Optional specialized printing for strings, JSON, arrays
+        lines.append('  (import "env" "print_string" (func $print_string (param i32)))')
+        lines.append('  (import "env" "print_json" (func $print_json (param i32)))')
+        lines.append('  (import "env" "print_array" (func $print_array (param i32)))')
+
+        # ------------------------------------------------------------
+        # 1) Calculate how many pages we need based on the data offsets
+        # ------------------------------------------------------------
+        largest_required = 0
+        for (offset, data_bytes) in self.data_segments:
+            end_offset = offset + len(data_bytes)
+            if end_offset > largest_required:
+                largest_required = end_offset
+
+        # Each WASM page is 64 KiB
+        PAGE_SIZE = 65536
+        required_pages = (largest_required + (PAGE_SIZE - 1)) // PAGE_SIZE
+
+        # Ensure we have at least 1 page if we have ANY data
+        if required_pages < 1:
+            required_pages = 1
+
+        # Insert the memory declaration with our computed number of pages
+        lines.append(f'  (memory (export "memory") {required_pages})')
+
+        # ------------------------------------------------------------
+        # 2) Insert each function's lines
+        # ------------------------------------------------------------
         for f_lines in self.functions:
             for line in f_lines:
                 lines.append(f"  {line}")
 
-        # Export each function name
+        # ------------------------------------------------------------
+        # 3) Export each function name
+        # ------------------------------------------------------------
         for fname in self.function_names:
             lines.append(f'  (export "{fname}" (func ${fname}))')
+
+        # ------------------------------------------------------------
+        # 4) Finally, declare the data segments with offsets
+        # ------------------------------------------------------------
+        for (offset, data_bytes) in self.data_segments:
+            escaped = "".join(f"\\{b:02x}" for b in data_bytes)
+            lines.append(f'  (data (i32.const {offset}) "{escaped}")')
 
         lines.append(')')
         return "\n".join(lines) + "\n"
 
-    def emit_function_definition(self, node):
-        """
-        Delegates to self.function_emitter; 
-        adds the function name to self.function_names for exporting.
-        """
-        func_name = node.get("name", f"fn_{self.function_counter}")
-        self.function_counter += 1
-        self.function_names.append(func_name)
 
-        func_lines = []
-        self.function_emitter.emit_function(node, func_lines)
-        self.functions.append(func_lines)
+
+    # -------------------------------------------------------------------------
+    #  Statement & Expression Emission
+    # -------------------------------------------------------------------------
 
     def emit_statement(self, stmt, out_lines):
         """
@@ -197,9 +251,47 @@ class WasmEmitter:
             self.postfix_expression_emitter.emit(expr, out_lines)
         elif etype == "AssignmentExpression":
             self.assignment_expression_emitter.emit(expr, out_lines)
+        elif etype == "JsonLiteralExpression":
+            self.json_literal_expression_emitter.emit(expr, out_lines)
         else:
-            # fallback => i32.const 0 is a last-ditch approach if we can't figure out anything
             out_lines.append('  i32.const 0')
+
+    # -------------------------------------------------------------------------
+    #  Data Segment Helpers
+    # -------------------------------------------------------------------------
+
+    def _add_data_segment(self, text: str) -> int:
+        """
+        Store 'text' in self.data_segments, returning the offset in memory.
+        We'll encode as UTF-8, then append a null terminator (\0).
+        This ensures that when we read memory in the host environment,
+        we stop at the null byte.
+        """
+        # Encode the text and add a null terminator
+        data_bytes = text.encode('utf-8', errors='replace') + b'\0'
+        offset = self.current_data_offset
+        self.data_segments.append((offset, data_bytes))
+        self.current_data_offset += len(data_bytes)
+        return offset
+
+
+    # -------------------------------------------------------------------------
+    #  Internal helper to map 'i32_ptr' => 'i32', etc.
+    # -------------------------------------------------------------------------
+    def _wasm_basetype(self, t: str) -> str:
+        """
+        Map custom pointer types (i32_ptr, i32_json, etc.) to valid WASM base types.
+        """
+        if t in ("i32_ptr", "i32_json"):
+            return "i32"
+        elif t in ("i64_ptr", "i64_json"):
+            return "i64"
+        # If it's already i32, i64, f32, f64, just return it
+        return t
+
+    # -------------------------------------------------------------------------
+    #  Utility: Name Normalization & Type Inference
+    # -------------------------------------------------------------------------
 
     def _normalize_local_name(self, name: str) -> str:
         """
@@ -223,10 +315,8 @@ class WasmEmitter:
         if "inferred_type" in expr_node:
             return expr_node["inferred_type"]  # trust the AST
 
-        # Otherwise, do naive guess
         if expr_node["type"] == "LiteralExpression":
             val_str = str(expr_node.get("value", "0"))
-            # naive logic...
             if "." in val_str:
                 guessed = "f32"
             else:
@@ -235,15 +325,14 @@ class WasmEmitter:
                     guessed = "i64" if abs(val) > 2147483647 else "i32"
                 except ValueError:
                     guessed = "f32"
-            # unify with context?
+
             if context_type:
                 return self._unify_types(guessed, context_type)
             else:
                 return guessed
-        ...
+
         # fallback => i32
         return "i32"
-
 
     def _unify_types(self, t1, t2):
         """
@@ -251,4 +340,6 @@ class WasmEmitter:
         i32 < i64 < f32 < f64
         """
         priority = {"i32": 1, "i64": 2, "f32": 3, "f64": 4}
-        return t1 if priority[t1] >= priority[t2] else t2
+        p1 = priority.get(t1, 0)
+        p2 = priority.get(t2, 0)
+        return t1 if p1 >= p2 else t2

@@ -28,28 +28,46 @@ def infer_literal_type(value, target_type: Optional[str] = None) -> str:
     an optional 'target_type' from context.
 
     - If 'value' is int => default "int" (or "long" if target_type suggests).
+      *But if the value is out of 32-bit range, treat as "long".*
     - If 'value' is float => default "double" (or "float" if target_type suggests).
     - If 'value' is str => "string".
     - etc.
     """
     normalized_target = normalize_type(target_type)
 
+    # 1) Float => "double" by default, or "float" if the target specifically suggests it
     if isinstance(value, float):
         if normalized_target in ("float", "double"):
             return normalized_target
         return "double"
 
+    # 2) Integer => check 32-bit range 
     if isinstance(value, int):
+        # If context says 'long', keep it as 'long'
+        # or if context says 'int' and it's in 32-bit range => 'int'
         if normalized_target in ("int", "long"):
-            return normalized_target
-        return "int"
+            # If target is 'long', we definitely use 'long'
+            if normalized_target == "long":
+                return "long"
+            # else if target is 'int', we check if it's in 32-bit range
+            if -2**31 <= value <= 2**31 - 1:
+                return "int"
+            else:
+                return "long"
 
+        # If no target_type or it's something else => do range check
+        if -2**31 <= value <= 2**31 - 1:
+            return "int"
+        else:
+            return "long"
+
+    # 3) String => "string"
     if isinstance(value, str):
         return "string"
 
-    # If you handle booleans or other Python types, do so here
-    # Otherwise default or raise an error
+    # 4) Boolean or other => do what you like, or default to "int"
     return "int"
+
 
 def can_assign_to(source: str, target: str) -> bool:
     """

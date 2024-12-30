@@ -2,287 +2,200 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "foo",
-      "params": [
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "string",
+        "type": "VariableExpression",
+        "name": "greeting"
+      },
+      "expression": {
+        "inferred_type": "string",
+        "type": "LiteralExpression",
+        "value": "Hello\\nWorld!"
+      },
+      "inferred_type": "string"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "FunctionParameter",
-          "name": "n",
-          "type_annotation": "int"
-        }
-      ],
-      "body": [
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "inferred_type": "int",
-            "type": "BinaryExpression",
-            "operator": "*",
-            "left": {
-              "inferred_type": "int",
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "inferred_type": "int",
-              "type": "LiteralExpression",
-              "value": 2
-            }
-          },
-          "inferred_type": "int"
+          "inferred_type": "string",
+          "type": "VariableExpression",
+          "name": "greeting"
         }
       ]
     },
     {
-      "type": "FunctionDefinition",
-      "name": "typedDouble",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "nums",
-          "type_annotation": "int[]"
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "json",
+        "type": "VariableExpression",
+        "name": "user"
+      },
+      "expression": {
+        "inferred_type": "json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
         }
-      ],
-      "body": [
+      },
+      "inferred_type": "json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "ReturnStatement",
-          "expression": {
-            "inferred_type": "int",
-            "type": "LiteralExpression",
-            "value": 0
-          },
-          "inferred_type": "int"
+          "inferred_type": "string",
+          "type": "LiteralExpression",
+          "value": "User data:"
+        },
+        {
+          "inferred_type": "json",
+          "type": "VariableExpression",
+          "name": "user"
         }
       ]
     },
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "string[]",
+        "type": "VariableExpression",
+        "name": "colors"
+      },
+      "expression": {
+        "inferred_type": "string[]",
+        "type": "JsonLiteralExpression",
+        "value": [
+          "red",
+          "green",
+          "blue"
+        ]
+      },
+      "inferred_type": "string[]"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "string",
-            "type": "VariableExpression",
-            "name": "greeting"
-          },
-          "expression": {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "Hello\\n\ud83c\udf0d \\\"Earth\\\"!"
-          },
-          "inferred_type": "string"
+          "inferred_type": "string",
+          "type": "LiteralExpression",
+          "value": "Colors array:"
         },
         {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "VariableExpression",
-              "name": "greeting"
-            }
-          ]
+          "inferred_type": "string[]",
+          "type": "VariableExpression",
+          "name": "colors"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "int",
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "inferred_type": "int",
+        "type": "LiteralExpression",
+        "value": 123
+      },
+      "inferred_type": "int"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "int",
+          "type": "VariableExpression",
+          "name": "x"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "long",
+        "type": "VariableExpression",
+        "name": "bigNum"
+      },
+      "expression": {
+        "inferred_type": "long",
+        "type": "LiteralExpression",
+        "value": 4294967298
+      },
+      "inferred_type": "long"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "long",
+          "type": "VariableExpression",
+          "name": "bigNum"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "double",
+        "type": "VariableExpression",
+        "name": "decVal"
+      },
+      "expression": {
+        "inferred_type": "double",
+        "type": "LiteralExpression",
+        "value": 3.14
+      },
+      "inferred_type": "double"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "double",
+          "type": "VariableExpression",
+          "name": "decVal"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "json",
+        "type": "VariableExpression",
+        "name": "jsonData"
+      },
+      "expression": {
+        "inferred_type": "json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      },
+      "inferred_type": "json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "string",
+          "type": "LiteralExpression",
+          "value": "jsonData:"
         },
         {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "json",
-            "type": "VariableExpression",
-            "name": "user"
-          },
-          "expression": {
-            "inferred_type": "json",
-            "type": "JsonLiteralExpression",
-            "value": {
-              "name": "Alice",
-              "age": 42,
-              "languages": [
-                "English",
-                "Spanish"
-              ],
-              "active": true
-            }
-          },
-          "inferred_type": "json"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "User data:"
-            },
-            {
-              "inferred_type": "json",
-              "type": "VariableExpression",
-              "name": "user"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "string[]",
-            "type": "VariableExpression",
-            "name": "colors"
-          },
-          "expression": {
-            "inferred_type": "string[]",
-            "type": "JsonLiteralExpression",
-            "value": [
-              "red",
-              "green",
-              "blue"
-            ]
-          },
-          "inferred_type": "string[]"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "Colors array:"
-            },
-            {
-              "inferred_type": "string[]",
-              "type": "VariableExpression",
-              "name": "colors"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "int[]",
-            "type": "VariableExpression",
-            "name": "typedNums"
-          },
-          "expression": {
-            "inferred_type": "int[]",
-            "type": "JsonLiteralExpression",
-            "value": [
-              1,
-              2,
-              3,
-              10
-            ]
-          },
-          "inferred_type": "int[]",
-          "type_annotation": "int[]"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "typedNums is"
-            },
-            {
-              "inferred_type": "int[]",
-              "type": "VariableExpression",
-              "name": "typedNums"
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "typedDouble(typedNums) =>"
-            },
-            {
-              "inferred_type": "int",
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "typedDouble"
-              },
-              "arguments": [
-                {
-                  "inferred_type": "int[]",
-                  "type": "VariableExpression",
-                  "name": "typedNums"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "array",
-            "type": "VariableExpression",
-            "name": "myArray"
-          },
-          "expression": {
-            "inferred_type": "array",
-            "type": "ArrayLiteralExpression",
-            "elements": [
-              {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 1
-              },
-              {
-                "inferred_type": "int",
-                "type": "BinaryExpression",
-                "operator": "+",
-                "left": {
-                  "inferred_type": "int",
-                  "type": "LiteralExpression",
-                  "value": 2
-                },
-                "right": {
-                  "inferred_type": "int",
-                  "type": "LiteralExpression",
-                  "value": 3
-                }
-              },
-              {
-                "inferred_type": "int",
-                "type": "FnExpression",
-                "name": {
-                  "type": "VariableExpression",
-                  "name": "foo"
-                },
-                "arguments": [
-                  {
-                    "inferred_type": "int",
-                    "type": "LiteralExpression",
-                    "value": 7
-                  }
-                ]
-              },
-              {
-                "inferred_type": "string",
-                "type": "VariableExpression",
-                "name": "greeting"
-              }
-            ]
-          },
-          "inferred_type": "array"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "Native array with expressions:"
-            },
-            {
-              "inferred_type": "array",
-              "type": "VariableExpression",
-              "name": "myArray"
-            }
-          ]
+          "inferred_type": "json",
+          "type": "VariableExpression",
+          "name": "jsonData"
         }
       ]
     }
