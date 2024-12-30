@@ -2,16 +2,9 @@
 
 from typing import Optional
 
-from lmn.compiler.ast import (
-    Expression,
-    LiteralExpression,
-    VariableExpression,
-    UnaryExpression,
-    BinaryExpression,
-    FnExpression
-)
+from lmn.compiler.ast import Expression
 
-# Direct imports of expression classes (to avoid mega_union issues)
+# Direct imports of expression classes
 from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
 from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
@@ -20,17 +13,18 @@ from lmn.compiler.ast.expressions.literal_expression import LiteralExpression
 from lmn.compiler.ast.expressions.postfix_expression import PostfixExpression
 from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.variable_expression import VariableExpression
+from lmn.compiler.ast.expressions.json_literal_expression import JsonLiteralExpression
+from lmn.compiler.ast.expressions.array_literal_expression import ArrayLiteralExpression
 
-# Typechecker utilities (using "int", "long", "float", "double")
+# Utility or type-checker modules
 from lmn.compiler.typechecker.utils import unify_types, infer_literal_type
-
 
 def check_expression(expr: Expression, symbol_table: dict, target_type: Optional[str] = None) -> str:
     """
     Analyzes 'expr' and returns its final language-level type:
-    - "int", "long", "float", "double", etc.
+      - "int", "long", "float", "double", "json", "array", etc.
 
-    - 'target_type' can hint how to interpret a literal (e.g. 10 -> "int" or "long").
+    - 'target_type' can hint how to interpret a literal (e.g., 10 -> "int" or "long").
     - 'symbol_table' contains known variable/function definitions.
 
     The expression's final type is stored in 'expr.inferred_type' as well.
@@ -57,118 +51,119 @@ def check_expression(expr: Expression, symbol_table: dict, target_type: Optional
     elif isinstance(expr, FnExpression):
         return check_fn_expression(expr, symbol_table)
 
+    elif isinstance(expr, JsonLiteralExpression):
+        return check_json_literal_expression(expr, symbol_table)
+
+    elif isinstance(expr, ArrayLiteralExpression):
+        return check_array_literal_expression(expr, symbol_table)
+
     else:
         raise NotImplementedError(f"Unsupported expression type: {expr.type}")
 
 
-def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> str:
+# -------------------------------------------------------------------------
+# 1) JSON Literal
+# -------------------------------------------------------------------------
+def check_json_literal_expression(j_expr: JsonLiteralExpression, symbol_table: dict) -> str:
     """
-    1) Type-check left and right sub-expressions.
-    2) Use 'unify_types(..., for_assignment=False)' to pick the 'larger' type (e.g. int+float => float).
-    3) If sub-expr type != unified type, wrap in a ConversionExpression.
-    4) Store final type in bin_expr.inferred_type.
+    For now, treat any JSON literal (object/array) as having type 'json'.
+    If you want more advanced logic (e.g. verifying fields or schema),
+    you can recursively check j_expr.value (a Python dict/list).
     """
-
-    left_type = check_expression(bin_expr.left, symbol_table)
-    right_type = check_expression(bin_expr.right, symbol_table)
-
-    # Non-assignment => pick the larger type
-    result_type = unify_types(left_type, right_type, for_assignment=False)
-
-    if left_type != result_type:
-        conv = ConversionExpression(
-            source_expr=bin_expr.left,
-            from_type=left_type,
-            to_type=result_type
-        )
-        bin_expr.left = conv
-
-    if right_type != result_type:
-        conv = ConversionExpression(
-            source_expr=bin_expr.right,
-            from_type=right_type,
-            to_type=result_type
-        )
-        bin_expr.right = conv
-
-    bin_expr.inferred_type = result_type
-    return result_type
+    j_expr.inferred_type = "json"
+    return "json"
 
 
-def check_postfix_expression(p_expr: PostfixExpression, symbol_table: dict) -> str:
+# -------------------------------------------------------------------------
+# 2) Array Literal
+# -------------------------------------------------------------------------
+def check_array_literal_expression(arr_expr: ArrayLiteralExpression, symbol_table: dict) -> str:
     """
-    e.g. a++, b-- => operand must be numeric. 
-    The result is the same type as the operand, like C/C++ semantics.
+    If you want a strongly-typed array (e.g. all elements must unify),
+    you can unify the type of each element. For example:
+        - parse all element types
+        - unify them (like numeric promotions)
+        - final type might be "array of T" or just "array" if they differ
+    For now, let's keep it simple: we call each element's type checker,
+    but we won't unify them. We'll just mark the array as type "array".
     """
+    element_types = []
+    for elem in arr_expr.elements:
+        elem_type = check_expression(elem, symbol_table)
+        element_types.append(elem_type)
 
-    operand_type = check_expression(p_expr.operand, symbol_table)
-    operator = p_expr.operator  # '++' or '--'
+    # Option A (simple): just mark array as type 'array'
+    arr_expr.inferred_type = "array"
 
-    if operand_type not in ("int", "long", "float", "double"):
-        raise TypeError(f"Cannot apply postfix '{operator}' to '{operand_type}'. Must be numeric.")
+    # Option B (unify all elements) -> 'array<T>' or something
+    # e.g. if all elements unify to 'int', then 'array<int>'
+    # For a minimal example:
+    # final_elem_type = element_types[0] if element_types else "any"
+    # for t in element_types[1:]:
+    #     final_elem_type = unify_types(final_elem_type, t, for_assignment=False)
+    # arr_expr.inferred_type = f"array<{final_elem_type}>"
 
-    p_expr.inferred_type = operand_type
-    return operand_type
-
-
-def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
-    """
-    Type-check a function call:
-      1) Symbol table must have {fn_name: { "param_types": [...], "return_type": ... }}
-      2) Arg count must match param_types length.
-      3) We unify param_type with arg_type (for_assignment=True). If it returns a "larger" type,
-         we update the function's param_type to reflect that promotion (e.g. int -> double).
-      4) The call's own type is the function's declared return type.
-    """
-
-    fn_name = fn_expr.name.name
-    if fn_name not in symbol_table:
-        raise TypeError(f"Undefined function '{fn_name}'")
-
-    fn_sig = symbol_table[fn_name]  # e.g. { "param_types":["int","int"], "return_type":"float" }
-    param_types = fn_sig["param_types"]
-    return_type = fn_sig["return_type"]
-
-    if len(fn_expr.arguments) != len(param_types):
-        raise TypeError(f"Function '{fn_name}' expects {len(param_types)} args, "
-                        f"but got {len(fn_expr.arguments)}.")
-
-    for i, arg in enumerate(fn_expr.arguments):
-        arg_type = check_expression(arg, symbol_table)
-        old_param_type = param_types[i]
-
-        # "for_assignment=True" => we unify old_param_type with arg_type,
-        # allowing promotion from e.g. int -> double
-        new_param_type = unify_types(old_param_type, arg_type, for_assignment=True)
-
-        # If unification fails, unify_types(...) will raise TypeError
-        # If it succeeds but differs (promotion), we update param_types[i].
-        param_types[i] = new_param_type
-
-    # The call’s own type is the function’s declared return type
-    fn_expr.inferred_type = return_type
-    return return_type
+    return arr_expr.inferred_type
 
 
-
+# -------------------------------------------------------------------------
+# 3) LiteralExpression
+# -------------------------------------------------------------------------
 def check_literal_expression(lit_expr: LiteralExpression, target_type: Optional[str] = None) -> str:
     """
     If a numeric literal: e.g. int => "int", float => "double" by default (unless target_type is "float").
-    If string => "string". Possibly others if you extend the language.
+    If string => "string", if you want it. Possibly others if you extend the language.
     """
-
     if lit_expr.inferred_type is not None:
         return lit_expr.inferred_type
 
     lit_expr.inferred_type = infer_literal_type(lit_expr.value, target_type)
     return lit_expr.inferred_type
 
+# -------------------------------------------------------------------------
+# 4) VariableExpression
+# -------------------------------------------------------------------------
+def check_variable_expression(var_expr: VariableExpression, symbol_table: dict) -> str:
+    var_name = var_expr.name
+    if var_name not in symbol_table:
+        raise TypeError(f"Variable '{var_name}' used before assignment.")
 
+    vtype = symbol_table[var_name]
+    var_expr.inferred_type = vtype
+    return vtype
+
+# -------------------------------------------------------------------------
+# 5) BinaryExpression
+# -------------------------------------------------------------------------
+def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> str:
+    left_type = check_expression(bin_expr.left, symbol_table)
+    right_type = check_expression(bin_expr.right, symbol_table)
+
+    # Non-assignment => pick the 'larger' type
+    result_type = unify_types(left_type, right_type, for_assignment=False)
+
+    # Insert ConversionExpression if mismatch
+    if left_type != result_type:
+        bin_expr.left = ConversionExpression(
+            source_expr=bin_expr.left,
+            from_type=left_type,
+            to_type=result_type
+        )
+
+    if right_type != result_type:
+        bin_expr.right = ConversionExpression(
+            source_expr=bin_expr.right,
+            from_type=right_type,
+            to_type=result_type
+        )
+
+    bin_expr.inferred_type = result_type
+    return result_type
+
+# -------------------------------------------------------------------------
+# 6) UnaryExpression
+# -------------------------------------------------------------------------
 def check_unary_expression(u_expr: UnaryExpression, symbol_table: dict) -> str:
-    """
-    e.g. +, - for numeric, or 'not' for boolean if your language uses int as boole.
-    """
-
     operand_type = check_expression(u_expr.operand, symbol_table)
     op = u_expr.operator
 
@@ -188,33 +183,10 @@ def check_unary_expression(u_expr: UnaryExpression, symbol_table: dict) -> str:
     u_expr.inferred_type = result_type
     return result_type
 
-
-def check_variable_expression(var_expr: VariableExpression, symbol_table: dict) -> str:
-    """
-    Looks up var_expr.name in the symbol table. If not found => error.
-    Otherwise sets var_expr.inferred_type to that type.
-    """
-
-    var_name = var_expr.name
-    if var_name not in symbol_table:
-        raise TypeError(f"Variable '{var_name}' used before assignment.")
-
-    vtype = symbol_table[var_name]
-    var_expr.inferred_type = vtype
-    return vtype
-
-
+# -------------------------------------------------------------------------
+# 7) AssignmentExpression
+# -------------------------------------------------------------------------
 def check_assignment_expression(assign_expr: AssignmentExpression, symbol_table: dict) -> str:
-    """
-    e.g. a = expr or a += expr => parser transforms it to 'a = a + expr'.
-    Steps:
-      1) left must be VariableExpression
-      2) type-check the right side
-      3) unify for_assignment=True => if var was int but expr is float => var->float if allowed
-      4) store final type in symbol_table[var_name]
-      5) assign_expr.inferred_type = final type
-    """
-
     left_node = assign_expr.left
     right_node = assign_expr.right
 
@@ -226,15 +198,54 @@ def check_assignment_expression(assign_expr: AssignmentExpression, symbol_table:
 
     if var_name in symbol_table:
         existing_type = symbol_table[var_name]
+        # unify with for_assignment=True => allows int->float promotions
         unified = unify_types(existing_type, right_type, for_assignment=True)
 
-        # If e.g. int->float, we do 'symbol_table[var_name] = float'
         symbol_table[var_name] = unified
         assign_expr.inferred_type = unified
-
     else:
-        # variable not in symbol_table => declare on the fly
+        # Declare on the fly
         symbol_table[var_name] = right_type
         assign_expr.inferred_type = right_type
 
     return assign_expr.inferred_type
+
+# -------------------------------------------------------------------------
+# 8) PostfixExpression
+# -------------------------------------------------------------------------
+def check_postfix_expression(p_expr: PostfixExpression, symbol_table: dict) -> str:
+    operand_type = check_expression(p_expr.operand, symbol_table)
+    operator = p_expr.operator  # '++' or '--'
+
+    if operand_type not in ("int", "long", "float", "double"):
+        raise TypeError(f"Cannot apply postfix '{operator}' to '{operand_type}'. Must be numeric.")
+
+    p_expr.inferred_type = operand_type
+    return operand_type
+
+# -------------------------------------------------------------------------
+# 9) FnExpression
+# -------------------------------------------------------------------------
+def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
+    fn_name = fn_expr.name.name
+    if fn_name not in symbol_table:
+        raise TypeError(f"Undefined function '{fn_name}'")
+
+    fn_sig = symbol_table[fn_name]  # e.g. {"param_types":["int","int"], "return_type":"float"}
+    param_types = fn_sig["param_types"]
+    return_type = fn_sig["return_type"]
+
+    if len(fn_expr.arguments) != len(param_types):
+        raise TypeError(f"Function '{fn_name}' expects {len(param_types)} args, "
+                        f"but got {len(fn_expr.arguments)}.")
+
+    for i, arg in enumerate(fn_expr.arguments):
+        arg_type = check_expression(arg, symbol_table)
+        old_param_type = param_types[i]
+
+        # for_assignment=True => allows numeric promotions
+        new_param_type = unify_types(old_param_type, arg_type, for_assignment=True)
+        param_types[i] = new_param_type
+
+    fn_expr.inferred_type = return_type
+    return return_type

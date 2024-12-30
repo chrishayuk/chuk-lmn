@@ -5,135 +5,147 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Priority for types: int < long < float < double
+# Priority for numeric types: int < long < float < double
 TYPE_PRIORITY = {
     "int": 1,
     "long": 2,
     "float": 3,
     "double": 4
+    # We won't put "json" or "array" in this numeric priority table,
+    # because they're not numeric. We'll handle them as special cases below.
 }
 
 def normalize_type(t: Optional[str]) -> Optional[str]:
     """
     Optionally, you can keep this as a no-op if your parser
-    already provides "int", "long", "float", "double".
-    
-    If you never need to convert them to something else,
-    just return 't' unchanged or remove this function entirely.
+    already provides "int", "long", "float", "double", "json", "array".
     """
-    # For now, do nothing:
     return t
 
 def infer_literal_type(value, target_type: Optional[str] = None) -> str:
     """
     Infer the type of a literal based on its Python value and 
     an optional 'target_type' from context.
-    
-    - If 'value' is an integer, default to "int".
-      But if the target is "long", use "long".
-    - If 'value' is a float, default to "double".
-      But if the target is "float", use that.
-    - If 'value' is a string, return "string".
-    - Otherwise, fallback to "int" (or raise an error if you don't allow it).
+
+    - If 'value' is int => default "int" (or "long" if target_type suggests).
+    - If 'value' is float => default "double" (or "float" if target_type suggests).
+    - If 'value' is str => "string".
+    - etc.
     """
     normalized_target = normalize_type(target_type)
 
     if isinstance(value, float):
-        # If the user wanted a float, use float; otherwise default to double
         if normalized_target in ("float", "double"):
             return normalized_target
         return "double"
 
     if isinstance(value, int):
-        # If the user wanted a long, use long; otherwise default to int
         if normalized_target in ("int", "long"):
             return normalized_target
         return "int"
 
     if isinstance(value, str):
-        # If your language needs a real string type, return "string"
         return "string"
 
-    # If you have booleans, None, or other Python types, handle them here:
-    # if isinstance(value, bool):
-    #     return "bool"
-    #
-    # or if you do not allow any other types:
-    # raise TypeError(f"Unsupported literal type: {type(value).__name__}")
-
-    # Otherwise, fallback to "int"
+    # If you handle booleans or other Python types, do so here
+    # Otherwise default or raise an error
     return "int"
-
 
 def can_assign_to(source: str, target: str) -> bool:
     """
     Check if 'source' can be assigned to 'target'.
     
-      - int  -> long, float, double
+      - int -> long, float, double
       - long -> float, double
       - float -> double
       - double -> double
-    
-    You can adjust these rules as needed.
+
+    Then we handle special types 'json' and 'array' in a simplistic way:
+      - 'json' -> 'json' (only)
+      - 'array' -> 'array' (only)
     """
     if source == target:
         return True
 
-    # Allowed upward conversions
+    # Handle 'json' => it only can assign to 'json'
+    if source == "json":
+        return (target == "json")
+
+    # Handle 'array' => it only can assign to 'array'
+    if source == "array":
+        return (target == "array")
+
+    # Allowed numeric upward conversions
     allowed_conversions = {
         "int":    {"long", "float", "double"},
         "long":   {"float", "double"},
         "float":  {"double"},
-        "double": set()
+        "double": set(),
     }
 
+    # If not found in table => no conversions
     return target in allowed_conversions.get(source, set())
 
 def unify_types(t1: Optional[str], t2: Optional[str], for_assignment: bool = False) -> str:
     """
     Unifies two types (e.g., left and right side of an expression).
-    
+
     If 'for_assignment' is True:
       - We want to see if 't2' (RHS) can be assigned to 't1' (LHS).
-      - If so, keep t1. If not, see if we can promote t1 to t2. 
+      - If so, keep t1. If not, see if we can promote t1 to t2.
       - Otherwise error.
+
     If 'for_assignment' is False:
-      - For example, a binary expression. 
-      - We'll pick the "larger" type, e.g., (int + float) => float.
+      - E.g. a binary expression. We pick the "larger" type among numeric,
+        or handle special types like 'json' or 'array' with custom logic.
     """
 
     logger.debug(f"Unifying types t1={t1}, t2={t2}, assignment={for_assignment}")
 
-    # 1) If both are None, default to int
+    # 1) Both None => default "int"
     if t1 is None and t2 is None:
         return "int"
 
-    # 2) If one is None, pick the other
+    # 2) If one is None => pick the other
     if t1 is None:
         return t2
     if t2 is None:
         return t1
 
-    # 3) Both are non-null, do the actual unification
-    if for_assignment:
-        # Example: var_type = t1, expr_type = t2
-        if can_assign_to(t2, t1):
-            # no conversion needed, keep t1
-            logger.debug(f"Assignment {t2} -> {t1} allowed; staying {t1}")
-            return t1
-        if can_assign_to(t1, t2):
-            # promote the variable to t2
-            logger.debug(f"Promoting variable from {t1} -> {t2}")
-            return t2
-        # Otherwise error
-        raise TypeError(f"Cannot unify assignment: {t2} -> {t1}")
-    else:
-        # For a binary expression, pick the "larger" type
-        # e.g., (int + float) => float, (long + double) => double
+    # 3) If either is 'json', unify to 'json' in non-assignment contexts
+    #    For assignment, we check can_assign_to or attempt promotions.
+    if not for_assignment:
+        # Non-assignment (like a binary expression)
+        # If either is 'json', result => 'json'
+        if t1 == "json" or t2 == "json":
+            return "json"
+
+        # If either is 'array' but not 'json', handle 'array' vs numeric or string
+        if t1 == "array" and t2 == "array":
+            return "array"
+        if t1 == "array" and t2 != "array":
+            # e.g. array + int => likely an error
+            raise TypeError(f"Cannot unify 'array' with '{t2}' in a binary expression.")
+        if t2 == "array" and t1 != "array":
+            raise TypeError(f"Cannot unify '{t1}' with 'array' in a binary expression.")
+
+        # If both numeric => pick the larger
         p1 = TYPE_PRIORITY.get(t1, 0)
         p2 = TYPE_PRIORITY.get(t2, 0)
-
         if p1 >= p2:
             return t1
         else:
             return t2
+
+    else:
+        # 4) for_assignment == True
+        #    We want to see if 't2' (RHS) can be assigned to 't1' (LHS).
+        if can_assign_to(t2, t1):
+            logger.debug(f"Assignment {t2} -> {t1} allowed; staying {t1}")
+            return t1
+        if can_assign_to(t1, t2):
+            # promote variable from t1 -> t2
+            logger.debug(f"Promoting variable from {t1} -> {t2}")
+            return t2
+
+        raise TypeError(f"Cannot unify assignment: {t2} -> {t1}")

@@ -3,6 +3,33 @@
   "body": [
     {
       "type": "FunctionDefinition",
+      "name": "foo",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "n"
+        }
+      ],
+      "body": [
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "type": "BinaryExpression",
+            "operator": "*",
+            "left": {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            "right": {
+              "type": "LiteralExpression",
+              "value": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
       "name": "main",
       "params": [],
       "body": [

@@ -1,4 +1,12 @@
 # file: 09_mix_features.lmn
+
+# A simple function 'foo' that takes one integer param 'n' and returns 2*n
+function foo(n)
+    # We can declare 'n' as an int if your language supports param annotations
+    # let param_type: int = n  <-- depends on your syntax
+    return n * 2
+end
+
 function main()
     # 1) A simple string with an emoji and some escapes
     let greeting = "Hello\n🌍 \"Earth\"!"
@@ -19,8 +27,8 @@ function main()
     let colors = [ "red", "green", "blue" ]
     print "Colors array:" colors
 
-    # 4) A native array (assuming fallback or separate syntax) with expressions
-    #    Here we show an arithmetic expr (2+3) and a hypothetical function call foo(7)
+    # 4) A native array with expressions
+    #    includes an arithmetic expr (2+3) and a call to foo(7)
     let myArray = [ 1, 2+3, foo(7), greeting ]
     print "Native array with expressions:" myArray
 end
