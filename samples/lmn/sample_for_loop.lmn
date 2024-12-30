@@ -1,0 +1,46 @@
+function demonstrateForFeatures(x, y)
+    print "Starting loops with x=" x " and y=" y
+
+    # 1) If x <= y => ascending range
+    if x <= y
+        # Ascending from x..y
+        for i in x..y
+            # Break example: if i == x+2, break the loop
+            if i == (x + 2)
+                print "Breaking at i=" i
+                break
+            end
+
+            # Continue example: skip even i
+            if (i % 2) == 0
+                continue
+            end
+
+            print "Ascending, i=" i
+        end
+    else
+        # 2) Otherwise => descending range from x..y
+        # (assuming your language automatically goes downward if x>y)
+        for j in x..y
+            # Break example: if j == (y + 2), break
+            # (just a random condition to illustrate)
+            if j == (y + 2)
+                print "Breaking at j=" j
+                break
+            end
+
+            # Continue example: skip if j is multiple of 3
+            if (j % 3) == 0
+                continue
+            end
+
+            print "Descending, j=" j
+        end
+    end
+
+    print "All loops done with x=" x " and y=" y
+end
+
+# Example calls:
+print demonstrateForFeatures(2, 5)
+print demonstrateForFeatures(8, 5)

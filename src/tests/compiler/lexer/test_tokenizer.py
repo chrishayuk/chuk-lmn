@@ -395,6 +395,132 @@ def test_if_elseif_else():
     assert LmnTokenType.GT in token_types
     assert LmnTokenType.EQEQ in token_types
 
+def test_json_object_literal():
+    """
+    Tests a simple JSON object literal in code:
+      let user = { "name": "Alice", "age": 42, "active": true }
+    """
+    code = """
+    let user = {
+        "name": "Alice",
+        "age": 42,
+        "active": true
+    }
+    """
+    tokenizer = Tokenizer(code)
+    tokens = tokenizer.tokenize()
+
+    # Let's strip out COMMENT tokens or whitespace-only lines if any:
+    filtered = [t for t in tokens if t.token_type != LmnTokenType.COMMENT]
+
+    # We expect:
+    #  0: LET
+    #  1: IDENTIFIER (user)
+    #  2: EQ
+    #  3: LBRACE
+    #  4: STRING (name)
+    #  5: COLON
+    #  6: STRING (Alice)
+    #  7: COMMA
+    #  8: STRING (age)
+    #  9: COLON
+    # 10: INT_LITERAL(42)
+    # 11: COMMA
+    # 12: STRING(active)
+    # 13: COLON
+    # 14: TRUE
+    # 15: RBRACE
+
+    assert len(filtered) == 16
+
+    assert filtered[0].token_type == LmnTokenType.LET
+    assert filtered[1].token_type == LmnTokenType.IDENTIFIER
+    assert filtered[1].value == "user"
+    assert filtered[2].token_type == LmnTokenType.EQ
+    assert filtered[3].token_type == LmnTokenType.LBRACE
+
+    # Key: "name"
+    assert filtered[4].token_type == LmnTokenType.STRING
+    assert filtered[4].value == "name"
+    assert filtered[5].token_type == LmnTokenType.COLON
+    # Value: "Alice"
+    assert filtered[6].token_type == LmnTokenType.STRING
+    assert filtered[6].value == "Alice"
+
+    assert filtered[7].token_type == LmnTokenType.COMMA
+
+    # Key: "age"
+    assert filtered[8].token_type == LmnTokenType.STRING
+    assert filtered[8].value == "age"
+    assert filtered[9].token_type == LmnTokenType.COLON
+    # Value: 42
+    assert filtered[10].token_type == LmnTokenType.INT_LITERAL
+    assert filtered[10].value == 42
+
+    assert filtered[11].token_type == LmnTokenType.COMMA
+
+    # Key: "active"
+    assert filtered[12].token_type == LmnTokenType.STRING
+    assert filtered[12].value == "active"
+    assert filtered[13].token_type == LmnTokenType.COLON
+    # Value: true
+    assert filtered[14].token_type == LmnTokenType.TRUE
+
+    assert filtered[15].token_type == LmnTokenType.RBRACE
+
+
+def test_json_nested_object_and_array():
+    """
+    Tests a nested JSON object with an inner object, array, and 'null' => 'nil'.
+      let data = {
+          "user": {
+              "name": "Alice",
+              "active": true
+          },
+          "scores": [10, 20, 30],
+          "meta": null
+      }
+      print data
+    """
+    code = """
+    let data = {
+        "user": {
+            "name": "Alice",
+            "active": true
+        },
+        "scores": [10, 20, 30],
+        "meta": null
+    }
+    print data
+    """
+    tokenizer = Tokenizer(code)
+    tokens = tokenizer.tokenize()
+
+    # We'll do some checks on key tokens to ensure JSON braces/brackets are recognized.
+    # A full breakdown of every token is optional; here we just verify the critical ones.
+
+    # Find the '{' token for the outer object
+    lbrace_indices = [i for i, t in enumerate(tokens) if t.token_type == LmnTokenType.LBRACE]
+    assert len(lbrace_indices) >= 2  # one for outer, one for inner object
+    
+    # Check that "null" is tokenized as NIL
+    nil_tokens = [t for t in tokens if t.token_type == LmnTokenType.NIL]
+    assert len(nil_tokens) == 1
+    assert nil_tokens[0].value in ("null", "nil")  # depending on how you map it
+
+    # Check that we have an INT_LITERAL for the array items 10, 20, 30
+    int_literals = [t for t in tokens if t.token_type == LmnTokenType.INT_LITERAL]
+    # We expect at least 3 (for 10, 20, 30). Possibly more if there's other ints.
+    values = [t.value for t in int_literals]
+    for v in (10, 20, 30):
+        assert v in values
+
+    # Finally, ensure 'print' and 'data' appear
+    assert any(t.token_type == LmnTokenType.PRINT for t in tokens)
+    data_tokens = [t for t in tokens if t.token_type == LmnTokenType.IDENTIFIER and t.value == "data"]
+    assert len(data_tokens) >= 2  # one for 'let data', one for 'print data'
+
+
 # Example of how you'd test invalid tokens, if desired:
 # def test_invalid_tokens():
 #     code = "let a = 10 @invalid!"

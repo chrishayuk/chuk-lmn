@@ -47,6 +47,8 @@ class LmnTokenType(Enum):
     # ------------------------------
     LPAREN = '('
     RPAREN = ')'
+    LBRACE = '{'
+    RBRACE = '}'
     COMMA = ','
     LBRACKET = '['
     RBRACKET = ']'
@@ -137,6 +139,7 @@ class LmnTokenType(Enum):
             'true': LmnTokenType.TRUE,
             'false': LmnTokenType.FALSE,
             'nil': LmnTokenType.NIL,
+            'null': LmnTokenType.NIL, 
 
             # Type keywords
             'int': LmnTokenType.INT,
@@ -154,6 +157,7 @@ class LmnTokenType(Enum):
             '>=': LmnTokenType.GE,
             '<':  LmnTokenType.LT,
             '>':  LmnTokenType.GT,
+
             # Multi-character operators first, so they don't get overshadowed:
             '//': LmnTokenType.FLOORDIV,
             '++': LmnTokenType.INC,
@@ -162,6 +166,7 @@ class LmnTokenType(Enum):
             '-=': LmnTokenType.MINUS_EQ,
             '=+': LmnTokenType.EQ_PLUS,
             '=-': LmnTokenType.EQ_MINUS,
+
             # Single-character operators
             '=':  LmnTokenType.EQ,
             '+':  LmnTokenType.PLUS,
@@ -179,6 +184,8 @@ class LmnTokenType(Enum):
             ',': LmnTokenType.COMMA,
             '[': LmnTokenType.LBRACKET,
             ']': LmnTokenType.RBRACKET,
+            '{': LmnTokenType.LBRACE,
+            '}': LmnTokenType.RBRACE,
             '.': LmnTokenType.DOT,
             ':': LmnTokenType.COLON,
         }
