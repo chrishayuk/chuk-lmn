@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # file: src/lmn/cli/lmn_repl.py
+
 import os
 import logging
 import colorama
@@ -11,84 +12,66 @@ from lmn.cli.utils.banner import get_ascii_banner
 from lmn.compiler.pipeline import compile_code_to_wat
 from lmn.runtime.host_functions import define_host_functions_capture_output
 
-# setup logging
 logging.basicConfig(
     level=logging.CRITICAL,
     format="%(levelname)s - %(name)s - %(message)s"
 )
 
 def main():
-    # setup colorama
     colorama.init(autoreset=True)
 
-    # Print banner
     ascii_banner = get_ascii_banner()
     print(ascii_banner)
-    print(f"LMN Language Playground  {Fore.WHITE}v0.9.0 (2024-12-01){Style.RESET_ALL}")
+    print(f"LMN Language Playground  {Fore.WHITE}v0.0.1 (2024-12-30){Style.RESET_ALL}")
     print("Type \"?\" for help or \"quit\"/\"exit\" to leave.\n")
 
-    # (1) A list of *all* snippets entered so far in this session
+    # All snippets from this session
     accumulated_code = []
-
-    # (2) A buffer for the current multi-line snippet
+    # Current snippet lines
     code_buffer = []
     first_line = True
 
     while True:
-        # setup the prompt
         prompt_text = "LMN> " if first_line else "... "
         prompt = f"{Fore.CYAN}{prompt_text}{Style.RESET_ALL}"
 
         try:
-            # get the input
             line = input(prompt)
         except EOFError:
-            # exiting
             print(f"\n{Fore.CYAN}Exiting LMN. Goodbye!{Style.RESET_ALL}")
             break
 
-        # Check for Help command
+        # Check commands
         if line.strip() == "?":
-            # show help
             show_help()
             continue
 
-        # check for quit or exist
         if line.strip().lower() in ("quit", "exit"):
-            # exit
             print(f"{Fore.CYAN}Exiting LMN. Goodbye!{Style.RESET_ALL}")
             break
 
-        # check for clear
         if line.strip().lower() == "clear":
-            # clear screen
             clear_screen()
             print(ascii_banner)
             print(f"LMN Language Playground  {Fore.WHITE}v0.9.0 (2024-12-01){Style.RESET_ALL}")
             print("Type \"?\" for help or \"quit\"/\"exit\" to leave.\n")
-            
-            # Reset entire session
             accumulated_code.clear()
             code_buffer.clear()
             print(f"{Fore.YELLOW}(Cleared screen and reset entire code session){Style.RESET_ALL}\n")
             first_line = True
             continue
 
-        # If user presses Enter on an empty line => finalize the snippet
+        # If user presses Enter on an empty line => finalize snippet
         if not line.strip():
             if code_buffer:
-                # (a) Convert the snippet lines into a single string
                 snippet = "\n".join(code_buffer)
                 code_buffer.clear()
 
-                # (b) Append to the entire session code
+                # Accumulate + run everything
                 accumulated_code.append(snippet)
-
-                # (c) Recompile + run all code so far
                 full_code = "\n\n".join(accumulated_code)
+                
                 outputs = compile_and_run(full_code)
-
-                # (d) Print each captured line
                 for out_line in outputs:
                     print(f"{Fore.CYAN}{out_line}{Style.RESET_ALL}")
 
@@ -100,11 +83,13 @@ def main():
 def compile_and_run(code: str):
     """
     Compile + run the entire LMN session code in a fresh environment,
-    capturing output lines via define_host_functions_capture_output.
+    capturing output lines via define_host_functions_capture_output,
+    and properly setting memory_ref so string pointers can be read.
     """
+
     output_lines = []
 
-    # 1) Compile LMN => WAT => WASM
+    # 1) Compile
     try:
         wat_text, wasm_bytes = compile_code_to_wat(
             code,
@@ -122,17 +107,25 @@ def compile_and_run(code: str):
     store = wasmtime.Store(engine)
     linker = wasmtime.Linker(engine)
 
-    # Host functions will append output to output_lines
-    define_host_functions_capture_output(linker, store, output_lines)
+    # The memory reference we'll set after instantiation
+    memory_ref = [None]
 
-    # 3) Instantiate
+    # 3) Define host functions with memory_ref
+    define_host_functions_capture_output(linker, store, output_lines, memory_ref=memory_ref)
+
+    # 4) Instantiate
     try:
         module = wasmtime.Module(engine, wasm_bytes)
         instance = linker.instantiate(store, module)
     except Exception as e:
         return [f"Instantiation error: {e}"]
 
-    # 4) Call __top_level__ if present
+    # 5) Attach the memory export
+    mem = instance.exports(store).get("memory")
+    if mem is not None:
+        memory_ref[0] = mem
+
+    # 6) Call __top_level__ if present
     exports = instance.exports(store)
     top_func = exports.get("__top_level__")
     if top_func:
@@ -147,6 +140,7 @@ def show_help():
     print(f"{Fore.GREEN}\nLMN Playground Help (Accumulate & Recompile){Style.RESET_ALL}")
     print(" - Type multi-line code, then press Enter on an empty line to run.")
     print(" - We recompile the entire session each time, so variables persist across snippets.")
+    print(" - If you define strings, you can now see them as 'string => ...' in the output.")
     print(" - 'clear' resets everything (including variables).")
     print(" - 'quit' or 'exit' ends this session.\n")
 

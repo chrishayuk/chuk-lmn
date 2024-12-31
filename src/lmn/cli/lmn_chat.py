@@ -24,7 +24,7 @@ def main():
 
     ascii_banner = get_ascii_banner()
     print(ascii_banner)
-    print(f"LMN Language Chat Playground  {Fore.WHITE}v0.9.0 (2024-12-01){Style.RESET_ALL}")
+    print(f"LMN Language Chat Playground  {Fore.WHITE}v0.0.1 (2024-12-30){Style.RESET_ALL}")
     print("Type \"?\" for help or \"quit\"/\"exit\" to leave.\n")
 
     # Grab the system prompt from our new module
