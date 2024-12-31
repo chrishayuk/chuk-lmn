@@ -146,6 +146,7 @@ class WasmEmitter:
         # Basic printing imports
         lines.append('  (import "env" "print_i32" (func $print_i32 (param i32)))')
         lines.append('  (import "env" "print_i64" (func $print_i64 (param i64)))')
+        lines.append('  (import "env" "print_f32" (func $print_f32 (param f32)))') 
         lines.append('  (import "env" "print_f64" (func $print_f64 (param f64)))')
         lines.append('  (import "env" "print_string" (func $print_string (param i32)))')
         lines.append('  (import "env" "print_json" (func $print_json (param i32)))')

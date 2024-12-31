@@ -1,39 +1,57 @@
 # file: lmn/compiler/ast/expressions/literal_expression.py
 from __future__ import annotations
-from typing import Optional, Union, Literal
-from pydantic import model_validator
-
-# import ast's
-from lmn.compiler.ast.expressions.expression_base import ExpressionBase
+from typing import Union, Optional, Literal
+from pydantic import BaseModel
 from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.expressions.expression_base import ExpressionBase
+from lmn.compiler.lexer.token_type import LmnTokenType
+from lmn.compiler.lexer.token import Token
 
 class LiteralExpression(ExpressionBase):
-    """ A literal value node (int, float, or string). """
+    """
+    Represents a literal value in the AST:
+      - Integers (i32, i64)
+      - Floats (f32, f64)
+      - Strings
+    """
+
     type: Literal[NodeKind.LITERAL] = NodeKind.LITERAL
-    value: Union[int, float, str]
-    inferred_type: Optional[str] = None
+    value: Union[int, float, str]   # The Python representation of the literal
+    literal_type: Optional[str] = None  # e.g. "i32", "i64", "f32", "f64", "string"
 
-    @model_validator(mode="before")
     @classmethod
-    def convert_value(cls, values: dict) -> dict:
-        raw_val = values.get("value")
+    def from_token(cls, token: Token) -> LiteralExpression:
+        """
+        Create a LiteralExpression from a lexer Token.
+        This preserves the numeric kind (float, double, int, long) or sets to 'string'.
+        """
+        if token.token_type == LmnTokenType.INT_LITERAL:
+            # 32-bit integer
+            return cls(value=token.value, literal_type="i32")
 
-        if isinstance(raw_val, str):
-            try:
-                possible_float = float(raw_val)
-                if possible_float.is_integer():
-                    int_val = int(possible_float)
-                    if int_val > 2147483647 or int_val < -2147483648:
-                        # It's beyond 32-bit range, so set inferred_type to i64
-                        values["inferred_type"] = "i64"
-                    values["value"] = int_val
-                else:
-                    values["value"] = possible_float
-            except ValueError:
-                # not numeric, leave as string
-                pass
+        elif token.token_type == LmnTokenType.LONG_LITERAL:
+            # 64-bit integer
+            return cls(value=token.value, literal_type="i64")
 
-        return values
+        elif token.token_type == LmnTokenType.FLOAT_LITERAL:
+            # 32-bit float
+            return cls(value=token.value, literal_type="f32")
 
-    def __str__(self):
-        return str(self.value)
+        elif token.token_type == LmnTokenType.DOUBLE_LITERAL:
+            # 64-bit float/double
+            return cls(value=token.value, literal_type="f64")
+
+        elif token.token_type == LmnTokenType.STRING:
+            return cls(value=token.value, literal_type="string")
+
+        else:
+            # Fallback for anything else (e.g., booleans or unknown)
+            # Adapt if you have separate tokens for TRUE/FALSE, or NIL
+            return cls(value=str(token.value), literal_type="string")
+
+    def __str__(self) -> str:
+        """
+        A simple string representation—optional, for debugging.
+        Could show the literal_type as well if desired.
+        """
+        return f"{self.value} (type={self.literal_type})"

@@ -1,5 +1,4 @@
 # file: src/lmn/runtime/host_functions.py
-
 import wasmtime
 
 def read_utf8_string(store, memory, offset, max_len=200):
@@ -28,6 +27,10 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
                        If memory_ref[0] is set to a wasmtime.Memory after instantiation,
                        we can read actual strings. Otherwise, we just show ptr=xxx.
     """
+
+    # ------------------------------
+    # Printing Helpers (scalars)
+    # ------------------------------
     def host_print_i32(x):
         output_list.append(f"i32 => {x}")
 
@@ -37,9 +40,15 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
     def host_print_f64(x):
         output_list.append(f"f64 => {x}")
 
+    # NEW: Print f32
+    def host_print_f32(x):
+        output_list.append(f"f32 => {x}")
+
+    # ------------------------------
+    # Printing Helpers (memory-based)
+    # ------------------------------
     def host_print_string(ptr):
         if not memory_ref or memory_ref[0] is None:
-            # we only know the pointer
             output_list.append(f"string ptr={ptr}")
             return
         mem = memory_ref[0]
@@ -62,11 +71,20 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
         s = read_utf8_string(store, mem, ptr)
         output_list.append(f"array => {s}")
 
+    # ------------------------------
+    # Wasmtime FuncTypes
+    # ------------------------------
     func_type_i32  = wasmtime.FuncType([wasmtime.ValType.i32()], [])
     func_type_i64  = wasmtime.FuncType([wasmtime.ValType.i64()], [])
     func_type_f64  = wasmtime.FuncType([wasmtime.ValType.f64()], [])
+    func_type_f32  = wasmtime.FuncType([wasmtime.ValType.f32()], [])  # <--- NEW
     func_type_i32p = wasmtime.FuncType([wasmtime.ValType.i32()], [])
 
+    # ------------------------------
+    # Linker Definitions
+    # ------------------------------
+
+    # int32, int64, f64
     linker.define(store, "env", "print_i32",
                   wasmtime.Func(store, func_type_i32, host_print_i32))
     linker.define(store, "env", "print_i64",
@@ -74,6 +92,11 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
     linker.define(store, "env", "print_f64",
                   wasmtime.Func(store, func_type_f64, host_print_f64))
 
+    # NEW: f32
+    linker.define(store, "env", "print_f32",
+                  wasmtime.Func(store, func_type_f32, host_print_f32))
+
+    # pointer-based
     linker.define(store, "env", "print_string",
                   wasmtime.Func(store, func_type_i32p, host_print_string))
     linker.define(store, "env", "print_json",

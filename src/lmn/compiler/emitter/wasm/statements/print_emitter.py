@@ -50,9 +50,7 @@ class PrintEmitter:
                 out_lines.append("  call $print_f64")
 
             elif inferred_type == "f32":
-                # If you only have `print_f64` imported, promote f32 -> f64
-                out_lines.append("  f64.promote_f32")
-                out_lines.append("  call $print_f64")
+                out_lines.append("  call $print_f32")
 
             elif inferred_type in ("string", "i32_ptr"):
                 """

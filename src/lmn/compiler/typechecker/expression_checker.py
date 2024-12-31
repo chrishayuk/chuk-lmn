@@ -111,14 +111,42 @@ def check_array_literal_expression(arr_expr: ArrayLiteralExpression, symbol_tabl
 # -------------------------------------------------------------------------
 def check_literal_expression(lit_expr: LiteralExpression, target_type: Optional[str] = None) -> str:
     """
-    If a numeric literal: e.g. int => "int", float => "double" by default (unless target_type is "float").
-    If string => "string", if you want it. Possibly others if you extend the language.
+    If a numeric literal is explicitly 'f32' or 'f64' (from parser),
+    keep that. Otherwise, fall back to infer_literal_type.
     """
     if lit_expr.inferred_type is not None:
+        # Already set by a previous step
         return lit_expr.inferred_type
 
+    # --------------------------------
+    # 1) If parser gave a literal_type
+    # --------------------------------
+    # e.g. "f32" => "float", "f64" => "double"
+    if lit_expr.literal_type == "f32":
+        lit_expr.inferred_type = "float"
+        return "float"
+    elif lit_expr.literal_type == "f64":
+        lit_expr.inferred_type = "double"
+        return "double"
+
+    # If your parser sets "i32", "i64", or "string" in literal_type, handle those too:
+    if lit_expr.literal_type == "i32":
+        lit_expr.inferred_type = "int"
+        return "int"
+    elif lit_expr.literal_type == "i64":
+        lit_expr.inferred_type = "long"
+        return "long"
+    elif lit_expr.literal_type == "string":
+        lit_expr.inferred_type = "string"
+        return "string"
+
+    # --------------------------------
+    # 2) If no parser-level literal_type
+    #    => Fall back to existing inference
+    # --------------------------------
     lit_expr.inferred_type = infer_literal_type(lit_expr.value, target_type)
     return lit_expr.inferred_type
+
 
 # -------------------------------------------------------------------------
 # 4) VariableExpression

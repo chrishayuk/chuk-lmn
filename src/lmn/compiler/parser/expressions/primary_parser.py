@@ -58,9 +58,10 @@ class PrimaryParser:
                 LmnTokenType.LONG_LITERAL,
                 LmnTokenType.FLOAT_LITERAL,
                 LmnTokenType.DOUBLE_LITERAL,
+                LmnTokenType.STRING
             ):
-                self.parser.advance()
-                return LiteralExpression(value=token.value)
+                self.parser.advance()  # consume the token
+                return LiteralExpression.from_token(token)
 
             # (D) String Literal
             if ttype == LmnTokenType.STRING:
