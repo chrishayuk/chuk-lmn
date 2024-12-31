@@ -32,7 +32,7 @@ LANG_TO_WASM_MAP: Dict[str, str] = {
     "array":    "i32_ptr",
 
     # IMPORTANT: Add this so single "string" is lowered to a pointer type, not i32
-    "string":   "i32_ptr",
+    "string":   "string",
 }
 
 

@@ -1,89 +1,32 @@
-# file: samples/lmn/test_features.lmn
-# -----------------------------------------------------
-# 1) A simple string literal
-# -----------------------------------------------------
-# -- Inferred version:
-let greeting = "Hello\nWorld!"
-print greeting
+# file: samples/lmn/test_typed_arrays.lmn
 
-# -- Typed version:
-let typedGreeting:string = "Hello typed world"
-print typedGreeting
+# 1) Some typed array of int => int[]
+let smallInts:int[] = [1, 2, 3, 42]
+print "int[] =>" smallInts
 
+# 2) Big integers => long[]
+let bigVals:long[] = [2147483648, 4294967298, 999999999999]
+print "long[] =>" bigVals
 
-# -----------------------------------------------------
-# 2) A JSON object literal
-# -----------------------------------------------------
-# -- Inferred version:
+# 3) Floats => float[]
+let floatVals:float[] = [1.0, 2.5, 3.14]
+print "float[] =>" floatVals
+
+# 4) Doubles => double[]
+let doubleVals:double[] = [100.0, 2.71828, 1.23456789e2]
+print "double[] =>" doubleVals
+
+# 5) Some simple usage
+# We'll show that you can also have typed arrays with negative and large mixed values
+let moreInts:int[] = [-1, -2, 9999, 42, 100000]
+print "more ints =>" moreInts
+
+# 6) Possibly a JSON object to confirm you can still handle that
 let user = {
-    "name": "Alice",
-    "age": 42
+  "name": "Alice",
+  "ids": [101, 202, 303]
 }
-print "User data:" user
+print "User data =>" user
 
-# -- Typed version (assumes 'json' keyword is recognized):
-let typedUser:json = {
-    "name": "Alice",
-    "age": 42
-}
-print "User data (typed):" typedUser
-
-
-# -----------------------------------------------------
-# 3) A bracket-literal array of strings (string[])
-# -----------------------------------------------------
-# -- Inferred version:
-let colors = [ "red", "green", "blue" ]
-print "Colors array (inferred):" colors
-
-# -- Typed version:
-let typedColors:string[] = [ "red", "green", "blue" ]
-print "Colors array (typed):" typedColors
-
-
-# -----------------------------------------------------
-# 4) Some numeric prints
-# -----------------------------------------------------
-# -- Inferred int:
-let x = 123
-print x
-
-# -- Typed int:
-let typedX:int = 123
-print typedX
-
-# Large integer => might unify to i64 (inferred):
-let bigNum = 4294967298
-print bigNum
-
-# Typed long:
-let typedBigNum:long = 4294967298
-print typedBigNum
-
-# Decimal => by default might become f64 (inferred):
-let decVal = 3.14
-print decVal
-
-# Typed float (f32):
-let typedDecVal:float = 3.14
-print typedDecVal
-
-
-# -----------------------------------------------------
-# 5) Another JSON object, just to show printing
-# -----------------------------------------------------
-# -- Inferred version:
-let jsonData = {
-    "foo": "bar",
-    "nums": [10, 20, 30],
-    "active": true
-}
-print "jsonData (inferred):" jsonData
-
-# -- Typed version:
-let typedJsonData:json = {
-    "foo": "bar",
-    "nums": [10, 20, 30],
-    "active": true
-}
-print "jsonData (typed):" typedJsonData
+# 7) Show printing typed arrays next to a string literal
+print "End of typed arrays test!"

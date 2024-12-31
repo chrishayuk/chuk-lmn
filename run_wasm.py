@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import struct
 import wasmtime
 
 def read_utf8_string(store, memory, offset, max_len=200):
     """
     Reads a UTF-8 string from 'memory' starting at 'offset', stopping at a null byte
-    or after max_len bytes (to avoid runaway reads if there's no terminator).
-    Returns the decoded Python string.
+    or after max_len bytes. Returns the decoded Python string.
     """
-    # Access the underlying data array of the memory
     mem_data = memory.data_ptr(store)
     mem_size = memory.data_len(store)
 
-    # Make sure offset is in range
     if offset < 0 or offset >= mem_size:
         return f"<invalid pointer {offset}>"
 
@@ -22,108 +20,230 @@ def read_utf8_string(store, memory, offset, max_len=200):
     for i in range(offset, end):
         b = mem_data[i]
         if b == 0:
-            # Null terminator => stop
             break
         raw_bytes.append(b)
 
     return raw_bytes.decode('utf-8', errors='replace')
 
+def parse_i32_array(store, memory, offset):
+    """
+    <length:i32> <elem1:i32> <elem2:i32> ...
+    """
+    mem_data = memory.data_ptr(store)
+    mem_size = memory.data_len(store)
+
+    if offset < 0 or offset + 4 > mem_size:
+        return ["<array length out-of-bounds>"]
+
+    length_bytes = bytes(mem_data[offset:offset+4])
+    length = struct.unpack("<i", length_bytes)[0]
+    offset += 4
+
+    elements = []
+    for _ in range(length):
+        if offset + 4 > mem_size:
+            elements.append("<out-of-bounds>")
+            break
+        elem_bytes = bytes(mem_data[offset:offset+4])
+        val = struct.unpack("<i", elem_bytes)[0]
+        elements.append(val)
+        offset += 4
+
+    return elements
+
+def parse_i64_array(store, memory, offset):
+    """
+    <length:i32> <elem1:i64> <elem2:i64> ...
+    """
+    mem_data = memory.data_ptr(store)
+    mem_size = memory.data_len(store)
+
+    if offset < 0 or offset + 4 > mem_size:
+        return ["<array length out-of-bounds>"]
+
+    length_bytes = bytes(mem_data[offset:offset+4])
+    length = struct.unpack("<i", length_bytes)[0]
+    offset += 4
+
+    elements = []
+    for _ in range(length):
+        if offset + 8 > mem_size:
+            elements.append("<out-of-bounds>")
+            break
+        elem_bytes = bytes(mem_data[offset:offset+8])
+        val = struct.unpack("<q", elem_bytes)[0]
+        elements.append(val)
+        offset += 8
+
+    return elements
+
+def parse_f32_array(store, memory, offset):
+    """
+    <length:i32> <elem1:f32> <elem2:f32> ...
+    """
+    mem_data = memory.data_ptr(store)
+    mem_size = memory.data_len(store)
+
+    if offset < 0 or offset + 4 > mem_size:
+        return ["<array length out-of-bounds>"]
+
+    length_bytes = bytes(mem_data[offset:offset+4])
+    length = struct.unpack("<i", length_bytes)[0]
+    offset += 4
+
+    elements = []
+    for _ in range(length):
+        if offset + 4 > mem_size:
+            elements.append("<out-of-bounds>")
+            break
+        elem_bytes = bytes(mem_data[offset:offset+4])
+        val = struct.unpack("<f", elem_bytes)[0]
+        elements.append(val)
+        offset += 4
+
+    return elements
+
+def parse_f64_array(store, memory, offset):
+    """
+    <length:i32> <elem1:f64> <elem2:f64> ...
+    """
+    mem_data = memory.data_ptr(store)
+    mem_size = memory.data_len(store)
+
+    if offset < 0 or offset + 4 > mem_size:
+        return ["<array length out-of-bounds>"]
+
+    length_bytes = bytes(mem_data[offset:offset+4])
+    length = struct.unpack("<i", length_bytes)[0]
+    offset += 4
+
+    elements = []
+    for _ in range(length):
+        if offset + 8 > mem_size:
+            elements.append("<out-of-bounds>")
+            break
+        elem_bytes = bytes(mem_data[offset:offset+8])
+        val = struct.unpack("<d", elem_bytes)[0]
+        elements.append(val)
+        offset += 8
+
+    return elements
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Run a WebAssembly module with Wasmtime and call its 'main' or '__top_level__' export."
+        description="Run a WebAssembly module with Wasmtime and call its '__top_level__' if 'main' not found."
     )
     parser.add_argument("wasm_file", help="Path to the .wasm file.")
     args = parser.parse_args()
 
-    # Create engine/store
     engine = wasmtime.Engine()
     store = wasmtime.Store(engine)
-
-    # Load the module from file
     module = wasmtime.Module.from_file(engine, args.wasm_file)
 
-    # Create a Linker
     linker = wasmtime.Linker(engine)
 
-    # We'll need to access memory to read strings, so we'll define a placeholder.
-    # We'll fill this in after we instantiate the module (chicken-and-egg).
-    # But in Wasmtime, we typically instantiate first *after* we define the imports. 
-    # So we'll define host_print_string etc. as lambdas that capture the store and instance later.
-    # Or we can do a two-step approach: define the host fns with empty placeholders, then update them.
-    # The simpler approach is to define them as normal functions that do a "lazy" memory lookup from the instance.
-    
-    # We'll define host functions with 1 param i32. We'll do the memory reading inside them.
-    
+    memory_ref = [None]  # we'll set this after instantiation
+
+    # Numeric scalars:
     def host_print_i32(x):
         print(f"i32: {x}")
-
     def host_print_i64(x):
-        # wasmtime will pass i64 as Python int if it's in range, or possibly as int anyway
         print(f"i64: {x}")
-
     def host_print_f32(x):
-        # Python doesn't have float32 specifically, so it's just a float
         print(f"f32: {x}")
-
     def host_print_f64(x):
         print(f"f64: {x}")
 
-    # We define these now, but they need the memory instance. We'll grab it after instantiation.
+    # Strings / JSON:
     def host_print_string(ptr):
-        # We'll get the memory from the instance exports
-        # If there's no memory export, we can't read the string. 
-        memory_export = instance.exports(store).get("memory")
-        if memory_export is None:
-            print(f"<no memory export, got pointer={ptr}>")
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
             return
-        s = read_utf8_string(store, memory_export, ptr)
-        print(f"string: {s}")
+        text = read_utf8_string(store, mem, ptr)
+        print(f"string: {text}")
 
     def host_print_json(ptr):
-        memory_export = instance.exports(store).get("memory")
-        if memory_export is None:
-            print(f"<no memory export, got pointer={ptr}>")
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
             return
-        s = read_utf8_string(store, memory_export, ptr)
-        print(f"json: {s}")
+        text = read_utf8_string(store, mem, ptr)
+        print(f"json: {text}")
 
-    def host_print_array(ptr):
-        memory_export = instance.exports(store).get("memory")
-        if memory_export is None:
-            print(f"<no memory export, got pointer={ptr}>")
+    # i32 array:
+    def host_print_i32_array(ptr):
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
             return
-        s = read_utf8_string(store, memory_export, ptr)
-        print(f"array: {s}")
+        elements = parse_i32_array(store, mem, ptr)
+        print(f"array => {elements}")
 
-    # Create function signatures
+    # i64 array:
+    def host_print_i64_array(ptr):
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
+            return
+        elements = parse_i64_array(store, mem, ptr)
+        print(f"array => {elements}")
+
+    # f32 array:
+    def host_print_f32_array(ptr):
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
+            return
+        elements = parse_f32_array(store, mem, ptr)
+        print(f"array => {elements}")
+
+    # f64 array:
+    def host_print_f64_array(ptr):
+        mem = memory_ref[0]
+        if mem is None:
+            print(f"<no memory, pointer={ptr}>")
+            return
+        elements = parse_f64_array(store, mem, ptr)
+        print(f"array => {elements}")
+
+    # Signatures
     func_type_i32 = wasmtime.FuncType([wasmtime.ValType.i32()], [])
     func_type_i64 = wasmtime.FuncType([wasmtime.ValType.i64()], [])
     func_type_f32 = wasmtime.FuncType([wasmtime.ValType.f32()], [])
     func_type_f64 = wasmtime.FuncType([wasmtime.ValType.f64()], [])
 
-    # We'll reuse the i32 signature for string/json/array (all param i32).
-    # Then define them in the linker:
-    linker.define(store, "env", "print_i32",
-                  wasmtime.Func(store, func_type_i32, host_print_i32))
-    linker.define(store, "env", "print_i64",
-                  wasmtime.Func(store, func_type_i64, host_print_i64))
-    linker.define(store, "env", "print_f32",
-                  wasmtime.Func(store, func_type_f32, host_print_f32))
-    linker.define(store, "env", "print_f64",
-                  wasmtime.Func(store, func_type_f64, host_print_f64))
+    # Link numeric prints
+    linker.define(store, "env", "print_i32", wasmtime.Func(store, func_type_i32, host_print_i32))
+    linker.define(store, "env", "print_i64", wasmtime.Func(store, func_type_i64, host_print_i64))
+    linker.define(store, "env", "print_f32", wasmtime.Func(store, func_type_f32, host_print_f32))
+    linker.define(store, "env", "print_f64", wasmtime.Func(store, func_type_f64, host_print_f64))
 
-    # Similarly for string, json, array => also param i32
+    # Link textual prints
     linker.define(store, "env", "print_string",
                   wasmtime.Func(store, func_type_i32, host_print_string))
     linker.define(store, "env", "print_json",
                   wasmtime.Func(store, func_type_i32, host_print_json))
-    linker.define(store, "env", "print_array",
-                  wasmtime.Func(store, func_type_i32, host_print_array))
 
-    # Instantiate the module
+    # Link typed array prints
+    linker.define(store, "env", "print_i32_array",
+                  wasmtime.Func(store, func_type_i32, host_print_i32_array))
+    linker.define(store, "env", "print_i64_array",
+                  wasmtime.Func(store, func_type_i32, host_print_i64_array))
+    linker.define(store, "env", "print_f32_array",
+                  wasmtime.Func(store, func_type_i32, host_print_f32_array))
+    linker.define(store, "env", "print_f64_array",
+                  wasmtime.Func(store, func_type_i32, host_print_f64_array))
+
+    # Instantiate
     instance = linker.instantiate(store, module)
 
-    # Now we can run main or __top_level__
+    # Grab memory
+    mem_export = instance.exports(store).get("memory")
+    if isinstance(mem_export, wasmtime.Memory):
+        memory_ref[0] = mem_export
+
+    # Call main or __top_level__
     main_func = instance.exports(store).get("main")
     top_level_func = instance.exports(store).get("__top_level__")
 

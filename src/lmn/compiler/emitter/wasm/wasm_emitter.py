@@ -1,6 +1,11 @@
 # file: lmn/compiler/emitter/wasm/wasm_emitter.py
 
 from lmn.compiler.emitter.wasm.expressions.array_literal_expression_emitter import ArrayLiteralExpressionEmitter
+from lmn.compiler.emitter.wasm.expressions.array_int_literal_expression_emitter import IntArrayLiteralEmitter
+from lmn.compiler.emitter.wasm.expressions.array_long_literal_expression_emitter import LongArrayLiteralEmitter
+from lmn.compiler.emitter.wasm.expressions.array_float_literal_emitter import FloatArrayLiteralEmitter
+from lmn.compiler.emitter.wasm.expressions.array_double_literal_emitter import DoubleArrayLiteralEmitter
+
 from lmn.compiler.emitter.wasm.expressions.assignment_expression_emitter import AssignmentExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.json_literal_expression_emitter import JsonLiteralExpressionEmitter
@@ -40,7 +45,7 @@ class WasmEmitter:
         self.func_local_map = {}
         self.local_counter = 0
 
-        # Data segments
+        # Data segments (for storing strings, arrays, etc.)
         self.data_segments = []            # list of (offset, bytes)
         self.current_data_offset = 1024    # start storing data at some offset
 
@@ -64,7 +69,15 @@ class WasmEmitter:
         self.postfix_expression_emitter = PostfixExpressionEmitter(self)
         self.assignment_expression_emitter = AssignmentExpressionEmitter(self)
         self.json_literal_expression_emitter = JsonLiteralExpressionEmitter(self)
+
+        # 1) Generic array-literal => textual fallback
         self.array_literal_expression_emitter = ArrayLiteralExpressionEmitter(self)
+
+        # 2) Specialized typed-array emitters (int, long, float, double)
+        self.int_array_literal_emitter = IntArrayLiteralEmitter(self)
+        self.long_array_literal_emitter = LongArrayLiteralEmitter(self)
+        self.float_array_literal_emitter = FloatArrayLiteralEmitter(self)
+        self.double_array_literal_emitter = DoubleArrayLiteralEmitter(self)
 
     # -------------------------------------------------------------------------
     # Program-level Emission
@@ -145,20 +158,25 @@ class WasmEmitter:
         lines = []
         lines.append('(module')
 
-        # Basic printing imports
+        # Basic numeric scalar printing imports
         lines.append('  (import "env" "print_i32" (func $print_i32 (param i32)))')
         lines.append('  (import "env" "print_i64" (func $print_i64 (param i64)))')
-        lines.append('  (import "env" "print_f32" (func $print_f32 (param f32)))') 
+        lines.append('  (import "env" "print_f32" (func $print_f32 (param f32)))')
         lines.append('  (import "env" "print_f64" (func $print_f64 (param f64)))')
+
+        # Basic textual printing imports
         lines.append('  (import "env" "print_string" (func $print_string (param i32)))')
         lines.append('  (import "env" "print_json" (func $print_json (param i32)))')
-        lines.append('  (import "env" "print_array" (func $print_array (param i32)))')
+
+        # Instead of a single "print_array", define specialized typed-array imports:
+        lines.append('  (import "env" "print_i32_array" (func $print_i32_array (param i32)))')
+        lines.append('  (import "env" "print_i64_array" (func $print_i64_array (param i32)))')
+        lines.append('  (import "env" "print_f32_array" (func $print_f32_array (param i32)))')
+        lines.append('  (import "env" "print_f64_array" (func $print_f64_array (param i32)))')
 
         if self.import_memory:
             # (A) Import memory => no data segments
-            # Hardcode "memory 1" if you want 1 page min.
             lines.append('  (import "env" "memory" (memory 1))')
-
         else:
             # (B) Own memory => define pages, emit data segments
             largest_required = 0
@@ -192,6 +210,7 @@ class WasmEmitter:
         lines.append(')')
         return "\n".join(lines) + "\n"
 
+
     # -------------------------------------------------------------------------
     #  Statement & Expression Emission
     # -------------------------------------------------------------------------
@@ -218,27 +237,55 @@ class WasmEmitter:
 
     def emit_expression(self, expr, out_lines):
         etype = expr["type"]
+
         if etype == "BinaryExpression":
             self.binary_expr_emitter.emit(expr, out_lines)
+
         elif etype == "FnExpression":
             self.fn_expr_emitter.emit_fn(expr, out_lines)
+
         elif etype == "UnaryExpression":
             self.unary_expr_emitter.emit(expr, out_lines)
+
         elif etype == "LiteralExpression":
             self.literal_expr_emitter.emit(expr, out_lines)
+
         elif etype == "VariableExpression":
             self.variable_expr_emitter.emit(expr, out_lines)
+
         elif etype == "ConversionExpression":
             self.conversion_expr_emitter.emit(expr, out_lines)
+
         elif etype == "PostfixExpression":
             self.postfix_expression_emitter.emit(expr, out_lines)
+
         elif etype == "AssignmentExpression":
             self.assignment_expression_emitter.emit(expr, out_lines)
+
         elif etype == "JsonLiteralExpression":
             self.json_literal_expression_emitter.emit(expr, out_lines)
+
         elif etype == "ArrayLiteralExpression":
-            self.array_literal_expression_emitter.emit(expr, out_lines)
+            inferred = expr.get("inferred_type", "")
+            if inferred in ("i32_ptr",):
+                # This means it's a real int[] block
+                self.int_array_literal_emitter.emit_int_array(expr, out_lines)
+
+            elif inferred in ("i64_ptr",):
+                self.long_array_literal_emitter.emit_long_array(expr, out_lines)
+
+            elif inferred in ("f32_ptr",):
+                self.float_array_literal_emitter.emit_float_array(expr, out_lines)
+
+            elif inferred in ("f64_ptr",):
+                self.double_array_literal_emitter.emit_double_array(expr, out_lines)
+
+            else:
+                self.array_literal_expression_emitter.emit(expr, out_lines)
+
+
         else:
+            # fallback => push 0
             out_lines.append('  i32.const 0')
 
     # -------------------------------------------------------------------------
@@ -258,13 +305,14 @@ class WasmEmitter:
         return offset
 
     # -------------------------------------------------------------------------
-    #  Helper to convert i32_ptr => i32, etc.
+    #  Helper to convert i32_ptr => i32, i64_ptr => i64, etc.
     # -------------------------------------------------------------------------
     def _wasm_basetype(self, t: str) -> str:
-        if t in ("i32_ptr", "i32_json"):
+        # i32-based pointers for standard 32-bit memory
+        if t in ("i32_ptr", "i32_json", "i64_ptr", "f32_ptr", "f64_ptr"):
             return "i32"
-        elif t in ("i64_ptr", "i64_json"):
-            return "i64"
+
+        # fallback => might be i32, i64, f32, f64, string, etc.
         return t
 
     # -------------------------------------------------------------------------
