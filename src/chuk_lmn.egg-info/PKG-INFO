@@ -5,6 +5,7 @@ Summary: Add your description here
 Requires-Python: >=3.12
 Description-Content-Type: text/markdown
 Requires-Dist: colorama>=0.4.6
+Requires-Dist: ollama>=0.4.5
 Requires-Dist: pydantic>=2.10.4
 Requires-Dist: wasmtime>=28.0.0
 

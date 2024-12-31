@@ -9,6 +9,7 @@ src/chuk_lmn.egg-info/top_level.txt
 src/lmn/__init__.py
 src/lmn/cli/ast_to_wat.py
 src/lmn/cli/ast_wasm_lowerer.py
+src/lmn/cli/lmn_chat.py
 src/lmn/cli/lmn_compiler.py
 src/lmn/cli/lmn_repl.py
 src/lmn/cli/parser_cli.py

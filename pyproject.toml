@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "colorama>=0.4.6",
+    "ollama>=0.4.5",
     "pydantic>=2.10.4",
     "wasmtime>=28.0.0",
 ]
@@ -23,3 +24,4 @@ ast-to-wat = "lmn.cli.ast_to_wat:main"
 ast-wasm-lowerer = "lmn.cli.ast_wasm_lowerer:main"
 lmn-compiler = "lmn.cli.lmn_compiler:main"
 lmn-repl = "lmn.cli.lmn_repl:main"
+lmn-chat = "lmn.cli.lmn_chat:main"

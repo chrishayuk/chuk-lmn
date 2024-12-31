@@ -1,6 +1,7 @@
 [console_scripts]
 ast-to-wat = lmn.cli.ast_to_wat:main
 ast-wasm-lowerer = lmn.cli.ast_wasm_lowerer:main
+lmn-chat = lmn.cli.lmn_chat:main
 lmn-compiler = lmn.cli.lmn_compiler:main
 lmn-repl = lmn.cli.lmn_repl:main
 parser-cli = lmn.cli.parser_cli:main
