@@ -11,12 +11,12 @@
   (import "env" "print_f64_array" (func $print_f64_array (param i32)))
   (memory (export "memory") 1)
   (func $__top_level__
-    (local $smallInts i32)
-    (local $moreInts i32)
-    (local $bigVals i32)
-    (local $floatVals i32)
     (local $doubleVals i32)
+    (local $bigVals i32)
+    (local $smallInts i32)
+    (local $floatVals i32)
     (local $user i32)
+    (local $moreInts i32)
     i32.const 1024
     local.set $smallInts
     i32.const 1044
@@ -65,7 +65,7 @@
   (data (i32.const 1107) "\66\6c\6f\61\74\5b\5d\20\3d\3e\00")
   (data (i32.const 1118) "\03\00\00\00\00\00\00\00\00\00\59\40\90\f7\aa\95\09\bf\05\40\0b\0b\ee\07\3c\dd\5e\40")
   (data (i32.const 1146) "\64\6f\75\62\6c\65\5b\5d\20\3d\3e\00")
-  (data (i32.const 1158) "\05\00\00\00\00\00\00\00\00\00\00\00\0f\27\00\00\2a\00\00\00\a0\86\01\00")
+  (data (i32.const 1158) "\05\00\00\00\ff\ff\ff\ff\fe\ff\ff\ff\0f\27\00\00\2a\00\00\00\a0\86\01\00")
   (data (i32.const 1182) "\6d\6f\72\65\20\69\6e\74\73\20\3d\3e\00")
   (data (i32.const 1195) "\7b\22\6e\61\6d\65\22\3a\20\22\41\6c\69\63\65\22\2c\20\22\69\64\73\22\3a\20\5b\31\30\31\2c\20\32\30\32\2c\20\33\30\33\5d\7d\00")
   (data (i32.const 1237) "\55\73\65\72\20\64\61\74\61\20\3d\3e\00")

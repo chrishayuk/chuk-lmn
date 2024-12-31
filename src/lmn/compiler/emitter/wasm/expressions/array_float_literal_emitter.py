@@ -1,8 +1,9 @@
 # file: lmn/compiler/emitter/wasm/expressions/array_float_literal_expression_emitter.py
-
 import struct
 import logging
+from .expression_evaluator import ExpressionEvaluator
 
+# logging
 logger = logging.getLogger(__name__)
 
 class FloatArrayLiteralEmitter:
@@ -32,7 +33,7 @@ class FloatArrayLiteralEmitter:
           "inferred_type": "float[]",
           "elements": [
             { "type": "LiteralExpression", "value": 1.0, ... },
-            { "type": "LiteralExpression", "value": 2.5, ... },
+            { "type": "UnaryExpression", "operator": "-", "operand": { "type": "LiteralExpression", "value": 2.5 } },
             ...
           ]
         }
@@ -53,17 +54,18 @@ class FloatArrayLiteralEmitter:
 
         # 2) Each element => 4 bytes (f32) in little-endian
         for elem in elements:
-            val = elem.get("value", 0.0)
-            # If not numeric, fallback to 0.0
-            if not isinstance(val, (int, float)):
-                logger.warning(f"Non-float value {val} in float[]; defaulting to 0.0")
-                val = 0.0
-
-            # Convert to float in case it was an int
-            val = float(val)
+            val = ExpressionEvaluator.evaluate_expression(elem, expected_type='float')
+            # Optionally, clamp or handle special float cases
+            # val = ExpressionEvaluator.clamp_value(val, expected_type='float')
 
             # Pack as 32-bit float
-            data_bytes += struct.pack("<f", val)
+            try:
+                packed_val = struct.pack("<f", val)
+            except struct.error as e:
+                logger.warning(f"Error packing value {val} as f32: {e}; defaulting to 0.0")
+                packed_val = struct.pack("<f", 0.0)
+
+            data_bytes += packed_val
 
         # 3) Add to data segment => get an offset
         offset = self.controller.current_data_offset

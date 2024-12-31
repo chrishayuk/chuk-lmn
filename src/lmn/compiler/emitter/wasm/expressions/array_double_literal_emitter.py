@@ -2,6 +2,7 @@
 
 import struct
 import logging
+from .expression_evaluator import ExpressionEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class DoubleArrayLiteralEmitter:
           "inferred_type": "double[]",
           "elements": [
             { "type": "LiteralExpression", "value": 1.0, ... },
-            { "type": "LiteralExpression", "value": 2.5, ... },
+            { "type": "UnaryExpression", "operator": "-", "operand": { "type": "LiteralExpression", "value": 2.5 } },
             ...
           ]
         }
@@ -47,22 +48,26 @@ class DoubleArrayLiteralEmitter:
 
         logger.debug(f"Emitting double[] of length {length} for node={node}")
 
-        # 1) 4 bytes => length (i32)
+        # 1) Build raw bytes: first 4 bytes => length (i32)
         data_bytes = bytearray()
         data_bytes += struct.pack("<i", length)
 
         # 2) Each element => 8 bytes (f64) in little-endian
         for elem in elements:
-            val = elem.get("value", 0.0)
-            # If not numeric, fallback to 0.0
-            if not isinstance(val, (int, float)):
-                logger.warning(f"Non-numeric value {val} in double[]; defaulting to 0.0")
-                val = 0.0
+            val = ExpressionEvaluator.evaluate_expression(elem, expected_type='double')
+            # Optionally, clamp or handle special double cases
+            # val = ExpressionEvaluator.clamp_value(val, expected_type='double')
 
-            val = float(val)  # ensure we have a float type
-            data_bytes += struct.pack("<d", val)
+            # Pack as 64-bit float
+            try:
+                packed_val = struct.pack("<d", val)
+            except struct.error as e:
+                logger.warning(f"Error packing value {val} as f64: {e}; defaulting to 0.0")
+                packed_val = struct.pack("<d", 0.0)
 
-        # 3) Insert into data segments => get offset
+            data_bytes += packed_val
+
+        # 3) Add to data segment => get an offset
         offset = self.controller.current_data_offset
         self.controller.data_segments.append((offset, data_bytes))
         self.controller.current_data_offset += len(data_bytes)
@@ -71,5 +76,5 @@ class DoubleArrayLiteralEmitter:
             f"double[] memory block => offset={offset}, size={len(data_bytes)} bytes, elements={length}"
         )
 
-        # 4) Emit instructions => push offset
+        # 4) Emit instructions => push that offset as i32
         out_lines.append(f"  i32.const {offset}")

@@ -1,61 +1,60 @@
-# compiler/emitter/wasm/expressions/unary_expression_emitter.py
+# file: compiler/emitter/wasm/expressions/unary_expression_emitter.py
 
 class UnaryExpressionEmitter:
     def __init__(self, controller):
         """
         The 'controller' is a reference to your main WasmEmitter or similar.
         We rely on controller.emit_expression(...) to generate code for the operand.
-        If your emitter tracks type information, you'll need to figure out the type
-        of the operand so you can emit the correct WASM instruction for negation, etc.
         """
         self.controller = controller
 
     def emit(self, node, out_lines):
         """
-        node structure (example):
-          {
-            "type": "UnaryExpression",
-            "operator": "-",         # or "+"
-            "operand": { ... AST node for the operand ... }
-          }
-
-        We'll generate code for the operand, then apply the unary op:
-
-          - operator "+" => do nothing (just emit the operand)
-          - operator "-" => numeric negation:
-                i32 -> (local expression) i32.const -1, i32.mul
-                i64 -> (local expression) i64.const -1, i64.mul
-                f32 -> f32.neg
-                f64 -> f64.neg
-          - operator "not" => integer eqz (i32.eqz or i64.eqz).
+        Example node:
+        {
+          "type": "UnaryExpression",
+          "operator": "-",
+          "operand": { ... AST node for the operand ... }
+        }
+        We'll generate code for the operand, then apply the unary op.
         """
-        op = node["operator"]   # e.g. "-" or "not"
+
+        op = node["operator"]        # e.g. "-" or "not"
         operand = node["operand"]
 
-        # 1) Emit the operand expression (this should push a value on the WASM stack).
+        # 1) If we want to constant-fold, we can do it here BEFORE emitting:
+        #    If operand is a LiteralExpression with an int value, replace
+        #    the entire node with a negative literal:
+        folded = self._try_constant_fold(node)
+        if folded is not None:
+            # folded => (wasmType, literal_value) e.g. ("i32", -1)
+            # So we can directly emit i32.const -1, etc.
+            self._emit_constant(folded[0], folded[1], out_lines)
+            return
+
+        # else => do normal approach
+
+        # 2) Emit code for the operand => push it on the stack
         self.controller.emit_expression(operand, out_lines)
 
-        # 2) Figure out the type of the operand.
-        #    This can be done in many ways. One naive approach: call a helper that
-        #    tries to infer the type from the AST node, or if your compiler already
-        #    stores types in the node, you can read them directly, e.g. operand["wasmType"].
+        # 3) Infer the operand type so we know i32 vs i64 vs f32 vs f64
         operand_type = self._infer_operand_type(operand)
 
-        # 3) Apply the operator based on the operand type.
+        # 4) Apply the operator
         if op == "+":
-            # unary plus => do nothing; the operand is already on stack
+            # unary plus => do nothing
             pass
 
         elif op == "-":
-            # numeric negation
+            # numeric negation (dynamic approach)
             if operand_type == "i32":
+                # i32.const -1, i32.mul
                 out_lines.append("  i32.const -1")
                 out_lines.append("  i32.mul")
             elif operand_type == "i64":
                 out_lines.append("  i64.const -1")
                 out_lines.append("  i64.mul")
             elif operand_type == "f32":
-                # f32.neg: negates the top of the stack
                 out_lines.append("  f32.neg")
             elif operand_type == "f64":
                 out_lines.append("  f64.neg")
@@ -63,30 +62,54 @@ class UnaryExpressionEmitter:
                 raise ValueError(f"Unsupported unary '-' for type {operand_type}")
 
         elif op == "not":
-            # Boolean negation for integer types:
-            #   i32.eqz => 0 -> 1, nonzero -> 0
-            #   i64.eqz => 0 -> 1, nonzero -> 0 (support in some Wasm extensions, or do a compare)
             if operand_type == "i32":
                 out_lines.append("  i32.eqz")
             elif operand_type == "i64":
-                # There's no direct i64.eqz in the original Wasm MVP. 
-                # In the Wasm 2.0 spec or post-MVP, i64.eqz exists.
-                # If not, you can implement i64.eqz using "i64.eqz" if your toolchain supports it:
-                out_lines.append("  i64.eqz")
+                out_lines.append("  i64.eqz")  # if your toolchain supports i64.eqz
             else:
                 raise ValueError(f"Unsupported unary 'not' for type {operand_type}")
 
         else:
-            # fallback / unknown unary operator
             raise ValueError(f"Unknown unary operator: {op}")
 
     def _infer_operand_type(self, operand_node):
         """
-        A placeholder for type inference or retrieving stored type info.
-        We do a naive approach again: if operand node is a literal, we guess type
-        by presence of '.' or magnitude. If it's a variable, we might look it up
-        in controller.func_local_map, etc.  This is heavily simplified.
+        A simplified approach: we rely on the controller.infer_type to do the actual logic
         """
-
-        # For demonstration, let's assume we have a helper:
         return self.controller.infer_type(operand_node)
+
+    def _try_constant_fold(self, unary_node):
+        """
+        If the operand is a LiteralExpression with an integer value,
+        and the operator is '-', we can fold it into a negative literal.
+
+        Returns (wasmType, foldedValue) if successful, else None
+        """
+        op = unary_node["operator"]
+        operand = unary_node["operand"]
+
+        if op == "-" and operand["type"] == "LiteralExpression":
+            val = operand.get("value")
+            if isinstance(val, int):
+                # if operand was i32 or i64 (we can check or guess from 'literal_type')
+                # we'll guess i32 for smaller range, or your logic might do:
+                # if operand["literal_type"] == "i64": => "i64", ...
+                # We'll do i32 for demonstration:
+                if operand.get("literal_type") in ("i64", "long"):
+                    wasm_type = "i64"
+                else:
+                    wasm_type = "i32"
+                return (wasm_type, -val)
+
+        return None
+
+    def _emit_constant(self, wasm_type, value, out_lines):
+        """
+        Emit e.g. i32.const <value> or i64.const <value>.
+        """
+        if wasm_type == "i32":
+            out_lines.append(f"  i32.const {value}")
+        elif wasm_type == "i64":
+            out_lines.append(f"  i64.const {value}")
+        else:
+            raise ValueError(f"_emit_constant not implemented for {wasm_type}")
