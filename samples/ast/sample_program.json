@@ -2,12 +2,381 @@
   "type": "Program",
   "body": [
     {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "greeting"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": "Hello\\nWorld!",
+        "literal_type": "string"
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "greeting"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedGreeting"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": "Hello typed world",
+        "literal_type": "string"
+      },
+      "type_annotation": "string"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "typedGreeting"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "user"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
+        }
+      }
+    },
+    {
       "type": "PrintStatement",
       "expressions": [
         {
           "type": "LiteralExpression",
-          "value": 2.71,
-          "literal_type": "f32"
+          "value": "User data:",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "user"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedUser"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
+        }
+      },
+      "type_annotation": "json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "User data (typed):",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "typedUser"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "colors"
+      },
+      "expression": {
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "type": "LiteralExpression",
+            "value": "red",
+            "literal_type": "string"
+          },
+          {
+            "type": "LiteralExpression",
+            "value": "green",
+            "literal_type": "string"
+          },
+          {
+            "type": "LiteralExpression",
+            "value": "blue",
+            "literal_type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "Colors array (inferred):",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "colors"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedColors"
+      },
+      "expression": {
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "type": "LiteralExpression",
+            "value": "red",
+            "literal_type": "string"
+          },
+          {
+            "type": "LiteralExpression",
+            "value": "green",
+            "literal_type": "string"
+          },
+          {
+            "type": "LiteralExpression",
+            "value": "blue",
+            "literal_type": "string"
+          }
+        ]
+      },
+      "type_annotation": "string[]"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "Colors array (typed):",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "typedColors"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 123,
+        "literal_type": "i32"
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "x"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedX"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 123,
+        "literal_type": "i32"
+      },
+      "type_annotation": "int"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "typedX"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "bigNum"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 4294967298,
+        "literal_type": "i64"
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "bigNum"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedBigNum"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 4294967298,
+        "literal_type": "i64"
+      },
+      "type_annotation": "long"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "typedBigNum"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "decVal"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 3.14,
+        "literal_type": "f64"
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "decVal"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedDecVal"
+      },
+      "expression": {
+        "type": "LiteralExpression",
+        "value": 3.14,
+        "literal_type": "f64"
+      },
+      "type_annotation": "float"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "typedDecVal"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "jsonData"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "jsonData (inferred):",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "jsonData"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "typedJsonData"
+      },
+      "expression": {
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      },
+      "type_annotation": "json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "jsonData (typed):",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "typedJsonData"
         }
       ]
     }

@@ -1,5 +1,6 @@
 # file: lmn/compiler/emitter/wasm/wasm_emitter.py
 
+from lmn.compiler.emitter.wasm.expressions.array_literal_expression_emitter import ArrayLiteralExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.assignment_expression_emitter import AssignmentExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.json_literal_expression_emitter import JsonLiteralExpressionEmitter
@@ -63,6 +64,7 @@ class WasmEmitter:
         self.postfix_expression_emitter = PostfixExpressionEmitter(self)
         self.assignment_expression_emitter = AssignmentExpressionEmitter(self)
         self.json_literal_expression_emitter = JsonLiteralExpressionEmitter(self)
+        self.array_literal_expression_emitter = ArrayLiteralExpressionEmitter(self)
 
     # -------------------------------------------------------------------------
     # Program-level Emission
@@ -234,6 +236,8 @@ class WasmEmitter:
             self.assignment_expression_emitter.emit(expr, out_lines)
         elif etype == "JsonLiteralExpression":
             self.json_literal_expression_emitter.emit(expr, out_lines)
+        elif etype == "ArrayLiteralExpression":
+            self.array_literal_expression_emitter.emit(expr, out_lines)
         else:
             out_lines.append('  i32.const 0')
 

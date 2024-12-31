@@ -1,59 +1,60 @@
-# lmn/compiler/lexer/token_type.py
+# file: lmn/compiler/lexer/token_type.py
+
 from enum import Enum
 
 class LmnTokenType(Enum):
     # ------------------------------
     # Basic Value/Identifier Tokens
     # ------------------------------
-    STRING = 'STRING'
+    STRING = 'STRING'         # string literal token, e.g. "Hello world"
     IDENTIFIER = 'IDENTIFIER'
-    NEWLINE = 'NEWLINE'  # Use if needed; else remove
+    NEWLINE = 'NEWLINE'       # if you want to tokenize newlines
 
     # ------------------------------
     # Numeric (literals)
     # ------------------------------
-    INT_LITERAL      = 'INT_LITERAL'      # 32-bit integer literal
-    LONG_LITERAL     = 'LONG_LITERAL'     # 64-bit integer literal
-    FLOAT_LITERAL    = 'FLOAT_LITERAL'    # float literal (f suffix)
-    DOUBLE_LITERAL   = 'DOUBLE_LITERAL'   # double literal (no f suffix)
+    INT_LITERAL    = 'INT_LITERAL'    # 32-bit integer literal
+    LONG_LITERAL   = 'LONG_LITERAL'   # 64-bit integer literal
+    FLOAT_LITERAL  = 'FLOAT_LITERAL'  # float literal (f suffix)
+    DOUBLE_LITERAL = 'DOUBLE_LITERAL' # double literal (no f suffix)
 
     # ------------------------------
     # Operators
     # ------------------------------
-    EQ = '='
-    EQEQ  = '=='
-    NE = '!='
-    LT = '<'
-    LE = '<='
-    GT = '>'
-    GE = '>='
-    PLUS = '+'
-    MINUS = '-'
-    MUL = '*'
-    DIV = '/'
+    EQ     = '='
+    EQEQ   = '=='
+    NE     = '!='
+    LT     = '<'
+    LE     = '<='
+    GT     = '>'
+    GE     = '>='
+    PLUS   = '+'
+    MINUS  = '-'
+    MUL    = '*'
+    DIV    = '/'
 
     # Extended operators
-    MOD         = '%'      # modulo operator
-    FLOORDIV    = '//'     # integer division
-    INC         = '++'     # postfix increment
-    DEC         = '--'     # postfix decrement
-    PLUS_EQ     = '+='     # compound assignment (a += x)
-    MINUS_EQ    = '-='     # compound assignment (a -= x)
-    EQ_PLUS     = '=+'     # alternative compound assignment (a =+ x)
-    EQ_MINUS    = '=-'     # alternative compound assignment (a =- x)
+    MOD         = '%'   # modulo operator
+    FLOORDIV    = '//'  # integer division
+    INC         = '++'  # postfix increment
+    DEC         = '--'  # postfix decrement
+    PLUS_EQ     = '+='  # compound assignment (a += x)
+    MINUS_EQ    = '-='  # compound assignment (a -= x)
+    EQ_PLUS     = '=+'  # alternative compound assignment (a =+ x)
+    EQ_MINUS    = '=-'  # alternative compound assignment (a =- x)
 
     # ------------------------------
     # Punctuation
     # ------------------------------
-    LPAREN = '('
-    RPAREN = ')'
-    LBRACE = '{'
-    RBRACE = '}'
-    COMMA = ','
-    LBRACKET = '['
-    RBRACKET = ']'
-    DOT = 'DOT'
-    COLON = ':'
+    LPAREN    = '('
+    RPAREN    = ')'
+    LBRACE    = '{'
+    RBRACE    = '}'
+    COMMA     = ','
+    LBRACKET  = '['
+    RBRACKET  = ']'
+    DOT       = 'DOT'
+    COLON     = ':'
 
     # ------------------------------
     # Comment
@@ -66,43 +67,44 @@ class LmnTokenType(Enum):
 
     # Scope
     BEGIN = 'begin'
-    END = 'end'
+    END   = 'end'
 
     # Functions
     FUNCTION = 'function'
-    RETURN = 'return'
+    RETURN   = 'return'
 
     # Control
-    IF = 'if'
-    ELSE = 'else'
+    IF     = 'if'
+    ELSE   = 'else'
     ELSEIF = 'elseif'
 
     # Loops
-    FOR = 'for'
-    TO = 'to'
-    IN = 'in'
-    BREAK = 'break'
-    CONTINUE = 'continue'
+    FOR       = 'for'
+    TO        = 'to'
+    IN        = 'in'
+    BREAK     = 'break'
+    CONTINUE  = 'continue'
 
     # Statements
-    LET = 'let'
+    LET   = 'let'
     PRINT = 'print'
-    CALL = 'call'
-    AND = 'and'
-    OR = 'or'
-    NOT = 'not'
-    TRUE = 'true'
+    CALL  = 'call'
+    AND   = 'and'
+    OR    = 'or'
+    NOT   = 'not'
+    TRUE  = 'true'
     FALSE = 'false'
-    NIL = 'nil'
-    
+    NIL   = 'nil'
 
     # ------------------------------
     # Type Keywords
     # ------------------------------
-    INT    = 'int'
-    LONG   = 'long'
-    FLOAT  = 'float'
-    DOUBLE = 'double'
+    INT         = 'int'
+    LONG        = 'long'
+    FLOAT       = 'float'
+    DOUBLE      = 'double'
+    STRING_TYPE = 'string_type'
+    JSON_TYPE   = 'json_type'
 
     @staticmethod
     def get_keywords():
@@ -111,41 +113,46 @@ class LmnTokenType(Enum):
         """
         return {
             # scope
-            'begin': LmnTokenType.BEGIN,
-            'end': LmnTokenType.END,
+            'begin':  LmnTokenType.BEGIN,
+            'end':    LmnTokenType.END,
 
-            # functions
+            # functions
             'function': LmnTokenType.FUNCTION,
-            'return': LmnTokenType.RETURN,
+            'return':   LmnTokenType.RETURN,
 
             # control
-            'if': LmnTokenType.IF,
-            'else': LmnTokenType.ELSE,
+            'if':     LmnTokenType.IF,
+            'else':   LmnTokenType.ELSE,
             'elseif': LmnTokenType.ELSEIF,
 
             # loops
-            'for': LmnTokenType.FOR,
-            'to': LmnTokenType.TO,
-            'in': LmnTokenType.IN,
-            'break': LmnTokenType.BREAK,
+            'for':    LmnTokenType.FOR,
+            'to':     LmnTokenType.TO,
+            'in':     LmnTokenType.IN,
+            'break':  LmnTokenType.BREAK,
+            'continue': LmnTokenType.CONTINUE,
 
             # statements
-            'let': LmnTokenType.LET,
+            'let':   LmnTokenType.LET,
             'print': LmnTokenType.PRINT,
-            'call': LmnTokenType.CALL,
-            'and': LmnTokenType.AND,
-            'or': LmnTokenType.OR,
-            'not': LmnTokenType.NOT,
-            'true': LmnTokenType.TRUE,
+            'call':  LmnTokenType.CALL,
+            'and':   LmnTokenType.AND,
+            'or':    LmnTokenType.OR,
+            'not':   LmnTokenType.NOT,
+            'true':  LmnTokenType.TRUE,
             'false': LmnTokenType.FALSE,
-            'nil': LmnTokenType.NIL,
-            'null': LmnTokenType.NIL, 
+            'nil':   LmnTokenType.NIL,
+            'null':  LmnTokenType.NIL,
 
             # Type keywords
-            'int': LmnTokenType.INT,
-            'long': LmnTokenType.LONG,
-            'float': LmnTokenType.FLOAT,
+            'int':    LmnTokenType.INT,
+            'long':   LmnTokenType.LONG,
+            'float':  LmnTokenType.FLOAT,
             'double': LmnTokenType.DOUBLE,
+
+            # New type keywords
+            'string': LmnTokenType.STRING_TYPE,
+            'json':   LmnTokenType.JSON_TYPE,
         }
 
     @staticmethod
@@ -158,7 +165,7 @@ class LmnTokenType(Enum):
             '<':  LmnTokenType.LT,
             '>':  LmnTokenType.GT,
 
-            # Multi-character operators first, so they don't get overshadowed:
+            # Multi-character operators first:
             '//': LmnTokenType.FLOORDIV,
             '++': LmnTokenType.INC,
             '--': LmnTokenType.DEC,

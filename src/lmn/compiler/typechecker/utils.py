@@ -98,8 +98,10 @@ def can_assign_to(source: str, target: str) -> bool:
         "int":    {"long", "float", "double"},
         "long":   {"float", "double"},
         "float":  {"double"},
-        "double": set(),
+        # Now we explicitly allow narrowing from double -> float
+        "double": {"float"},
     }
+
 
     # If not found in table => no conversions
     return target in allowed_conversions.get(source, set())

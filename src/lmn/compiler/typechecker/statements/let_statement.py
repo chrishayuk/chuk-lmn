@@ -34,134 +34,188 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
         logger.debug(f"Expression type for '{var_name}' => {expr_type}")
 
         if declared_type:
-            # -------------------------------------------
-            # A) If declared_type ends with "[]", typed array logic
-            # -------------------------------------------
+            # -------------------------------------------------------
+            # A) If declared_type ends with "[]", handle typed array
+            # -------------------------------------------------------
             if declared_type.endswith("[]"):
                 base_type = declared_type[:-2]  # e.g. "int[]" => "int"
 
-                if expr_type == "json":
-                    # Possibly a bracket-literal of uniform data
+                # CASE 1: expression is a native ArrayLiteralExpression => expr_type == "array"
+                if expr_type == "array":
+                    # We'll ensure each element's .inferred_type == base_type
+                    all_ok = True
+                    if hasattr(expr, "elements"):
+                        for element_expr in expr.elements:
+                            elem_type = getattr(element_expr, "inferred_type", None)
+                            if not elem_type:
+                                # If expression checker didn't set it, we can unify again
+                                elem_type = check_expression(element_expr, symbol_table)
+                            # unify with base_type
+                            unified = unify_types(base_type, elem_type, for_assignment=True)
+                            if unified != base_type:
+                                all_ok = False
+                                break
+                    else:
+                        all_ok = False
+
+                    if not all_ok:
+                        raise TypeError(f"Array elements do not match '{base_type}' for var '{var_name}'")
+                    
+                    # If all good => final_type is declared_type (e.g. "string[]")
+                    symbol_table[var_name] = declared_type
+                    stmt.inferred_type = declared_type
+                    stmt.variable.inferred_type = declared_type
+                    expr.inferred_type = declared_type
+                    return
+
+                # CASE 2: expression is a JSON-literal array => expr_type == "json"
+                elif expr_type == "json":
                     if expr.type == "JsonLiteralExpression" and isinstance(expr.value, list):
-                        all_valid = True
+                        # We interpret expr.value as a Python list
+                        all_ok = True
                         for val in expr.value:
                             if base_type == "int":
                                 if not isinstance(val, int):
-                                    all_valid = False
+                                    all_ok = False
                                     break
                             elif base_type == "float":
                                 # Accept float or int => float array
                                 if not (isinstance(val, float) or isinstance(val, int)):
-                                    all_valid = False
+                                    all_ok = False
                                     break
                             elif base_type == "string":
                                 if not isinstance(val, str):
-                                    all_valid = False
+                                    all_ok = False
                                     break
                             else:
-                                raise TypeError(
-                                    f"Unsupported base type '{base_type}' in let statement."
-                                )
+                                # Potentially extend for 'long', 'bool', etc.
+                                raise TypeError(f"Unsupported base type '{base_type}' in let statement.")
 
-                        if all_valid:
-                            logger.debug(
-                                f"Overriding 'json' => '{declared_type}' for '{var_name}' "
-                                f"since all elements match '{base_type}'."
-                            )
-                            final_type = declared_type
-                            # FIX: Also set the bracket-literal's inferred_type
-                            stmt.expression.inferred_type = final_type
-
-                            # Then unify the LetStatement
-                            symbol_table[var_name] = final_type
-                            stmt.inferred_type = final_type
-                            stmt.variable.inferred_type = final_type
-                            return
-                        else:
+                        if not all_ok:
                             raise TypeError(
                                 f"Array elements do not match '{base_type}' for var '{var_name}'"
                             )
 
-                    # If not a bracket-literal or mismatch => unify normally
-                    unified = unify_types(declared_type, expr_type, for_assignment=True)
-                    if unified != declared_type:
-                        raise TypeError(
-                            f"Cannot unify assignment: {expr_type} -> {declared_type}"
-                        )
-                    final_type = declared_type
+                        # override 'json' => declared_type
+                        symbol_table[var_name] = declared_type
+                        stmt.inferred_type = declared_type
+                        stmt.variable.inferred_type = declared_type
+                        expr.inferred_type = declared_type
+                        return
 
-                else:
-                    # Not 'json' => unify normally
-                    unified = unify_types(declared_type, expr_type, for_assignment=True)
-                    if unified != declared_type:
-                        raise TypeError(
-                            f"Cannot unify assignment: {expr_type} -> {declared_type}"
-                        )
-                    final_type = declared_type
+                    else:
+                        # unify "json" with "string[]" => not possible
+                        unified = unify_types(declared_type, expr_type, for_assignment=True)
+                        if unified != declared_type:
+                            raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
 
-                # ensure we store final_type
-                symbol_table[var_name] = final_type
-                stmt.inferred_type = final_type
-                stmt.variable.inferred_type = final_type
+                        symbol_table[var_name] = declared_type
+                        stmt.inferred_type = declared_type
+                        stmt.variable.inferred_type = declared_type
+                        expr.inferred_type = declared_type
+                        return
+
+                # CASE 3: Some other expr_type => unify normally
+                # e.g. if we do let arr:int[] = someFnCall() which returns "int[]" 
+                unified = unify_types(declared_type, expr_type, for_assignment=True)
+                if unified != declared_type:
+                    raise TypeError(
+                        f"Cannot unify assignment: {expr_type} -> {declared_type}"
+                    )
+                # store final
+                symbol_table[var_name] = declared_type
+                stmt.inferred_type = declared_type
+                stmt.variable.inferred_type = declared_type
+                expr.inferred_type = declared_type
                 return
 
-            # -------------------------------------------
+            # -------------------------------------------------------
             # B) If declared_type is NOT an array
-            # -------------------------------------------
+            # -------------------------------------------------------
             unified = unify_types(declared_type, expr_type, for_assignment=True)
             if unified != declared_type:
                 raise TypeError(
                     f"Cannot assign '{expr_type}' to var of type '{declared_type}'"
                 )
-            final_type = declared_type
-
-            symbol_table[var_name] = final_type
-            stmt.inferred_type = final_type
-            stmt.variable.inferred_type = final_type
+            symbol_table[var_name] = declared_type
+            stmt.inferred_type = declared_type
+            stmt.variable.inferred_type = declared_type
+            expr.inferred_type = declared_type
 
         else:
             # -------------------------------------------
-            # 3) No declared type => possibly infer typed array
+            # 2) No declared type => infer
             # -------------------------------------------
-            if expr_type == "json":
-                # bracket-literal => check uniform data
+            # e.g. let colors = [ "red", "green", "blue" ]
+
+            if expr_type == "array":
+                # We have a native array => unify subexpressions
+                # e.g. if all are "string", result => "string[]"
+                # if all are "int", => "int[]"
+                # if a mix of int/float => "float[]"?
+                if hasattr(expr, "elements") and expr.elements:
+                    # check the first element's type
+                    elem_type = check_expression(expr.elements[0], symbol_table)
+                    # unify the rest
+                    for e in expr.elements[1:]:
+                        e_type = check_expression(e, symbol_table)
+                        elem_type = unify_types(elem_type, e_type, for_assignment=False)
+
+                    # if elem_type is e.g. "string", final => "string[]"
+                    final_type = elem_type + "[]" if elem_type in ("int","float","string") else "array"
+                    expr.inferred_type = final_type
+                else:
+                    # empty array => "array"
+                    final_type = "array"
+                    expr.inferred_type = final_type
+
+                symbol_table[var_name] = final_type
+                stmt.inferred_type = final_type
+                stmt.variable.inferred_type = final_type
+                return
+
+            elif expr_type == "json":
+                # bracket-literal => check if it's list
                 if expr.type == "JsonLiteralExpression" and isinstance(expr.value, list) and expr.value:
+                    # attempt uniform check
                     all_int = all(isinstance(v, int) for v in expr.value)
                     all_str = all(isinstance(v, str) for v in expr.value)
                     all_float = all(isinstance(v, float) or isinstance(v, int) for v in expr.value)
 
                     if all_int:
                         final_type = "int[]"
-                        stmt.expression.inferred_type = "int[]"
                     elif all_float and not all_str:
                         final_type = "float[]"
-                        stmt.expression.inferred_type = "float[]"
                     elif all_str:
                         final_type = "string[]"
-                        stmt.expression.inferred_type = "string[]"
                     else:
                         final_type = "json"
+
+                    expr.inferred_type = final_type
                 else:
                     final_type = "json"
-            else:
-                # if expr_type is 'array' or something => no inference
-                final_type = expr_type
 
-            symbol_table[var_name] = final_type
-            stmt.inferred_type = final_type
-            stmt.variable.inferred_type = final_type
-            logger.debug(f"Inferred final type for '{var_name}' => {final_type}")
+                symbol_table[var_name] = final_type
+                stmt.inferred_type = final_type
+                stmt.variable.inferred_type = final_type
+
+            else:
+                # Not array or json => use expr_type directly
+                final_type = expr_type
+                symbol_table[var_name] = final_type
+                stmt.inferred_type = final_type
+                stmt.variable.inferred_type = final_type
 
     else:
         # -------------------------------------------
-        # 4) No expression => must have annotation or error
+        # 3) No expression => must have annotation or error
         # -------------------------------------------
         logger.debug(f"No expression for 'let {var_name}'.")
         if not declared_type:
             raise TypeError(
                 f"No type annotation or initializer for '{var_name}' in let statement."
             )
-        # store
+        # store the declared type in the symbol table
         symbol_table[var_name] = declared_type
         stmt.variable.inferred_type = declared_type
         stmt.inferred_type = declared_type
