@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # file: src/lmn/cli/lmn_repl.py
-
 import os
 import logging
 import colorama
@@ -10,16 +9,20 @@ from colorama import Fore, Style
 # lmn modules
 from lmn.cli.utils.banner import get_ascii_banner
 from lmn.compiler.pipeline import compile_code_to_wat
-from lmn.runtime.host_functions import define_host_functions_capture_output
+from lmn.runtime.host.host_initializer import initialize_host_functions  # Updated import
 
+# setup logging
 logging.basicConfig(
     level=logging.CRITICAL,
     format="%(levelname)s - %(name)s - %(message)s"
 )
 
+
 def main():
+    # setup colorama
     colorama.init(autoreset=True)
 
+    # setup the ascii banner
     ascii_banner = get_ascii_banner()
     print(ascii_banner)
     print(f"LMN Language Playground  {Fore.WHITE}v0.0.1 (2024-12-30){Style.RESET_ALL}")
@@ -27,15 +30,17 @@ def main():
 
     # All snippets from this session
     accumulated_code = []
-    # Current snippet lines
     code_buffer = []
     first_line = True
 
+    # loop
     while True:
+        # show the prompt
         prompt_text = "LMN> " if first_line else "... "
         prompt = f"{Fore.CYAN}{prompt_text}{Style.RESET_ALL}"
 
         try:
+            # get the input
             line = input(prompt)
         except EOFError:
             print(f"\n{Fore.CYAN}Exiting LMN. Goodbye!{Style.RESET_ALL}")
@@ -43,18 +48,25 @@ def main():
 
         # Check commands
         if line.strip() == "?":
+            # show help
             show_help()
             continue
 
         if line.strip().lower() in ("quit", "exit"):
+            # quit
             print(f"{Fore.CYAN}Exiting LMN. Goodbye!{Style.RESET_ALL}")
             break
 
         if line.strip().lower() == "clear":
+            # clear screen
             clear_screen()
+
+            # reshow ascii banner
             print(ascii_banner)
             print(f"LMN Language Playground  {Fore.WHITE}v0.9.0 (2024-12-01){Style.RESET_ALL}")
             print("Type \"?\" for help or \"quit\"/\"exit\" to leave.\n")
+
+            # clear the buffer
             accumulated_code.clear()
             code_buffer.clear()
             print(f"{Fore.YELLOW}(Cleared screen and reset entire code session){Style.RESET_ALL}\n")
@@ -123,7 +135,7 @@ def compile_and_run(code: str):
     memory_ref = [None]
 
     # 3) Define host functions with memory_ref
-    define_host_functions_capture_output(linker, store, output_lines, memory_ref=memory_ref)
+    initialize_host_functions(linker, store, output_lines, memory_ref=memory_ref)
 
     # 4) Instantiate
     try:
@@ -145,8 +157,10 @@ def compile_and_run(code: str):
 
     return output_lines
 
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
+
 
 def show_help():
     print(f"{Fore.GREEN}\nLMN Playground Help (Accumulate & Recompile){Style.RESET_ALL}")
@@ -155,6 +169,7 @@ def show_help():
     print(" - If you define strings, you can see them as raw text in the output.")
     print(" - 'clear' resets everything (including variables).")
     print(" - 'quit' or 'exit' ends this session.\n")
+
 
 if __name__ == "__main__":
     main()

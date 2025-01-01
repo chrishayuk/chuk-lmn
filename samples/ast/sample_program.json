@@ -3,6 +3,87 @@
   "body": [
     {
       "type": "FunctionDefinition",
+      "name": "factorial",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "n"
+        }
+      ],
+      "body": [
+        {
+          "type": "IfStatement",
+          "condition": {
+            "type": "BinaryExpression",
+            "operator": "<=",
+            "left": {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            "right": {
+              "type": "LiteralExpression",
+              "value": 1,
+              "literal_type": "int"
+            }
+          },
+          "thenBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "LiteralExpression",
+                "value": 1,
+                "literal_type": "int"
+              }
+            }
+          ],
+          "elseifClauses": [],
+          "elseBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "n"
+                },
+                "right": {
+                  "type": "FnExpression",
+                  "name": {
+                    "type": "VariableExpression",
+                    "name": "factorial"
+                  },
+                  "arguments": [
+                    {
+                      "type": "AssignmentExpression",
+                      "left": {
+                        "type": "VariableExpression",
+                        "name": "n"
+                      },
+                      "right": {
+                        "type": "BinaryExpression",
+                        "operator": "-",
+                        "left": {
+                          "type": "VariableExpression",
+                          "name": "n"
+                        },
+                        "right": {
+                          "type": "LiteralExpression",
+                          "value": 1,
+                          "literal_type": "int"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
       "name": "main",
       "params": [],
       "body": [
@@ -10,40 +91,12 @@
           "type": "LetStatement",
           "variable": {
             "type": "VariableExpression",
-            "name": "poem"
+            "name": "x"
           },
           "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "type": "AssignmentExpression",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "prompt"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": "Write me a short poem about the sunrise.",
-                  "literal_type": "string"
-                }
-              },
-              {
-                "type": "AssignmentExpression",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "model"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": "gpt-4",
-                  "literal_type": "string"
-                }
-              }
-            ]
+            "type": "LiteralExpression",
+            "value": 5,
+            "literal_type": "int"
           }
         },
         {
@@ -51,78 +104,37 @@
           "expressions": [
             {
               "type": "LiteralExpression",
-              "value": "=== Poem about Sunrise ===",
+              "value": "Factorial of",
               "literal_type": "string"
             },
             {
               "type": "VariableExpression",
-              "name": "poem"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "story"
-          },
-          "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
+              "name": "x"
             },
-            "arguments": [
-              {
-                "type": "AssignmentExpression",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "prompt"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": "Tell me a short, funny story involving a cat and a mailbox.",
-                  "literal_type": "string"
-                }
-              },
-              {
-                "type": "AssignmentExpression",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "model"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": "gpt-4",
-                  "literal_type": "string"
-                }
-              },
-              {
-                "type": "AssignmentExpression",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "temperature"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 0.8,
-                  "literal_type": "double"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
             {
               "type": "LiteralExpression",
-              "value": "=== Funny Story ===",
+              "value": "is",
               "literal_type": "string"
             },
             {
-              "type": "VariableExpression",
-              "name": "story"
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "n"
+                  },
+                  "right": {
+                    "type": "VariableExpression",
+                    "name": "x"
+                  }
+                }
+              ]
             }
           ]
         }

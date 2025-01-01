@@ -1,17 +1,15 @@
-# file: 10_llm_integration.lmn
-function main()
-    # Call the LLM with a simple prompt
-    let poem = llm(
-        prompt = "Write me a short poem about the sunrise.",
-        model  = "gpt-4"
-    )
-    print "=== Poem about Sunrise ===" poem
+# Computes n! recursively
+function factorial(n)
+  # If n <= 1, return 1
+  if (n <= 1)
+    return 1
+  else
+    # Otherwise, n * factorial(n - 1)
+    return n * factorial(n - 1)
+  end
+end
 
-    # Another example: ask for a quick story
-    let story = llm(
-        prompt       = "Tell me a short, funny story involving a cat and a mailbox.",
-        model        = "gpt-4",
-        temperature  = 0.8
-    )
-    print "=== Funny Story ===" story
+function main()
+  let x = 5
+  print "Factorial of" x "is" factorial(n)
 end

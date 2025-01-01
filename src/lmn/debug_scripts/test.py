@@ -3,7 +3,7 @@ import wasmtime
 import ctypes
 
 # Use your host functions snippet (capture_output) so LMN's print i32/string/json, etc. works:
-from lmn.runtime.host_functions import define_host_functions_capture_output
+from lmn.runtime.host.host_functions import define_host_functions_capture_output
 # The compiler pipeline:
 from lmn.compiler.pipeline import compile_code_to_wat
 
