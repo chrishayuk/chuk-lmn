@@ -1,26 +1,43 @@
-# file: src/lmn/runtime/llm_block.py
-
+# src/lmn/runtime/wasm_runner.py
 import logging
 import wasmtime
-
-# Import necessary modules
 from lmn.compiler.pipeline import compile_code_to_wat
-from lmn.runtime.host.host_initializer import initialize_host_functions  # Updated import
+from lmn.runtime.host.host_initializer import initialize_host_functions
 
-def run_lmn_block(code: str) -> list[str]:
+def create_environment():
     """
-    Compiles and runs a block of LMN code in a fresh Wasmtime environment,
-    capturing any output from the LMN host functions.
+    Creates a reusable Wasmtime environment.
+    """
+    engine = wasmtime.Engine()
+    store = wasmtime.Store(engine)
+    linker = wasmtime.Linker(engine)
+    memory_ref = [None]
+    output_lines = []
+    initialize_host_functions(linker, store, output_lines, memory_ref=memory_ref)
+    return {"engine": engine, "store": store, "linker": linker, "memory_ref": memory_ref, "output_lines": output_lines}
 
-    This version uses a two-step approach so that if LMN calls 'print_string(ptr)',
-    we have attached the WASM memory reference, and can read actual string content.
+def run_wasm(code: str, env: dict = None) -> list[str]:
+    """
+    Compiles and runs LMN code using a Wasmtime environment.
+    If an environment is provided, it reuses the same engine, store, and linker.
 
     :param code: LMN source code to compile and run.
-    :return: A list of strings representing everything 'printed' by the code.
+    :param env: A reusable Wasmtime environment.
+    :return: A list of strings representing output from the code execution.
     """
-    output_lines = []
+    if not env:
+        env = create_environment()
 
-    # 1) Compile LMN => WAT => WASM
+    engine = env["engine"]
+    store = env["store"]
+    linker = env["linker"]
+    memory_ref = env["memory_ref"]
+    output_lines = env["output_lines"]
+
+    # Clear previous output
+    output_lines.clear()
+
+    # Compile LMN code to WASM
     try:
         wat_text, wasm_bytes = compile_code_to_wat(
             code,
@@ -36,20 +53,7 @@ def run_lmn_block(code: str) -> list[str]:
         logging.error("No WASM produced. Ensure 'wat2wasm' is available.")
         return ["No WASM produced (wat2wasm missing?)."]
 
-    # 2) Set up Wasmtime runtime
-    engine = wasmtime.Engine()
-    store = wasmtime.Store(engine)
-    linker = wasmtime.Linker(engine)
-    logging.debug("Wasmtime engine, store, and linker initialized.")
-
-    # A small mutable reference that host functions will use to read from memory
-    memory_ref = [None]
-
-    # 3) Define host functions that capture LMN prints, referencing memory_ref
-    initialize_host_functions(linker, store, output_lines, memory_ref=memory_ref)
-    logging.debug("Host functions initialized and linked.")
-
-    # 4) Instantiate the module
+    # Instantiate WASM module
     try:
         module = wasmtime.Module(engine, wasm_bytes)
         instance = linker.instantiate(store, module)
@@ -58,7 +62,7 @@ def run_lmn_block(code: str) -> list[str]:
         logging.error(f"Instantiation error: {e}")
         return [f"Instantiation error: {e}"]
 
-    # 5) Attach the memory export if present
+    # Attach memory export if available
     mem_export = instance.exports(store).get("memory")
     if mem_export is not None:
         memory_ref[0] = mem_export
@@ -66,7 +70,7 @@ def run_lmn_block(code: str) -> list[str]:
     else:
         logging.warning("No memory export found in the WASM module.")
 
-    # 6) Call __top_level__ if present
+    # Call __top_level__ function if present
     try:
         exports = instance.exports(store)
         top_func = exports.get("__top_level__")
@@ -77,7 +81,7 @@ def run_lmn_block(code: str) -> list[str]:
         else:
             logging.warning("'__top_level__' function not found in the WASM module.")
     except Exception as e:
-        logging.error(f"Error during '__top_level__' execution: {e}")
+        logging.error(f"Runtime error during '__top_level__' execution: {e}")
         return [f"Runtime error: {e}"]
 
     return output_lines

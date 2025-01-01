@@ -3,13 +3,11 @@
 import os
 import logging
 import colorama
-import wasmtime
 from colorama import Fore, Style
 
 # lmn modules
 from lmn.cli.utils.banner import get_ascii_banner
-from lmn.compiler.pipeline import compile_code_to_wat
-from lmn.runtime.host.host_initializer import initialize_host_functions  # Updated import
+from lmn.runtime.wasm_runner import run_wasm, create_environment
 
 # setup logging
 logging.basicConfig(
@@ -17,6 +15,8 @@ logging.basicConfig(
     format="%(levelname)s - %(name)s - %(message)s"
 )
 
+# Initialize environment at the start of the REPL session
+env = create_environment()
 
 def main():
     # setup colorama
@@ -105,58 +105,7 @@ def main():
 
 
 def compile_and_run(code: str):
-    """
-    Compile + run the entire LMN session code in a fresh environment,
-    capturing output lines via define_host_functions_capture_output,
-    and properly setting memory_ref so string pointers can be read.
-    """
-
-    output_lines = []
-
-    # 1) Compile
-    try:
-        wat_text, wasm_bytes = compile_code_to_wat(
-            code,
-            also_produce_wasm=True,
-            import_memory=False
-        )
-    except Exception as e:
-        return [f"Compilation error: {e}"]
-
-    if not wasm_bytes:
-        return ["No WASM produced (wat2wasm missing?)."]
-
-    # 2) Fresh Wasmtime environment
-    engine = wasmtime.Engine()
-    store = wasmtime.Store(engine)
-    linker = wasmtime.Linker(engine)
-
-    # The memory reference we'll set after instantiation
-    memory_ref = [None]
-
-    # 3) Define host functions with memory_ref
-    initialize_host_functions(linker, store, output_lines, memory_ref=memory_ref)
-
-    # 4) Instantiate
-    try:
-        module = wasmtime.Module(engine, wasm_bytes)
-        instance = linker.instantiate(store, module)
-    except Exception as e:
-        return [f"Instantiation error: {e}"]
-
-    # 5) Attach the memory export
-    mem = instance.exports(store).get("memory")
-    if mem is not None:
-        memory_ref[0] = mem
-
-    # 6) Call __top_level__ if present
-    exports = instance.exports(store)
-    top_func = exports.get("__top_level__")
-    if top_func:
-        top_func(store)
-
-    return output_lines
-
+    return run_wasm(code, env=env)
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# src/lmn/cli/ast_wasm_lowerer..py
+# src/lmn/cli/ast_wasm_lowerer.py
 import sys
 import os
 import json

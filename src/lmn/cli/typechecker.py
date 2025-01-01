@@ -6,6 +6,7 @@ import json
 import argparse
 import logging
 
+# Import necessary modules
 from lmn.compiler.ast.program import Program
 from lmn.compiler.typechecker.ast_type_checker import type_check_program
 from lmn.compiler.typechecker.program_checker import ProgramChecker
