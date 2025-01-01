@@ -55,6 +55,8 @@ class FunctionDefinitionParser:
                 LmnTokenType.LONG,
                 LmnTokenType.FLOAT,
                 LmnTokenType.DOUBLE,
+                LmnTokenType.STRING_TYPE,
+                LmnTokenType.JSON_TYPE
             ]
 
             if (

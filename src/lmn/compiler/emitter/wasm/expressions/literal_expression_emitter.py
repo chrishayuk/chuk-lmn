@@ -35,7 +35,11 @@ class LiteralExpressionEmitter:
           }
         """
         inferred_t = node.get("inferred_type", "")
-        literal_value = str(node["value"]).strip()
+        
+        # ----------------------------
+        # Removed `.strip()` to preserve spaces
+        # ----------------------------
+        literal_value = str(node["value"])
 
         logger.debug(
             "LiteralExpressionEmitter.emit() -> literal_value=%r, inferred_type=%s",
@@ -51,7 +55,8 @@ class LiteralExpressionEmitter:
             self._emit_numeric_literal(inferred_t, literal_value, out_lines)
 
         # (B) If it's a recognized pointer/string type => store in data segment
-        elif inferred_t in ("i32_string", "i32_ptr", "i32_json", "i32_string_array", "i32_json_array"):
+        elif inferred_t in ("i32_string", "i32_ptr", "i32_json", 
+                            "i32_string_array", "i32_json_array"):
             logger.debug("Non-numeric literal => store in data segment => push pointer offset")
             offset = self.controller._add_data_segment(literal_value)
             out_lines.append(f"  i32.const {offset}")

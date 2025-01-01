@@ -324,28 +324,22 @@ class WasmEmitter:
     # -------------------------------------------------------------------------
     def _wasm_basetype(self, t: str) -> str:
         pointer_types = {
-            "i32_ptr",
-            "i64_ptr",
-            "f32_ptr",
-            "f64_ptr",
-            "i32_json",
-            "i32_json_array",
-            "i32_string",
-            "i32_string_array",
-            # Add any new pointer-based or lowered type that is stored in i32
+            "i32_ptr", "i64_ptr", "f32_ptr", "f64_ptr",
+            "i32_json", "i32_json_array",
+            "i32_string", "i32_string_array",
+            # etc.
         }
         if t in pointer_types:
             return "i32"
 
-        # Map basic types directly
         basic_type_map = {
-            "int": "i32", "i32": "i32",
+            "int": "i32",  "i32": "i32",
             "long": "i64", "i64": "i64",
-            "float": "f32", "f32": "f32",
-            "double": "f64", "f64": "f64",
-            # If you have special lowerings for others, add them here
+            "float": "f32","f32": "f32",
+            "double":"f64","f64": "f64",
         }
-        return basic_type_map.get(t, "i32")  # Default fallback
+        return basic_type_map.get(t, "i32")  # fallback
+
 
 
 

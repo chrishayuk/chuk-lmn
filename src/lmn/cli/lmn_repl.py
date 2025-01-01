@@ -70,15 +70,27 @@ def main():
                 # Accumulate + run everything
                 accumulated_code.append(snippet)
                 full_code = "\n\n".join(accumulated_code)
-                
+
                 outputs = compile_and_run(full_code)
-                for out_line in outputs:
-                    print(f"{Fore.CYAN}{out_line}{Style.RESET_ALL}")
+
+                # ------------------------------------------------
+                # NEW LOGIC: Join the outputs on one line
+                # ------------------------------------------------
+                cleaned = [item.strip() for item in outputs if item.strip()]
+                single_line = " ".join(cleaned).strip()
+
+                # Optional: filter out trailing "0" if you don't want function return
+                if single_line.endswith(" 0"):
+                    single_line = single_line[:-2].strip()
+
+                if single_line:
+                    print(f"{Fore.CYAN}{single_line}{Style.RESET_ALL}")
 
             first_line = True
         else:
             code_buffer.append(line)
             first_line = False
+
 
 def compile_and_run(code: str):
     """
@@ -140,7 +152,7 @@ def show_help():
     print(f"{Fore.GREEN}\nLMN Playground Help (Accumulate & Recompile){Style.RESET_ALL}")
     print(" - Type multi-line code, then press Enter on an empty line to run.")
     print(" - We recompile the entire session each time, so variables persist across snippets.")
-    print(" - If you define strings, you can now see them as 'string => ...' in the output.")
+    print(" - If you define strings, you can see them as raw text in the output.")
     print(" - 'clear' resets everything (including variables).")
     print(" - 'quit' or 'exit' ends this session.\n")
 

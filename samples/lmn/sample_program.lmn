@@ -1,146 +1,61 @@
-# file: samples/lmn/type_inferred_arrays_test.lmn
+# test_functions.lmn
 
-# -----------------------------------------------------
-# 1) Mixed typed and inferred scalars
-# -----------------------------------------------------
-let typedInt:int = 42
-print typedInt
+# -------------------------
+# 1) Implicitly typed function
+# -------------------------
+function add(a, b)
+    # Return the sum of 'a' and 'b'
+    return a + b
+end
 
-let inferredInt = 100
-print inferredInt
+# -------------------------
+# 2) Type-annotated function
+#    factorial(n: int) -> int
+# -------------------------
+function factorial(n: int) : int
+    # If n <= 1, return 1
+    if n <= 1
+        return 1
+    else
+        # Otherwise, factorial(n) = n * factorial(n - 1)
+        return n * factorial(n - 1)
+    end
+end
 
-let typedFloat:float = 3.14
-print typedFloat
+# -------------------------
+# 3) Type-annotated function returning a string
+# -------------------------
+function even_or_odd(x: int) : string
+    # Use modulo to check if x is even or odd
+    if (x % 2) == 0
+        return "even"
+    else
+        return "odd"
+    end
+end
 
-let inferredFloat = 2.71828
-print inferredFloat
+# -------------------------
+# 4) Main function (with type annotation)
+#    main() -> int
+# -------------------------
+function main() : int
+    # 4.1) Use 'add' (implicitly typed) to add two numbers
+    let x = 3
+    let y = 5
+    print "add(" x "," y ") = " add(x, y)
 
-let typedDouble:double = 123.456
-print typedDouble
+    # 4.2) Test the type-annotated 'factorial' function
+    let n = 5
+    print "factorial(" n ") = " factorial(n)
 
-let inferredDouble = 0.000123
-print inferredDouble
+    # 4.3) Show if a number is even or odd using 'even_or_odd'
+    let z = 10
+    print z " is " even_or_odd(z)
 
-let typedLong:long = 12345678901
-print typedLong
+    # 4.4) Another quick check on an odd input
+    let w = 7
+    print w " is " even_or_odd(w)
 
-let inferredLong = 98765432100
-print inferredLong
-
-
-# -----------------------------------------------------
-# 2) Arrays of each scalar type, both typed and inferred
-# -----------------------------------------------------
-
-# 2a) int array
-let typedIntArray:int[] = [ 1, 2, 3, 4 ]
-print "Typed int array:" typedIntArray
-
-let inferredIntArray = [ 10, 20, 30 ]
-print "Inferred int array:" inferredIntArray
-
-# 2b) float array
-let typedFloatArray:float[] = [ 1.5, 2.25, 3.75 ]
-print "Typed float array:" typedFloatArray
-
-let inferredFloatArray = [ 0.5, 0.75, 0.95 ]
-print "Inferred float array:" inferredFloatArray
-
-# 2c) double array
-let typedDoubleArray:double[] = [ 10.1, 20.2, 30.3 ]
-print "Typed double array:" typedDoubleArray
-
-let inferredDoubleArray = [ 9.9999, 88.8888, 777.7777 ]
-print "Inferred double array:" inferredDoubleArray
-
-# 2d) long array
-let typedLongArray:long[] = [ 10000000000, 20000000000, 30000000000 ]
-print "Typed long array:" typedLongArray
-
-let inferredLongArray = [ 11111111111, 22222222222, 33333333333 ]
-print "Inferred long array:" inferredLongArray
-
-# # 2e) 2D array of int
-# let typedMatrix:int[][] = [
-#     [ 1, 2 ],
-#     [ 3, 4 ]
-# ]
-# print "Typed 2D int array:" typedMatrix
-
-# let inferredMatrix = [
-#     [ 10, 20 ],
-#     [ 30, 40 ],
-#     [ 50, 60 ]
-# ]
-# print "Inferred 2D int array:" inferredMatrix
-
-
-# -----------------------------------------------------
-# 3) Strings
-# -----------------------------------------------------
-
-# 3a) single string
-let typedString:string = "Hello from typed string!"
-print typedString
-
-let inferredString = "Hello from inferred string!"
-print inferredString
-
-# 3b) array of strings
-let typedStringArray:string[] = [ "Alice", "Bob", "Carol" ]
-print "Typed string array:" typedStringArray
-
-let inferredStringArray = [ "X", "Y", "Z" ]
-print "Inferred string array:" inferredStringArray
-
-
-# -----------------------------------------------------
-# 4) JSON
-# -----------------------------------------------------
-
-# 4a) single JSON object
-let typedJson:json = { "foo": "bar", "count": 42 }
-print "Typed single JSON:" typedJson
-
-let inferredJson = { "hello": "world", "value": 999 }
-print "Inferred single JSON:" inferredJson
-
-# 4b) array of JSON objects
-let typedJsonArray:json[] = [
-    { "id": 1, "active": true },
-    { "id": 2, "active": false }
-]
-print "Typed JSON array:" typedJsonArray
-
-let inferredJsonArray = [
-    { "planet": "Earth", "population": 8000000000 },
-    { "planet": "Mars",  "population": 0 }
-]
-print "Inferred JSON array:" inferredJsonArray
-
-# 4c) Nested JSON with arrays inside
-let typedNestedJson:json = {
-    "departments": [
-        {
-            "name": "Engineering",
-            "members": [ "Alice", "Bob" ]
-        },
-        {
-            "name": "Design",
-            "members": [ "Carol", "Dave" ]
-        }
-    ],
-    "location": "HQ"
-}
-print "Typed nested JSON:" typedNestedJson
-
-let inferredNestedJson = {
-    "metadata": {
-        "version": 1,
-        "tags": ["inferred", "test"]
-    },
-    "data": {
-        "items": [ 10, 20, 30 ]
-    }
-}
-print "Inferred nested JSON:" inferredNestedJson
+    # Return 0 from main
+    return 0
+end

@@ -169,24 +169,29 @@ def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> s
 
     # Non-assignment => pick the 'larger' type
     result_type = unify_types(left_type, right_type, for_assignment=False)
+    bin_expr.inferred_type = result_type
 
-    # Insert ConversionExpression if mismatch
-    if left_type != result_type:
+    # ------------------------------------------------------
+    # Only build a ConversionExpression if both from_type and
+    # to_type are valid strings (i.e., not None) and differ.
+    # ------------------------------------------------------
+
+    if left_type is not None and result_type is not None and left_type != result_type:
         bin_expr.left = ConversionExpression(
             source_expr=bin_expr.left,
             from_type=left_type,
             to_type=result_type
         )
 
-    if right_type != result_type:
+    if right_type is not None and result_type is not None and right_type != result_type:
         bin_expr.right = ConversionExpression(
             source_expr=bin_expr.right,
             from_type=right_type,
             to_type=result_type
         )
 
-    bin_expr.inferred_type = result_type
     return result_type
+
 
 # -------------------------------------------------------------------------
 # 6) UnaryExpression

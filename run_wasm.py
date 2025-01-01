@@ -180,7 +180,7 @@ def parse_i32_string_array(store, memory, offset):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run a WebAssembly module with Wasmtime and call its '__top_level__' if 'main' not found."
+        description="Run a WebAssembly module with Wasmtime and call 'main' or '__top_level__'."
     )
     parser.add_argument("wasm_file", help="Path to the .wasm file.")
     args = parser.parse_args()
@@ -198,94 +198,95 @@ def main():
     # ========================
     #   Host print functions
     # ========================
+    #
+    # Change `print(..., end="")` to avoid automatic newlines.
+    # LMN code must now print "\n" explicitly if it wants a line break.
 
     def host_print_i32(x):
-        print(f"i32: {x}")
+        print(x, end="")
 
     def host_print_i64(x):
-        print(f"i64: {x}")
+        print(x, end="")
 
     def host_print_f32(x):
-        print(f"f32: {x}")
+        print(x, end="")
 
     def host_print_f64(x):
-        print(f"f64: {x}")
+        print(x, end="")
 
     def host_print_string(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         text = read_utf8_string(store, mem, ptr)
-        print(f"string: {text}")
+        print(text, end="")
 
     def host_print_json(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         text = read_utf8_string(store, mem, ptr)
-        print(f"json: {text}")
+        print(text, end="")
 
     def host_print_i32_array(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         elements = parse_i32_array(store, mem, ptr)
-        print(f"array => {elements}")
+        print(elements, end="")
 
     def host_print_i64_array(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         elements = parse_i64_array(store, mem, ptr)
-        print(f"array => {elements}")
+        print(elements, end="")
 
     def host_print_f32_array(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         elements = parse_f32_array(store, mem, ptr)
-        print(f"array => {elements}")
+        print(elements, end="")
 
     def host_print_f64_array(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         elements = parse_f64_array(store, mem, ptr)
-        print(f"array => {elements}")
+        print(elements, end="")
 
-    # *** NEW: print_string_array
     def host_print_string_array(ptr):
         mem = memory_ref[0]
         if mem is None:
-            print(f"<no memory, pointer={ptr}>")
+            print(f"<no memory, pointer={ptr}>", end="")
             return
         strings = parse_i32_string_array(store, mem, ptr)
-        print(f"string array => {strings}")
+        print(strings, end="")
 
     # ===============================
     #   Link the host functions
     # ===============================
-    # We define a helper for easy i32 param => no return
     func_type_i32 = wasmtime.FuncType([wasmtime.ValType.i32()], [])
     func_type_i64 = wasmtime.FuncType([wasmtime.ValType.i64()], [])
     func_type_f32 = wasmtime.FuncType([wasmtime.ValType.f32()], [])
     func_type_f64 = wasmtime.FuncType([wasmtime.ValType.f64()], [])
 
     # numeric scalars
-    linker.define(store, "env", "print_i32",  wasmtime.Func(store, func_type_i32, host_print_i32))
-    linker.define(store, "env", "print_i64",  wasmtime.Func(store, func_type_i64, host_print_i64))
-    linker.define(store, "env", "print_f32",  wasmtime.Func(store, func_type_f32, host_print_f32))
-    linker.define(store, "env", "print_f64",  wasmtime.Func(store, func_type_f64, host_print_f64))
+    linker.define(store, "env", "print_i32", wasmtime.Func(store, func_type_i32, host_print_i32))
+    linker.define(store, "env", "print_i64", wasmtime.Func(store, func_type_i64, host_print_i64))
+    linker.define(store, "env", "print_f32", wasmtime.Func(store, func_type_f32, host_print_f32))
+    linker.define(store, "env", "print_f64", wasmtime.Func(store, func_type_f64, host_print_f64))
 
     # textual
     linker.define(store, "env", "print_string", wasmtime.Func(store, func_type_i32, host_print_string))
-    linker.define(store, "env", "print_json",   wasmtime.Func(store, func_type_i32, host_print_json))
+    linker.define(store, "env", "print_json", wasmtime.Func(store, func_type_i32, host_print_json))
 
     # typed arrays
     linker.define(store, "env", "print_i32_array", wasmtime.Func(store, func_type_i32, host_print_i32_array))
@@ -293,7 +294,7 @@ def main():
     linker.define(store, "env", "print_f32_array", wasmtime.Func(store, func_type_i32, host_print_f32_array))
     linker.define(store, "env", "print_f64_array", wasmtime.Func(store, func_type_i32, host_print_f64_array))
 
-    # *** Link string array print
+    # string array
     linker.define(store, "env", "print_string_array",
                   wasmtime.Func(store, func_type_i32, host_print_string_array))
 
@@ -314,11 +315,11 @@ def main():
     if main_func is not None:
         print("Found 'main' export, calling it now.")
         result = main_func(store)
-        print(f"'main' returned: {result}")
+        print(f"\n'main' returned: {result}")  # \n here for a clean line
     elif top_level_func is not None:
         print("No 'main' found, calling '__top_level__' instead.")
         result = top_level_func(store)
-        print(f"'__top_level__' returned: {result}")
+        print(f"\n'__top_level__' returned: {result}")
     else:
         print("Error: Neither 'main' nor '__top_level__' was found in module exports.")
 

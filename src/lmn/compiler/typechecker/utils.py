@@ -122,15 +122,17 @@ def unify_types(t1: Optional[str], t2: Optional[str], for_assignment: bool = Fal
 
     logger.debug(f"Unifying types t1={t1}, t2={t2}, assignment={for_assignment}")
 
-    # 1) Both None => default "int"
+    # 1) Both None => default to "int"
     if t1 is None and t2 is None:
-        return "int"
+        return "int"  
+        # Or raise an error if you want to forbid two unknowns:
+        # raise TypeError("Cannot unify 'None' with 'None'")
 
     # 2) If one is None => pick the other
     if t1 is None:
-        return t2
+        return t2  # guaranteed not None
     if t2 is None:
-        return t1
+        return t1  # guaranteed not None
 
     # 3) If either is 'json', unify to 'json' in non-assignment contexts
     #    For assignment, we check can_assign_to or attempt promotions.
@@ -158,6 +160,18 @@ def unify_types(t1: Optional[str], t2: Optional[str], for_assignment: bool = Fal
             return t2
 
     else:
+        # 4) for_assignment == True
+        #    We want to see if 't2' (RHS) can be assigned to 't1' (LHS).
+        if can_assign_to(t2, t1):
+            logger.debug(f"Assignment {t2} -> {t1} allowed; staying {t1}")
+            return t1
+        if can_assign_to(t1, t2):
+            # promote variable from t1 -> t2
+            logger.debug(f"Promoting variable from {t1} -> {t2}")
+            return t2
+
+        raise TypeError(f"Cannot unify assignment: {t2} -> {t1}")
+
         # 4) for_assignment == True
         #    We want to see if 't2' (RHS) can be assigned to 't1' (LHS).
         if can_assign_to(t2, t1):

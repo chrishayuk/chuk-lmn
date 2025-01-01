@@ -5,8 +5,9 @@ import struct
 
 def read_utf8_string(store, memory, offset, max_len=200):
     """
-    Reads a UTF-8 string from 'memory' starting at 'offset', stopping at a null byte
-    or after max_len bytes. Returns the decoded Python string.
+    Reads a UTF-8 string from 'memory' starting at 'offset',
+    stopping at a null byte or after max_len bytes.
+    Returns the decoded Python string.
     """
     mem_data = memory.data_ptr(store)
     mem_size = memory.data_len(store)
@@ -171,88 +172,93 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
                                          memory_ref=None):
     """
     Defines host functions that capture output into a provided list (e.g. for REPL).
-    This includes numeric scalars, strings, JSON, typed arrays, and string arrays.
+    Instead of printing each sub-expression with a newline or prefix, we store
+    them as raw strings or numbers so they can appear on the same line in the REPL.
     """
 
     # ------------------------------
     # 1) Numeric scalars
     # ------------------------------
     def host_print_i32(x):
-        output_list.append(f"i32: {x}")
+        # Instead of: output_list.append(f"i32: {x}")
+        # Use str(x) to preserve the numeric value without a newline
+        output_list.append(str(x))
 
     def host_print_i64(x):
-        output_list.append(f"i64: {x}")
+        output_list.append(str(x))
 
     def host_print_f32(x):
-        output_list.append(f"f32: {x}")
+        output_list.append(str(x))
 
     def host_print_f64(x):
-        output_list.append(f"f64: {x}")
+        output_list.append(str(x))
 
     # ------------------------------
     # 2) Memory-based strings / JSON
     # ------------------------------
     def host_print_string(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"string ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         s = read_utf8_string(store, mem, ptr)
-        output_list.append(f"string: {s}")
+        # No prefix => store raw string
+        output_list.append(s)
 
     def host_print_json(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"json ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         s = read_utf8_string(store, mem, ptr)
-        output_list.append(f"json: {s}")
+        output_list.append(s)
 
     # ------------------------------
     # 3) Typed arrays (numeric)
     # ------------------------------
     def host_print_i32_array(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"i32 array ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         elements = parse_i32_array(store, mem, ptr)
-        output_list.append(f"i32 array: {elements}")
+        # Store as a Python list string: "[1, 2, 3]"
+        output_list.append(str(elements))
 
     def host_print_i64_array(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"i64 array ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         elements = parse_i64_array(store, mem, ptr)
-        output_list.append(f"i64 array: {elements}")
+        output_list.append(str(elements))
 
     def host_print_f32_array(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"f32 array ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         elements = parse_f32_array(store, mem, ptr)
-        output_list.append(f"f32 array: {elements}")
+        output_list.append(str(elements))
 
     def host_print_f64_array(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"f64 array ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         elements = parse_f64_array(store, mem, ptr)
-        output_list.append(f"f64 array: {elements}")
+        output_list.append(str(elements))
 
     # ------------------------------
     # 4) String array (i32_string_array)
     # ------------------------------
     def host_print_string_array(ptr):
         if not memory_ref or memory_ref[0] is None:
-            output_list.append(f"string array ptr={ptr}")
+            output_list.append(f"<no memory> ptr={ptr}")
             return
         mem = memory_ref[0]
         elements = parse_i32_string_array(store, mem, ptr)
-        output_list.append(f"string array => {elements}")
+        output_list.append(str(elements))
 
     # ===============================
     # Linker definitions
@@ -262,19 +268,19 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
     func_type_f32  = wasmtime.FuncType([wasmtime.ValType.f32()], [])
     func_type_f64  = wasmtime.FuncType([wasmtime.ValType.f64()], [])
 
-    # Scalar prints
+    # 1) Scalar prints
     linker.define(store, "env", "print_i32",  wasmtime.Func(store, func_type_i32, host_print_i32))
     linker.define(store, "env", "print_i64",  wasmtime.Func(store, func_type_i64, host_print_i64))
     linker.define(store, "env", "print_f32",  wasmtime.Func(store, func_type_f32, host_print_f32))
     linker.define(store, "env", "print_f64",  wasmtime.Func(store, func_type_f64, host_print_f64))
 
-    # Memory-based prints
+    # 2) Memory-based prints
     linker.define(store, "env", "print_string",
                   wasmtime.Func(store, func_type_i32, host_print_string))
     linker.define(store, "env", "print_json",
                   wasmtime.Func(store, func_type_i32, host_print_json))
 
-    # Numeric arrays
+    # 3) Numeric arrays
     linker.define(store, "env", "print_i32_array",
                   wasmtime.Func(store, func_type_i32, host_print_i32_array))
     linker.define(store, "env", "print_i64_array",
@@ -284,6 +290,6 @@ def define_host_functions_capture_output(linker: wasmtime.Linker,
     linker.define(store, "env", "print_f64_array",
                   wasmtime.Func(store, func_type_i32, host_print_f64_array))
 
-    # String array
+    # 4) String array
     linker.define(store, "env", "print_string_array",
                   wasmtime.Func(store, func_type_i32, host_print_string_array))
