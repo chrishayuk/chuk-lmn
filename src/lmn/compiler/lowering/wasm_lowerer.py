@@ -1,177 +1,198 @@
 # file: lmn/compiler/lowering/wasm_lowerer.py
 
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
-#
-# 1) Mapping from language-level types (including typed arrays, JSON, etc.)
-#    to WASM-level or pointer-level types.
-#
-#    - "int" => "i32"
-#    - "float" => "f32"
-#    - "double" => "f64"
-#    - "int[]", "float[]" => e.g. "i32_ptr", "f32_ptr"
-#    - "string[]" => "i32_ptr" (assuming you store strings in memory)
-#    - "json" => "i32_json" (or "i32" if you prefer)
-#    - "array" => "i32_ptr" for advanced bracket-literals
-#
-LANG_TO_WASM_MAP: Dict[str, str] = {
+##############################################################################
+# 1) Mappings from language-level types to WASM-level (or pointer-level) types
+##############################################################################
+
+# For single (non-array) scalars:
+LANG_TO_WASM_SCALARS: Dict[str, str] = {
     "int":      "i32",
     "long":     "i64",
     "float":    "f32",
     "double":   "f64",
 
-    # For typed arrays:
-    "int[]":    "i32_ptr",   # handle/pointer to an int array
-    "long[]":   "i64_ptr",
-    "float[]":  "f32_ptr",
-    "double[]": "f64_ptr",
-    "string[]": "i32_ptr",   # or "string_ptr", if your runtime differs
+    # You can treat "string" as an i32 pointer or keep it distinct:
+    "string":   "i32_string",
 
-    # For JSON objects/arrays you can store as references too:
+    # JSON objects as i32 pointers:
     "json":     "i32_json",
-    "array":    "i32_ptr",
+}
 
-    # IMPORTANT: Add this so single "string" is lowered to a pointer type, not i32
-    "string":   "string",
+# For typed arrays or generic "array":
+LANG_TO_WASM_ARRAYS: Dict[str, str] = {
+    "int[]":      "i32_ptr",
+    "long[]":     "i64_ptr",
+    "float[]":    "f32_ptr",
+    "double[]":   "f64_ptr",
+
+    # Strings in arrays:
+    "string[]":   "i32_string_array",
+
+    # JSON arrays:
+    "json[]":     "i32_json_array",
+
+    # If you have a generic "array" type:
+    "array":      "i32_ptr"
 }
 
 
+##############################################################################
+# 2) The function to map a single type name to its lowered WASM form
+##############################################################################
+
 def lower_type(lang_type: Optional[str]) -> str:
     """
-    Convert a single language-level type string to a WASM-level type or pointer type.
-    If unknown, default to 'i32'.
+    Convert a language-level type string (e.g. "int[]", "json", "string") 
+    to a WASM-level type (e.g. "i32_ptr", "i32_json", "i32_string").
+
+    If unknown, defaults to "i32".
     """
     if not lang_type:
-        # If None or empty => default to i32
-        return "i32"
+        return "i32"  # If no type is provided, default to i32
 
-    return LANG_TO_WASM_MAP.get(lang_type, "i32")
+    # 1. If the entire type matches something in the arrays map:
+    if lang_type in LANG_TO_WASM_ARRAYS:
+        return LANG_TO_WASM_ARRAYS[lang_type]
+
+    # 2. If the entire type matches something in the scalars map:
+    if lang_type in LANG_TO_WASM_SCALARS:
+        return LANG_TO_WASM_SCALARS[lang_type]
+
+    # 3. If it ends with "[]", but wasn't in our array map explicitly:
+    if lang_type.endswith("[]"):
+        base_type = lang_type[:-2]  # e.g. "string[]" => "string"
+        # If base_type is recognized as a scalar, produce a pointer form:
+        if base_type in LANG_TO_WASM_SCALARS:
+            # For demonstration, let's unify arrays to `_ptr` unless 
+            # we want a specialized name:
+            if base_type == "string":
+                return "i32_string_array"
+            elif base_type == "json":
+                return "i32_json_array"
+            else:
+                # e.g., base_type == "int" => "i32", so => "i32_ptr"
+                return LANG_TO_WASM_SCALARS[base_type] + "_ptr"
+        else:
+            # fallback: unknown array => i32_ptr
+            return "i32_ptr"
+
+    # 4. If nothing matches, fallback to i32
+    return "i32"
 
 
-def lower_program_to_wasm_types(program_node):
+##############################################################################
+# 3) The main lowering entry point for a Program node
+##############################################################################
+
+def lower_program_to_wasm_types(program_node: Any) -> None:
     """
-    Entry point for lowering the entire AST (program_node)
-    to WASM-friendly types. Typically, program_node.type == "Program".
+    Called on the top-level 'Program' node to recursively lower every statement.
+
+    :param program_node: The AST node representing the entire program.
+                        Typically it has a .body list of statements.
     """
-    # Suppose program_node.body is a list of top-level items (function defs, statements, etc.)
+    # We assume program_node.body is a list of top-level statements/functions
     for stmt in program_node.body:
         lower_node(stmt)
 
 
-def lower_node(node):
-    """
-    Recursively lower a single node (statement, expression, function, etc.)
-    by converting node.inferred_type / node.type_annotation to the WASM-level string.
+##############################################################################
+# 4) Recursively lower a single AST node
+##############################################################################
 
-    Then visits child nodes (like .body, .params, etc.) to do the same.
+def lower_node(node: Any) -> None:
+    """
+    Convert node.inferred_type / node.type_annotation to WASM-level strings,
+    then recurse into child nodes (expressions, body, etc.).
     """
 
-    # 1) If node has an inferred_type => map it to a WASM type
+    # 1) Lower the node's own inferred_type
     inferred = getattr(node, "inferred_type", None)
     if inferred is not None:
         node.inferred_type = lower_type(inferred)
 
-    # 2) If node has a type_annotation => map it
+    # 2) Lower the node's type_annotation, if present
     if hasattr(node, "type_annotation") and node.type_annotation:
         node.type_annotation = lower_type(node.type_annotation)
 
-    # 3) If node is a FunctionDefinition => handle return_type + param types
-    if node.type == "FunctionDefinition":
-        # If the node has return_type
-        if getattr(node, "return_type", None):
-            node.return_type = lower_type(node.return_type)
+    # 3) Recurse into child nodes / statements / expressions
 
-        # If the node has .params => each param has type_annotation
-        if hasattr(node, "params") and node.params:
-            for p in node.params:
-                if p.type_annotation is None:
-                    # default param => "int"
-                    p.type_annotation = "int"
-                p.type_annotation = lower_type(p.type_annotation)
-
-    # (4) Recurse into child statements/expressions
-
-    # If this is a block statement
-    if node.type == "BlockStatement":
-        # Recurse on node.statements
-        if hasattr(node, "statements") and node.statements:
-            for s in node.statements:
-                lower_node(s)
-
-    elif node.type == "LetStatement":
-        # let var ...
-        if node.variable:
+    # If it's a LetStatement => variable + expression
+    if node.type == "LetStatement":
+        if getattr(node, "variable", None):
             lower_node(node.variable)
-        if node.expression:
+        if getattr(node, "expression", None):
             lower_node(node.expression)
 
-    elif node.type == "AssignmentStatement":
-        # x = expr
-        if node.expression:
-            lower_node(node.expression)
+    # PrintStatement => node.expressions
+    if hasattr(node, "expressions"):
+        for expr in node.expressions:
+            lower_node(expr)
 
-    elif node.type == "ReturnStatement":
-        if node.expression:
-            lower_node(node.expression)
-
-    elif node.type == "IfStatement":
-        # condition, then_body, elseif, else_body
-        if getattr(node, "condition", None):
-            lower_node(node.condition)
-
-        if getattr(node, "then_body", None):
-            for st in node.then_body:
-                lower_node(st)
-
-        if getattr(node, "elseif_clauses", None):
-            for clause in node.elseif_clauses:
-                lower_node(clause)
-
-        if getattr(node, "else_body", None):
-            for st in node.else_body:
-                lower_node(st)
-
-    elif node.type == "ElseIfClause":
-        if getattr(node, "condition", None):
-            lower_node(node.condition)
-        if getattr(node, "body", None):
-            for st in node.body:
-                lower_node(st)
-
-    elif node.type == "WhileStatement":
-        if getattr(node, "condition", None):
-            lower_node(node.condition)
-        if getattr(node, "body", None):
-            for st in node.body:
-                lower_node(st)
-
-    # If node has .body (like a function or block), handle it
+    # If there's a .body (e.g. Program, BlockStatement, etc.)
     if hasattr(node, "body") and node.body:
-        for sub_stmt in node.body:
-            lower_node(sub_stmt)
+        for child in node.body:
+            lower_node(child)
 
-    # If node has .params, handle them too (some statements might)
+    # If there's .params (e.g. function parameters)
     if hasattr(node, "params"):
         for p in node.params:
-            if p.type_annotation is None:
-                p.type_annotation = "int"
-            p.type_annotation = lower_type(p.type_annotation)
+            if p.type_annotation:
+                p.type_annotation = lower_type(p.type_annotation)
 
-    # If it's an expression with operand/left/right/arguments
-    if hasattr(node, "operand") and node.operand:
+    # If there's a single child expression (like x.left, x.right, x.operand)
+    if getattr(node, "operand", None):
         lower_node(node.operand)
 
-    if hasattr(node, "left") and node.left:
+    if getattr(node, "left", None):
         lower_node(node.left)
 
-    if hasattr(node, "right") and node.right:
+    if getattr(node, "right", None):
         lower_node(node.right)
 
     if hasattr(node, "arguments"):
         for arg in node.arguments:
             lower_node(arg)
 
-    # If node has .expressions (like a PrintStatement):
-    if hasattr(node, "expressions"):
-        for expr in node.expressions:
-            lower_node(expr)
+    # If it's an IfStatement, WhileStatement, etc., handle .condition, .then_body, etc.
+    if node.type == "IfStatement":
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "then_body", None):
+            for s in node.then_body:
+                lower_node(s)
+        if getattr(node, "elseif_clauses", None):
+            for clause in node.elseif_clauses:
+                lower_node(clause)
+        if getattr(node, "else_body", None):
+            for s in node.else_body:
+                lower_node(s)
+
+    if node.type == "ElseIfClause":
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "body", None):
+            for st in node.body:
+                lower_node(st)
+
+    if node.type == "WhileStatement":
+        if getattr(node, "condition", None):
+            lower_node(node.condition)
+        if getattr(node, "body", None):
+            for st in node.body:
+                lower_node(st)
+
+    # ReturnStatement => node.expression
+    if node.type == "ReturnStatement":
+        if getattr(node, "expression", None):
+            lower_node(node.expression)
+
+    # AssignmentStatement => x = expr
+    if node.type == "AssignmentStatement":
+        if getattr(node, "expression", None):
+            lower_node(node.expression)
+
+    # That covers the typical statements. 
+    # Expand as needed for your language's other node types.

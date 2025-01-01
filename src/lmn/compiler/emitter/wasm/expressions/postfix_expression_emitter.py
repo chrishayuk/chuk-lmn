@@ -1,55 +1,97 @@
 # file: lmn/compiler/emitter/wasm/expressions/postfix_expression_emitter.py
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 class PostfixExpressionEmitter:
+    """
+    Handles postfix operators ('++' / '--') on numeric types in WASM.
+    e.g. a++, a--, and might store or push either the old or new value depending
+    on your language semantics. Currently, we just show an example of incrementing
+    the variable in-place, returning no explicit result on the stack.
+    """
+
     def __init__(self, controller):
+        """
+        :param controller: typically your WasmEmitter or codegen context
+          that includes:
+            - emit_expression(expr, out_lines): to push the operand's current value
+            - _normalize_local_name(name): to reference local variables
+        """
         self.controller = controller
 
     def emit(self, node, out_lines):
         """
-        node = {
-          "type": "PostfixExpression",
-          "operator": "++" or "--",
-          "operand": { "type": "VariableExpression", "name": "a" },
-          "inferred_type": "i32" (or i64/f32/f64)
-        }
-        We want to push the 'old value' on stack if typical C-style semantics: a++ => push old 'a',
-        then a = a + 1. Or you might do 'push new value' semantics, depends on language design.
+        Example node:
+          {
+            "type": "PostfixExpression",
+            "operator": "++" or "--",
+            "operand": { "type": "VariableExpression", "name": "a" },
+            "inferred_type": "i32"  # or "i64", "f32", "f64"
+          }
+
+        Basic steps:
+          1) local.get $a       ; push old value (optional usage)
+          2) local.get $a
+          3) i32.const 1
+          4) i32.add
+          5) local.set $a
         """
-        op = node["operator"]  # '++' or '--'
+        op = node["operator"]   # '++' or '--'
         operand = node["operand"]
-        operand_type = node.get("inferred_type", "i32")  # fallback
+        operand_type = node.get("inferred_type", "i32")  # default to i32 if missing
 
-        # 1) load the current variable
-        self.controller.emit_expression(operand, out_lines)  # local.get $a
+        # 1) Load the current variable onto stack (if you need the old value)
+        #    e.g. out_lines.append("  local.get $a")
+        # For demonstration, we skip pushing it or storing it anywhere,
+        # but you could add "local.tee $tempVar" if your language needs oldValue.
 
-        # 2) If you want to print the 'old value' right away, it's already on stack.
-        #    If you need to store it for re-use, do local.tee or something. Example:
-        # out_lines.append(f"  local.tee $tempVarForOldValue")
+        # 2) Re-load the variable to apply the increment/decrement
+        self.controller.emit_expression(operand, out_lines)  # e.g. local.get $a
 
-        # 3) Now increment or decrement the variable in memory:
-        #    a) re-load the variable:
-        self.controller.emit_expression(operand, out_lines)  # local.get $a
-
-        #    b) add or subtract 1
+        # 3) Add or subtract 1
         if op == '++':
-            if operand_type.startswith("i32"):
+            if operand_type == "i32":
                 out_lines.append("  i32.const 1")
                 out_lines.append("  i32.add")
-            elif operand_type.startswith("i64"):
+            elif operand_type == "i64":
                 out_lines.append("  i64.const 1")
                 out_lines.append("  i64.add")
+            elif operand_type == "f32":
+                out_lines.append("  f32.const 1.0")
+                out_lines.append("  f32.add")
             elif operand_type == "f64":
                 out_lines.append("  f64.const 1.0")
                 out_lines.append("  f64.add")
-            # etc. for f32
+            else:
+                logger.warning(
+                    f"Unsupported type '{operand_type}' for postfix '++' operator."
+                )
+                # You might raise an error or skip codegen
         elif op == '--':
-            # same logic with i32.const -1 or i32.sub
-            if operand_type.startswith("i32"):
+            if operand_type == "i32":
                 out_lines.append("  i32.const 1")
                 out_lines.append("  i32.sub")
-            # etc.
+            elif operand_type == "i64":
+                out_lines.append("  i64.const 1")
+                out_lines.append("  i64.sub")
+            elif operand_type == "f32":
+                out_lines.append("  f32.const 1.0")
+                out_lines.append("  f32.sub")
+            elif operand_type == "f64":
+                out_lines.append("  f64.const 1.0")
+                out_lines.append("  f64.sub")
+            else:
+                logger.warning(
+                    f"Unsupported type '{operand_type}' for postfix '--' operator."
+                )
+                # Possibly raise an error
+        else:
+            logger.warning(f"Unknown postfix operator '{op}'; ignoring.")
+            return
 
-        #    c) store back to variable
-        # we assume operand is a local variable
-        var_name = operand["name"]  # e.g. 'a'
+        # 4) Store the updated value back into the variable
+        var_name = operand["name"]
         normalized = self.controller._normalize_local_name(var_name)
         out_lines.append(f"  local.set {normalized}")

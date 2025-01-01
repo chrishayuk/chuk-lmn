@@ -1,0 +1,32 @@
+# file: samples/lmn/test_typed_arrays.lmn
+
+# 1) Some typed array of int => int[]
+let smallInts:int[] = [1, 2, 3, 42]
+print "int[] =>" smallInts
+
+# 2) Big integers => long[]
+let bigVals:long[] = [2147483648, 4294967298, 999999999999]
+print "long[] =>" bigVals
+
+# 3) Floats => float[]
+let floatVals:float[] = [1.0, 2.5, 3.14]
+print "float[] =>" floatVals
+
+# 4) Doubles => double[]
+let doubleVals:double[] = [100.0, 2.71828, 1.23456789e2]
+print "double[] =>" doubleVals
+
+# 5) Some simple usage
+# We'll show that you can also have typed arrays with negative and large mixed values
+let moreInts:int[] = [-1, -2, 9999, 42, 100000]
+print "more ints =>" moreInts
+
+# 6) Possibly a JSON object to confirm you can still handle that
+let user = {
+  "name": "Alice",
+  "ids": [101, 202, 303]
+}
+print "User data =>" user
+
+# 7) Show printing typed arrays next to a string literal
+print "End of typed arrays test!"

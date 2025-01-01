@@ -8,20 +8,22 @@ logger = logging.getLogger(__name__)
 
 class DoubleArrayLiteralEmitter:
     """
-    Builds a memory block for `double[]` arrays (64-bit floats).
-    Layout in memory:
+    Builds a memory block for arrays of 64-bit floats.
+    We assume the lowered type is "f64_ptr".
+    
+    Memory layout:
       - 4 bytes for array length (i32)
       - 'length' elements, each 8 bytes (f64, little-endian)
 
-    We place this block in a data segment, returning an i32 pointer.
+    The block is stored in a data segment, returning an i32 pointer to that block.
     """
 
     def __init__(self, controller):
         """
-        :param controller: your WasmEmitter or codegen context, providing:
+        :param controller: the WasmEmitter or codegen context providing:
          - controller.current_data_offset: next free memory offset (int)
          - controller.data_segments: list of (offset, bytes)
-         - controller.emit_expression(expr, out_lines) if needed
+         - possibly controller.emit_expression(expr, out_lines) if needed
         """
         self.controller = controller
 
@@ -30,35 +32,37 @@ class DoubleArrayLiteralEmitter:
         Example node:
         {
           "type": "ArrayLiteralExpression",
-          "inferred_type": "double[]",
+          "inferred_type": "f64_ptr",
           "elements": [
             { "type": "LiteralExpression", "value": 1.0, ... },
-            { "type": "UnaryExpression", "operator": "-", "operand": { "type": "LiteralExpression", "value": 2.5 } },
             ...
           ]
         }
 
-        We'll build bytes in the layout:
+        We'll build a memory block:
             <length : i32> <elem0 : f64> <elem1 : f64> ...
         Then store them in a data segment. We'll emit `i32.const <offset>`
         so the pointer is on the stack.
         """
+        inferred_type = node.get("inferred_type", "")
+        if inferred_type != "f64_ptr":
+            raise ValueError(f"DoubleArrayLiteralEmitter: Expected 'f64_ptr', got '{inferred_type}'")
+
         elements = node.get("elements", [])
         length = len(elements)
 
-        logger.debug(f"Emitting double[] of length {length} for node={node}")
+        logger.debug(f"Emitting double array (f64_ptr) of length {length} for node={node}")
 
-        # 1) Build raw bytes: first 4 bytes => length (i32)
+        # 1) Build raw bytes: first 4 bytes => array length (i32)
         data_bytes = bytearray()
         data_bytes += struct.pack("<i", length)
 
-        # 2) Each element => 8 bytes (f64) in little-endian
+        # 2) Pack each element as 64-bit float (f64, little-endian)
         for elem in elements:
             val = ExpressionEvaluator.evaluate_expression(elem, expected_type='double')
-            # Optionally, clamp or handle special double cases
-            # val = ExpressionEvaluator.clamp_value(val, expected_type='double')
+            # You might clamp or handle special double cases here
+            # val = ExpressionEvaluator.clamp_value(val, 'double')
 
-            # Pack as 64-bit float
             try:
                 packed_val = struct.pack("<d", val)
             except struct.error as e:
@@ -67,14 +71,16 @@ class DoubleArrayLiteralEmitter:
 
             data_bytes += packed_val
 
-        # 3) Add to data segment => get an offset
+        # 3) Store in data segment => get an offset
         offset = self.controller.current_data_offset
         self.controller.data_segments.append((offset, data_bytes))
         self.controller.current_data_offset += len(data_bytes)
 
         logger.debug(
-            f"double[] memory block => offset={offset}, size={len(data_bytes)} bytes, elements={length}"
+            "f64_ptr memory block => offset=%d, size=%d bytes, elements=%d",
+            offset, len(data_bytes), length
         )
 
-        # 4) Emit instructions => push that offset as i32
+        # 4) Emit instructions => push offset as i32
         out_lines.append(f"  i32.const {offset}")
+        logger.debug(f"Emitted i32.const {offset}")

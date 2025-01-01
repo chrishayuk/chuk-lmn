@@ -1,11 +1,12 @@
 # file: lmn/compiler/emitter/wasm/wasm_emitter.py
-
+import logging
 from lmn.compiler.emitter.wasm.expressions.array_literal_expression_emitter import ArrayLiteralExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.array_int_literal_expression_emitter import IntArrayLiteralEmitter
 from lmn.compiler.emitter.wasm.expressions.array_long_literal_expression_emitter import LongArrayLiteralEmitter
 from lmn.compiler.emitter.wasm.expressions.array_float_literal_emitter import FloatArrayLiteralEmitter
 from lmn.compiler.emitter.wasm.expressions.array_double_literal_emitter import DoubleArrayLiteralEmitter
 
+from lmn.compiler.emitter.wasm.expressions.array_string_literal_emitter import StringArrayLiteralEmitter
 from lmn.compiler.emitter.wasm.expressions.assignment_expression_emitter import AssignmentExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.conversion_expression_emitter import ConversionExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.json_literal_expression_emitter import JsonLiteralExpressionEmitter
@@ -24,6 +25,8 @@ from lmn.compiler.emitter.wasm.expressions.fn_expression_emitter import FnExpres
 from lmn.compiler.emitter.wasm.expressions.unary_expression_emitter import UnaryExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.literal_expression_emitter import LiteralExpressionEmitter
 from lmn.compiler.emitter.wasm.expressions.variable_expression_emitter import VariableExpressionEmitter
+
+logger = logging.getLogger(__name__)
 
 class WasmEmitter:
     def __init__(self, import_memory=False):
@@ -78,6 +81,7 @@ class WasmEmitter:
         self.long_array_literal_emitter = LongArrayLiteralEmitter(self)
         self.float_array_literal_emitter = FloatArrayLiteralEmitter(self)
         self.double_array_literal_emitter = DoubleArrayLiteralEmitter(self)
+        self.string_array_literal_emitter = StringArrayLiteralEmitter(self)
 
     # -------------------------------------------------------------------------
     # Program-level Emission
@@ -167,6 +171,7 @@ class WasmEmitter:
         # Basic textual printing imports
         lines.append('  (import "env" "print_string" (func $print_string (param i32)))')
         lines.append('  (import "env" "print_json" (func $print_json (param i32)))')
+        lines.append('  (import "env" "print_string_array" (func $print_string_array (param i32)))')
 
         # Instead of a single "print_array", define specialized typed-array imports:
         lines.append('  (import "env" "print_i32_array" (func $print_i32_array (param i32)))')
@@ -267,8 +272,16 @@ class WasmEmitter:
 
         elif etype == "ArrayLiteralExpression":
             inferred = expr.get("inferred_type", "")
-            if inferred in ("i32_ptr",):
-                # This means it's a real int[] block
+            
+            if inferred == "i32_string_array":
+                # handle lowered string arrays
+                self.string_array_literal_emitter.emit_string_array(expr, out_lines)
+            
+            elif inferred == "i32_json_array":
+                # handle json array
+                self.array_literal_expression_emitter.emit(expr, out_lines)
+
+            elif inferred in ("i32_ptr",):
                 self.int_array_literal_emitter.emit_int_array(expr, out_lines)
 
             elif inferred in ("i64_ptr",):
@@ -281,9 +294,8 @@ class WasmEmitter:
                 self.double_array_literal_emitter.emit_double_array(expr, out_lines)
 
             else:
+                # If we didn't catch it above, fallback
                 self.array_literal_expression_emitter.emit(expr, out_lines)
-
-
         else:
             # fallback => push 0
             out_lines.append('  i32.const 0')
@@ -301,19 +313,41 @@ class WasmEmitter:
         data_bytes = text.encode('utf-8', errors='replace') + b'\0'
         offset = self.current_data_offset
         self.data_segments.append((offset, data_bytes))
+        logger.debug(f"_add_data_segment: Stored '{text}' at offset {offset} with bytes {data_bytes}")
         self.current_data_offset += len(data_bytes)
+        logger.debug(f"_add_data_segment: Updated current_data_offset to {self.current_data_offset}")
         return offset
+
 
     # -------------------------------------------------------------------------
     #  Helper to convert i32_ptr => i32, i64_ptr => i64, etc.
     # -------------------------------------------------------------------------
     def _wasm_basetype(self, t: str) -> str:
-        # i32-based pointers for standard 32-bit memory
-        if t in ("i32_ptr", "i32_json", "i64_ptr", "f32_ptr", "f64_ptr"):
+        pointer_types = {
+            "i32_ptr",
+            "i64_ptr",
+            "f32_ptr",
+            "f64_ptr",
+            "i32_json",
+            "i32_json_array",
+            "i32_string",
+            "i32_string_array",
+            # Add any new pointer-based or lowered type that is stored in i32
+        }
+        if t in pointer_types:
             return "i32"
 
-        # fallback => might be i32, i64, f32, f64, string, etc.
-        return t
+        # Map basic types directly
+        basic_type_map = {
+            "int": "i32", "i32": "i32",
+            "long": "i64", "i64": "i64",
+            "float": "f32", "f32": "f32",
+            "double": "f64", "f64": "f64",
+            # If you have special lowerings for others, add them here
+        }
+        return basic_type_map.get(t, "i32")  # Default fallback
+
+
 
     # -------------------------------------------------------------------------
     #  Utility

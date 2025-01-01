@@ -25,16 +25,16 @@ class LiteralExpressionEmitter:
           {
             "type": "LiteralExpression",
             "value": "Hello\n🌍 \"Earth\"!",
-            "inferred_type": "string"
+            "inferred_type": "i32_string"
           }
-        or an array literal:
+        or arbitrary pointer-literal:
           {
             "type": "LiteralExpression",
             "value": "[1,2,3]",
             "inferred_type": "i32_ptr"
           }
         """
-        inferred_t = node.get("inferred_type")
+        inferred_t = node.get("inferred_type", "")
         literal_value = str(node["value"]).strip()
 
         logger.debug(
@@ -42,7 +42,7 @@ class LiteralExpressionEmitter:
             literal_value, inferred_t
         )
 
-        # (A) If the AST says this is a numeric type => do numeric approach
+        # (A) If it's a recognized numeric type => emit numeric
         if inferred_t in ("i32", "i64", "f32", "f64"):
             logger.debug(
                 "Using provided numeric inferred_type=%s for literal='%s'",
@@ -50,21 +50,20 @@ class LiteralExpressionEmitter:
             )
             self._emit_numeric_literal(inferred_t, literal_value, out_lines)
 
-        # (B) If the AST says it's a pointer-literal type (e.g. "string", "i32_ptr", "i32_json")
-        elif inferred_t in ("string", "i32_ptr", "i32_json"):
+        # (B) If it's a recognized pointer/string type => store in data segment
+        elif inferred_t in ("i32_string", "i32_ptr", "i32_json", "i32_string_array", "i32_json_array"):
             logger.debug("Non-numeric literal => store in data segment => push pointer offset")
             offset = self.controller._add_data_segment(literal_value)
             out_lines.append(f"  i32.const {offset}")
 
         else:
-            # (C) No recognized 'inferred_type' => fallback numeric guess
+            # (C) No recognized or missing 'inferred_type' => fallback numeric guess
             logger.debug(
                 "No recognized 'inferred_type' for literal='%s'; falling back to _infer_wasm_type()",
                 literal_value
             )
             num_type = self._infer_wasm_type(literal_value)
             self._emit_numeric_literal(num_type, literal_value, out_lines)
-
 
     def _emit_numeric_literal(self, wasm_type, literal_value, out_lines):
         """
@@ -79,13 +78,14 @@ class LiteralExpressionEmitter:
         elif wasm_type == "f64":
             out_lines.append(f"  f64.const {literal_value}")
         else:
-            raise ValueError(f"Unsupported numeric type {wasm_type} for literal '{literal_value}'")
-
+            raise ValueError(
+                f"Unsupported numeric type {wasm_type} for literal '{literal_value}'"
+            )
 
     def _infer_wasm_type(self, literal_str):
         """
         Naive fallback if there's no 'inferred_type'.
-        We do numeric detection: if there's a '.' or 'e' => float => f64,
+        We do numeric detection: if there's '.' or 'e' => float => f64,
         else parse as int => i32 or i64 range. Otherwise fallback to f64.
         """
         logger.debug("_infer_wasm_type() => analyzing literal_str='%s'", literal_str)
