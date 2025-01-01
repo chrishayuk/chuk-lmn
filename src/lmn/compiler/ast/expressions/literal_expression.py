@@ -27,19 +27,19 @@ class LiteralExpression(ExpressionBase):
         """
         if token.token_type == LmnTokenType.INT_LITERAL:
             # 32-bit integer
-            return cls(value=token.value, literal_type="i32")
+            return cls(value=token.value, literal_type="int")
 
         elif token.token_type == LmnTokenType.LONG_LITERAL:
             # 64-bit integer
-            return cls(value=token.value, literal_type="i64")
+            return cls(value=token.value, literal_type="long")
 
         elif token.token_type == LmnTokenType.FLOAT_LITERAL:
             # 32-bit float
-            return cls(value=token.value, literal_type="f32")
+            return cls(value=token.value, literal_type="float")
 
         elif token.token_type == LmnTokenType.DOUBLE_LITERAL:
             # 64-bit float/double
-            return cls(value=token.value, literal_type="f64")
+            return cls(value=token.value, literal_type="double")
 
         elif token.token_type == LmnTokenType.STRING:
             return cls(value=token.value, literal_type="string")

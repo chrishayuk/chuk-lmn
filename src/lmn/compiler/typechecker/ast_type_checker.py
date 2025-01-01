@@ -1,4 +1,5 @@
 # file: lmn/compiler/typechecker/ast_type_checker.py
+
 from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.function_checker import check_function_definition
@@ -11,7 +12,9 @@ from enum import Enum
 if TYPE_CHECKING:
     from lmn.compiler.ast.statements import FunctionDefinition
 
-# Configure logging
+# 1) Import the built-in definitions
+from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
+
 logger = logging.getLogger(__name__)
 
 class TypeCheckError(Exception):
@@ -25,7 +28,6 @@ class TypeCheckError(Exception):
 def log_symbol_table(symbol_table: Dict[str, str]) -> None:
     """Log the current state of the symbol table."""
     logger.debug("Current symbol table state:")
-    
     for var_name, var_type in symbol_table.items():
         logger.debug(f"  {var_name}: {var_type}")
 
@@ -36,16 +38,20 @@ def log_type_info(var_name: str, existing_type: Any, new_type: Any, symbol_table
     logger.debug(f"  - New type: {new_type} (type: {type(new_type)})")
     logger.debug(f"  - Current symbol table entry: {symbol_table.get(var_name)}")
 
-
 def type_check_program(program_node: Program) -> None:
     logger.info("Starting type checking for program")
     
     try:
-        # Initialize an empty symbol table once
-        symbol_table: Dict[str, str] = {}
+        # 2) Initialize an empty symbol table
+        symbol_table: Dict[str, Any] = {}
         logger.debug("Initialized empty symbol table")
 
-        # Iterate over each node in the program body
+        # 3) Load built-in function signatures into the symbol table
+        #    So the typechecker knows about llm, etc.
+        for fn_name, fn_sig in BUILTIN_FUNCTIONS.items():
+            symbol_table[fn_name] = fn_sig
+
+        # 4) Iterate over each node in the program body
         for i, node in enumerate(program_node.body):
             logger.debug(f"Checking top-level node {i+1}/{len(program_node.body)}: {node.type}")
             logger.debug(f"Node details: {node.__dict__}")
@@ -79,38 +85,28 @@ def check_top_level_node(node: Node, symbol_table: dict) -> None:
     A top-level node might be a FunctionDefinition or a statement 
     (if your language allows statements at top-level). We'll dispatch accordingly.
     """
-    # set the node type
     node_type = node.type
     
-    # debug
     logger.debug(f"Processing node of type: {node_type}")
     logger.debug(f"Node attributes: {node.__dict__}")
     
     try:
         if node_type == "FunctionDefinition":
-            # check the function definition
             logger.debug("Checking function definition")
             check_function_definition(node, symbol_table)
         else:
-            # check the statement
             logger.debug(f"Checking top-level statement: {node_type}")
             check_statement(node, symbol_table)
             
     except (TypeError, NotImplementedError) as e:
-        # get the error details
         error_details = {
             "node_type": node_type,
             "symbol_table": symbol_table,
             "node_attributes": node.__dict__
         }
-
-        # log the error
         logger.error(f"Error checking {node_type} node: {str(e)}", extra=error_details)
-
-        # re-raise the exception
         raise TypeCheckError(str(e), node_type, error_details)
     except Exception as e:
-        # log the critical error and re-raise
         logger.critical(f"Unexpected error checking {node_type} node: {str(e)}")
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
