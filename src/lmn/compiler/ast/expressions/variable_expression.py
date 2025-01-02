@@ -10,8 +10,13 @@ class VariableExpression(ExpressionBase):
     """
     A variable reference, e.g. x or fact
     """
+    # node type is VARIABLE
     type: Literal[NodeKind.VARIABLE] = NodeKind.VARIABLE
+
+    # name of the variable
     name: str
+
+    # inferred type of the variable
     inferred_type: Optional[str] = None
 
     def __str__(self):

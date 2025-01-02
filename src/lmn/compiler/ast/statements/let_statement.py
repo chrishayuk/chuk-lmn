@@ -10,7 +10,10 @@ class LetStatement(ASTNode):
       let <variable> = <expression>
     But we also allow no initializer: set x
     """
+    # set the type of this node to be 'LET'
     type: Literal[NodeKind.LET] = NodeKind.LET
+
+    # the variable should be an expression
     variable: "Expression"
 
     # optional expression
@@ -18,7 +21,10 @@ class LetStatement(ASTNode):
     inferred_type: Optional[str] = None
 
     def __str__(self):
-        # If expression is None, just print 'set variable'
+        # if expression is None, just print 'set variable'
         if self.expression is None:
+            # output the node as a string
             return f"let {self.variable}"
+        
+        # print the statement as a string
         return f"let {self.variable} = {self.expression}"

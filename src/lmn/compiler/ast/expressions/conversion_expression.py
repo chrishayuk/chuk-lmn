@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Literal
 from pydantic import BaseModel
 
+# lmn imports
+from lmn.compiler.ast.node_kind import NodeKind
+
 if TYPE_CHECKING:
     from lmn.compiler.ast.mega_union import Expression
 
@@ -11,7 +14,8 @@ class ConversionExpression(BaseModel):
     Represents an explicit numeric conversion from one type to another,
     e.g. f64->f32 demotion, f32->f64 promotion, i32->i64 extension, etc.
     """
-    type: Literal["ConversionExpression"] = "ConversionExpression"
+    # set the kind of the node as conversion expression
+    type: Literal[NodeKind.CONVERSION_EXPRESSION] = NodeKind.CONVERSION_EXPRESSION
 
     from_type: str
     to_type: str

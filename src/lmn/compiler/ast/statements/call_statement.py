@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Literal
 from pydantic import Field
 
-# ast nodes
+# lmn imports
 from lmn.compiler.ast.ast_node import ASTNode
 from lmn.compiler.ast.node_kind import NodeKind
 

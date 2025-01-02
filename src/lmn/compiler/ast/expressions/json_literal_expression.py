@@ -16,8 +16,12 @@ class JsonLiteralExpression(ExpressionBase):
       - bool for true/false
       - None for null
     """
+    # set the type as json_literal
     type: Literal[NodeKind.JSON_LITERAL] = NodeKind.JSON_LITERAL
+
+    # value can be anything
     value: Any  # Or more specifically: Union[dict, list, str, int, float, bool, None]
 
     def __str__(self):
+        # Return the string representation of the JSON literal expression
         return f"JsonLiteral({repr(self.value)})"

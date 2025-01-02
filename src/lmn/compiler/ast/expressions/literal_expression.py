@@ -1,7 +1,8 @@
 # file: lmn/compiler/ast/expressions/literal_expression.py
 from __future__ import annotations
 from typing import Union, Optional, Literal
-from pydantic import BaseModel
+
+# lmn imports
 from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 from lmn.compiler.lexer.token_type import LmnTokenType
@@ -15,9 +16,14 @@ class LiteralExpression(ExpressionBase):
       - Strings
     """
 
+    # set the node as a literal
     type: Literal[NodeKind.LITERAL] = NodeKind.LITERAL
-    value: Union[int, float, str]   # The Python representation of the literal
-    literal_type: Optional[str] = None  # e.g. "i32", "i64", "f32", "f64", "string"
+
+    # The value of the literal
+    value: Union[int, float, str]   
+
+    # The type of the literal (e.g. "i32", "i64", "f32", "f64", "string")
+    literal_type: Optional[str] = None
 
     @classmethod
     def from_token(cls, token: Token) -> LiteralExpression:

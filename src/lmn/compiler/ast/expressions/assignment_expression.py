@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Literal, Optional
 
+# lmn imports
 from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 
@@ -16,6 +17,7 @@ class AssignmentExpression(ExpressionBase):
 
     # The left side (often a variable or lvalue)
     left: "Expression"
+
     # The right side (any expression)
     right: "Expression"
 
@@ -23,4 +25,5 @@ class AssignmentExpression(ExpressionBase):
     inferred_type: Optional[str] = None
 
     def __str__(self):
+        # Return the string representation of the assignment expression
         return f"({self.left} = {self.right})"

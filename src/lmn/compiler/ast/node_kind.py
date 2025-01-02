@@ -12,6 +12,7 @@ class NodeKind(str, Enum):
     ASSIGNMENTEXPRESSION = "AssignmentExpression"
     ARRAY_LITERAL = "ArrayLiteralExpression"
     JSON_LITERAL = "JsonLiteralExpression"
+    CONVERSION_EXPRESSION = "ConversionExpression"
 
     # Statements
     CALL = "CallStatement"
