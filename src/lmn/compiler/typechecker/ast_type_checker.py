@@ -1,15 +1,12 @@
 # file: lmn/compiler/typechecker/ast_type_checker.py
-
-from lmn.compiler.ast.program import Program
-from lmn.compiler.ast.mega_union import Node
-from lmn.compiler.typechecker.function_checker import check_function_definition
-from lmn.compiler.typechecker.statement_checker import check_statement
-from lmn.compiler.typechecker.expression_checker import check_expression
-from typing import Dict, Any
 import logging
 import traceback
+from typing import Dict, Any
 
 # 1) Import the built-in definitions
+from lmn.compiler.ast.program import Program
+from lmn.compiler.ast.mega_union import Node
+from lmn.compiler.typechecker.statement_checker import check_statement, check_function_definition
 from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
 from lmn.compiler.typechecker.utils import unify_types
 
@@ -114,9 +111,15 @@ def unify_calls_in_node(node: Node, symbol_table: dict) -> None:
     if node_type == "FnExpression":
         fn_name = node.name.name
         fn_info = symbol_table.get(fn_name)
+
         if fn_info and "param_types" in fn_info:
             param_types = fn_info["param_types"]
-            if len(node.arguments) == len(param_types):
+
+            # Check if the call is purely positional
+            purely_positional = all(a.type != "AssignmentExpression" for a in node.arguments)
+
+            if purely_positional and len(node.arguments) == len(param_types):
+                # If all arguments are positional and count matches param_types, unify
                 for i, arg_expr in enumerate(node.arguments):
                     arg_type = partial_check_expression(arg_expr, symbol_table)
                     if param_types[i] is None:
@@ -124,9 +127,11 @@ def unify_calls_in_node(node: Node, symbol_table: dict) -> None:
                     else:
                         unified = unify_types(param_types[i], arg_type, for_assignment=True)
                         param_types[i] = unified
+
+                # Store back updated param types
                 fn_info["param_types"] = param_types
 
-    # Traverse subfields
+    # Recurse into child nodes
     if hasattr(node, "body") and isinstance(node.body, list):
         for subnode in node.body:
             unify_calls_in_node(subnode, symbol_table)
@@ -141,6 +146,7 @@ def unify_calls_in_node(node: Node, symbol_table: dict) -> None:
     if hasattr(node, "arguments") and isinstance(node.arguments, list):
         for arg in node.arguments:
             unify_calls_in_node(arg, symbol_table)
+
 
 def partial_check_expression(expr: Node, symbol_table: dict) -> str:
     """

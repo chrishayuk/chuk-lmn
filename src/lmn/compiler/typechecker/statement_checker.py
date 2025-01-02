@@ -5,19 +5,17 @@ from lmn.compiler.typechecker.expression_checker import check_expression
 from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
 from lmn.compiler.typechecker.statements.let_statement import check_let_statement
 from lmn.compiler.typechecker.statements.return_statement import check_return_statement
-from lmn.compiler.typechecker.utils import normalize_type
+from lmn.compiler.typechecker.utils import normalize_type, unify_types
 
 logger = logging.getLogger(__name__)
 
 def check_statement(stmt, symbol_table: dict) -> None:
     """
-    A single statement could be LetStatement, PrintStatement, ReturnStatement, etc.
-    We'll dispatch by stmt.type.
+    Main entry point for statement type-checking.
     """
 
-    # Log the statement type and relevant details
     logger.debug(f"check_statement called for {stmt.type}")
-    logger.debug(f"Current statement details: {stmt.__dict__}")
+    logger.debug(f"Statement details: {stmt.__dict__}")
     logger.debug(f"Symbol table before statement: {symbol_table}")
 
     try:
@@ -35,26 +33,22 @@ def check_statement(stmt, symbol_table: dict) -> None:
             check_return_statement(stmt, symbol_table)
 
         elif stype == "FunctionDefinition":
-            # function definitions
+            # We handle function definitions right here:
             check_function_definition(stmt, symbol_table)
 
         elif stype == "BlockStatement":
-            # block scoping
             check_block_statement(stmt, symbol_table)
 
         elif stype == "IfStatement":
-            # if statement
             check_if_statement(stmt, symbol_table)
 
         else:
             raise NotImplementedError(f"Unsupported statement type: {stype}")
 
-        # After we've successfully processed the statement, log the updated symbol table
         logger.debug("Statement processed successfully.")
         logger.debug(f"Updated symbol table: {symbol_table}")
 
     except TypeError as e:
-        # Re-raise with context
         logger.error(f"Type error in {stype}: {e}")
         raise TypeError(
             f"Error in {stype} "
@@ -63,119 +57,141 @@ def check_statement(stmt, symbol_table: dict) -> None:
 
 
 def check_print_statement(print_stmt, symbol_table: dict) -> None:
-    """
-    e.g. print_stmt.expressions is a list of Expression
-    """
-    logger.debug(f"check_print_statement called for expressions: {print_stmt.expressions}")
-
     for expr in print_stmt.expressions:
         e_type = check_expression(expr, symbol_table)
-        logger.debug(f"Expression '{expr}' resolved to type {e_type}")
+        logger.debug(f"Print expr '{expr}' resolved to type {e_type}")
+
 
 def check_block_statement(block_stmt, symbol_table: dict) -> None:
     """
-    Type-check a block statement by creating a *local copy* of the current symbol table.
-    Any new variables declared in this block go into the local scope. 
-    When the block ends, those new declarations are discarded.
+    Type-check a block by creating a local scope so new variables 
+    won't leak out.
     """
     logger.debug("Entering new block scope")
-
-    # 1) Create a local scope so new variables won't leak back
     local_scope = dict(symbol_table)
 
-    # 2) For each statement in the block, check it with the local scope
     for stmt in block_stmt.statements:
         check_statement(stmt, local_scope)
 
-    # 3) After the block ends, discard local_scope changes
-    logger.debug("Exiting block scope; local declarations are discarded.")
+    logger.debug("Exiting block scope. Local declarations are discarded.")
     logger.debug(f"Symbol table remains (outer scope) = {symbol_table}")
 
+
 def check_if_statement(if_stmt, symbol_table: dict) -> None:
-    """
-    Type-checks an IfStatement node:
-    - condition: Expression
-    - then_body: list of statements
-    - elseif_clauses: list of ElseIfClause
-    - else_body: list of statements
-    """
     logger.debug("typechecker: check_if_statement called")
 
-    # 1) Check the main `if` condition
+    # 1) Condition
     cond_type = check_expression(if_stmt.condition, symbol_table)
-    logger.debug(f"If condition inferred type: {cond_type}")
-
-    # If your language wants the condition to be "int" or "bool"
+    logger.debug(f"If condition type: {cond_type}")
     if cond_type not in ("int", "bool"):
         raise TypeError(f"If condition must be int/bool, got '{cond_type}'")
 
-    # 2) Type-check each statement in the then_body
+    # 2) Then body
     for stmt in if_stmt.then_body:
         check_statement(stmt, symbol_table)
 
-    # 3) If you have one or more `elseif` clauses:
+    # 3) ElseIf clauses
     if hasattr(if_stmt, "elseif_clauses"):
         for elseif_clause in if_stmt.elseif_clauses:
-            # check its condition
             elseif_cond_type = check_expression(elseif_clause.condition, symbol_table)
             if elseif_cond_type not in ("int", "bool"):
                 raise TypeError(f"ElseIf condition must be int/bool, got '{elseif_cond_type}'")
 
-            # check each statement in its body
             for stmt in elseif_clause.body:
                 check_statement(stmt, symbol_table)
 
-    # 4) If there's an else_body
+    # 4) Else body
     if if_stmt.else_body:
         for stmt in if_stmt.else_body:
             check_statement(stmt, symbol_table)
 
-    # 5) Mark the entire IfStatement as having an inferred_type
-    #    Typically "void" (or None) if statements produce no value
+    # 5) Mark the entire IfStatement as "void"
     if_stmt.inferred_type = "void"
-    logger.debug("typechecker: assigned if_stmt.inferred_type = 'void'")
     logger.debug("typechecker: finished check_if_statement")
 
 
-    
-def check_function_definition(func_def, symbol_table: dict) -> None:
+def check_function_definition(func_def, symbol_table: dict):
     """
-    1) Register the function's name, param types, return type in 'symbol_table'.
-    2) Then type-check the function body.
+    A unified approach:
+      1. Gather param metadata (names, declared types, defaults).
+      2. Store them (and a preliminary return_type) in symbol_table[func_name].
+      3. Create a local scope, type-check function body => unify final return type.
+      4. Update symbol_table & the AST node with final return type & param types.
     """
-
-    logger.debug(f"check_function_definition called for function: {func_def.name}")
-
     func_name = func_def.name
 
-    # Gather parameter types
+    # --------------------------------------------------------------------
+    # 1) Gather parameters
+    # --------------------------------------------------------------------
+    param_names = []
     param_types = []
-    for param in func_def.params:
-        declared = param.type_annotation or "int"
-        normalized = normalize_type(declared)
-        param_types.append(normalized)
+    param_defaults = []
 
-    # Grab the return type if present
+    for param in func_def.params:
+        param_names.append(param.name)
+
+        declared_type = getattr(param, "type_annotation", None) or "int"
+        declared_type = normalize_type(declared_type)
+        param_types.append(declared_type)
+
+        if hasattr(param, "default_value"):
+            param_defaults.append(param.default_value)
+        else:
+            param_defaults.append(None)
+
+    # 2) Preliminary return type (could be overridden by final unification)
     declared_return_type = getattr(func_def, "return_type", None) or "void"
     declared_return_type = normalize_type(declared_return_type)
 
-    logger.debug(f"Registering function '{func_name}' with param_types={param_types} and return_type={declared_return_type}")
-
-    # 1) Register the function signature
+    # --------------------------------------------------------------------
+    # 3) Store an initial function signature in the symbol table
+    # --------------------------------------------------------------------
     symbol_table[func_name] = {
-        "param_types": param_types,
-        "return_type": declared_return_type
+        "param_names":    param_names,
+        "param_types":    param_types[:],   # make a copy if you like
+        "param_defaults": param_defaults,
+        "return_type":    declared_return_type
     }
 
+    # --------------------------------------------------------------------
+    # 4) Create a local scope and add parameters
+    # --------------------------------------------------------------------
     local_scope = dict(symbol_table)
-    for i, param in enumerate(func_def.params):
-        local_scope[param.name] = param_types[i]
+    local_scope["__current_function_return_type__"] = declared_return_type
 
-    logger.debug(f"Local scope for '{func_name}' after adding parameters: {local_scope}")
+    for i, p_name in enumerate(param_names):
+        local_scope[p_name] = param_types[i]
 
-    # 3) Check each statement in the function body
+    # --------------------------------------------------------------------
+    # 5) Type-check the function body. ReturnStatements unify the final return type.
+    # --------------------------------------------------------------------
     for stmt in func_def.body:
-        logger.debug(f"Type-checking statement in '{func_name}' body: {stmt.type}")
         check_statement(stmt, local_scope)
 
-    logger.debug(f"Finished type-checking function '{func_name}'. Symbol table now: {symbol_table}")
+    # --------------------------------------------------------------------
+    # 6) Finalize the function's return type
+    # --------------------------------------------------------------------
+    final_return_type = local_scope.get("__current_function_return_type__")
+    if final_return_type is None:
+        final_return_type = "void"
+
+    # Store the unified return type back into the symbol table
+    fn_info = symbol_table[func_name]
+    fn_info["return_type"] = final_return_type
+    symbol_table[func_name] = fn_info
+
+    # Also update the function-def node
+    func_def.return_type = final_return_type
+
+    # --------------------------------------------------------------------
+    # 7) Persist any updated param types back into the AST
+    #    (in case unify_params_from_calls or body checks changed them)
+    # --------------------------------------------------------------------
+    # If you do any inference that modifies param_types[i], you can
+    # reflect that here. If not, no big deal.
+    for i, param in enumerate(func_def.params):
+        param.type_annotation = param_types[i]
+
+    logger.debug(f"Finished type-checking function '{func_name}' "
+                 f"-> return_type={final_return_type}, param_types={param_types}")
+

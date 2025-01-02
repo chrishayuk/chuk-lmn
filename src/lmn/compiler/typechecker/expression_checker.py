@@ -22,7 +22,7 @@ from lmn.compiler.typechecker.utils import unify_types, infer_literal_type
 def check_expression(expr: Expression, symbol_table: dict, target_type: Optional[str] = None) -> str:
     """
     Analyzes 'expr' and returns its final language-level type:
-      - "int", "long", "float", "double", "json", "array", etc.
+      - "int", "long", "float", "double", "json", "string", etc.
 
     - 'target_type' can hint how to interpret a literal (e.g., 10 -> "int" or "long").
     - 'symbol_table' contains known variable/function definitions.
@@ -65,11 +65,6 @@ def check_expression(expr: Expression, symbol_table: dict, target_type: Optional
 # 1) JSON Literal
 # -------------------------------------------------------------------------
 def check_json_literal_expression(j_expr: JsonLiteralExpression, symbol_table: dict) -> str:
-    """
-    For now, treat any JSON literal (object/array) as having type 'json'.
-    If you want more advanced logic (e.g. verifying fields or schema),
-    you can recursively check j_expr.value (a Python dict/list).
-    """
     j_expr.inferred_type = "json"
     return "json"
 
@@ -78,32 +73,12 @@ def check_json_literal_expression(j_expr: JsonLiteralExpression, symbol_table: d
 # 2) Array Literal
 # -------------------------------------------------------------------------
 def check_array_literal_expression(arr_expr: ArrayLiteralExpression, symbol_table: dict) -> str:
-    """
-    If you want a strongly-typed array (e.g. all elements must unify),
-    you can unify the type of each element. For example:
-        - parse all element types
-        - unify them (like numeric promotions)
-        - final type might be "array of T" or just "array" if they differ
-    For now, let's keep it simple: we call each element's type checker,
-    but we won't unify them. We'll just mark the array as type "array".
-    """
-    element_types = []
     for elem in arr_expr.elements:
-        elem_type = check_expression(elem, symbol_table)
-        element_types.append(elem_type)
+        check_expression(elem, symbol_table)
 
-    # Option A (simple): just mark array as type 'array'
+    # For simplicity, we say it's just "array".
     arr_expr.inferred_type = "array"
-
-    # Option B (unify all elements) -> 'array<T>' or something
-    # e.g. if all elements unify to 'int', then 'array<int>'
-    # For a minimal example:
-    # final_elem_type = element_types[0] if element_types else "any"
-    # for t in element_types[1:]:
-    #     final_elem_type = unify_types(final_elem_type, t, for_assignment=False)
-    # arr_expr.inferred_type = f"array<{final_elem_type}>"
-
-    return arr_expr.inferred_type
+    return "array"
 
 
 # -------------------------------------------------------------------------
@@ -136,7 +111,6 @@ def check_literal_expression(lit_expr: LiteralExpression, target_type: Optional[
     return lit_expr.inferred_type
 
 
-
 # -------------------------------------------------------------------------
 # 4) VariableExpression
 # -------------------------------------------------------------------------
@@ -149,6 +123,7 @@ def check_variable_expression(var_expr: VariableExpression, symbol_table: dict) 
     var_expr.inferred_type = vtype
     return vtype
 
+
 # -------------------------------------------------------------------------
 # 5) BinaryExpression
 # -------------------------------------------------------------------------
@@ -156,22 +131,16 @@ def check_binary_expression(bin_expr: BinaryExpression, symbol_table: dict) -> s
     left_type = check_expression(bin_expr.left, symbol_table)
     right_type = check_expression(bin_expr.right, symbol_table)
 
-    # Non-assignment => pick the 'larger' type
     result_type = unify_types(left_type, right_type, for_assignment=False)
     bin_expr.inferred_type = result_type
 
-    # ------------------------------------------------------
-    # Only build a ConversionExpression if both from_type and
-    # to_type are valid strings (i.e., not None) and differ.
-    # ------------------------------------------------------
-
+    # If necessary, insert ConversionExpressions
     if left_type is not None and result_type is not None and left_type != result_type:
         bin_expr.left = ConversionExpression(
             source_expr=bin_expr.left,
             from_type=left_type,
             to_type=result_type
         )
-
     if right_type is not None and result_type is not None and right_type != result_type:
         bin_expr.right = ConversionExpression(
             source_expr=bin_expr.right,
@@ -205,6 +174,7 @@ def check_unary_expression(u_expr: UnaryExpression, symbol_table: dict) -> str:
     u_expr.inferred_type = result_type
     return result_type
 
+
 # -------------------------------------------------------------------------
 # 7) AssignmentExpression
 # -------------------------------------------------------------------------
@@ -220,9 +190,7 @@ def check_assignment_expression(assign_expr: AssignmentExpression, symbol_table:
 
     if var_name in symbol_table:
         existing_type = symbol_table[var_name]
-        # unify with for_assignment=True => allows int->float promotions
         unified = unify_types(existing_type, right_type, for_assignment=True)
-
         symbol_table[var_name] = unified
         assign_expr.inferred_type = unified
     else:
@@ -231,6 +199,7 @@ def check_assignment_expression(assign_expr: AssignmentExpression, symbol_table:
         assign_expr.inferred_type = right_type
 
     return assign_expr.inferred_type
+
 
 # -------------------------------------------------------------------------
 # 8) PostfixExpression
@@ -244,6 +213,7 @@ def check_postfix_expression(p_expr: PostfixExpression, symbol_table: dict) -> s
 
     p_expr.inferred_type = operand_type
     return operand_type
+
 
 # -------------------------------------------------------------------------
 # 9) FnExpression
@@ -260,22 +230,21 @@ def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
 
     # 2) Get function signature info
     fn_info = symbol_table[fn_name]
-    
-    # Handle both builtin (with required/optional params) and user-defined functions
+
     if "required_params" in fn_info:
         # Builtin function case - uses named parameters
         return check_builtin_function_call(fn_expr, fn_info, symbol_table)
     else:
-        # User-defined function case - uses positional parameters
+        # User-defined function case - uses param_names/param_types/param_defaults
         return check_user_function_call(fn_expr, fn_info, symbol_table)
+
 
 def check_builtin_function_call(fn_expr: FnExpression, fn_info: dict, symbol_table: dict) -> str:
     """Handles builtin functions that use named parameters"""
     required_params = fn_info.get("required_params", {})
     optional_params = fn_info.get("optional_params", {})
     return_type = fn_info.get("return_type", "void")
-    
-    # Build dict of paramName => inferredType from arguments
+
     passed_args = {}
     
     for arg in fn_expr.arguments:
@@ -296,9 +265,7 @@ def check_builtin_function_call(fn_expr: FnExpression, fn_info: dict, symbol_tab
         actual_type = passed_args[req_name]
         unified = unify_types(req_type, actual_type, for_assignment=True)
         if unified != req_type:
-            raise TypeError(
-                f"Parameter '{req_name}' expects type '{req_type}' but got '{actual_type}'"
-            )
+            raise TypeError(f"Parameter '{req_name}' expects '{req_type}' but got '{actual_type}'")
 
     # Check optional parameters
     for opt_name, opt_type in optional_params.items():
@@ -307,46 +274,89 @@ def check_builtin_function_call(fn_expr: FnExpression, fn_info: dict, symbol_tab
             unified = unify_types(opt_type, actual_type, for_assignment=True)
             if unified != opt_type:
                 raise TypeError(
-                    f"Optional parameter '{opt_name}' expects type '{opt_type}' but got '{actual_type}'"
+                    f"Optional parameter '{opt_name}' expects '{opt_type}' but got '{actual_type}'"
                 )
 
     fn_expr.inferred_type = return_type
     return return_type
+
 
 def check_user_function_call(fn_expr: FnExpression, fn_info: dict, symbol_table: dict) -> str:
     """
-    Allows param inference if param_types[i] == None.
+    Extended version to handle named args + optional params in user-defined functions.
+    
+    We assume fn_info includes:
+       fn_info["param_names"] = ["a", "b", ...]
+       fn_info["param_types"] = [None or "int" or "string", ...]
+       fn_info["param_defaults"] = [None or some default literal node, ...]
+         (If param_defaults[i] != None, param i is "optional".)
     """
+    param_names = fn_info.get("param_names", [])
     param_types = fn_info.get("param_types", [])
-    return_type = fn_info.get("return_type", "void")  # might also be None initially
+    param_defaults = fn_info.get("param_defaults", [])
+    return_type = fn_info.get("return_type", "void")
 
-    # 1) Check argument count
-    if len(fn_expr.arguments) != len(param_types):
+    num_params = len(param_names)
+    # Ensure arrays align
+    if not (len(param_types) == len(param_defaults) == num_params):
         raise TypeError(
-            f"Function '{fn_expr.name.name}' expects {len(param_types)} argument(s) "
-            f"but got {len(fn_expr.arguments)}"
+            f"Inconsistent function signature for '{fn_expr.name.name}': "
+            f"param_names={num_params}, param_types={len(param_types)}, param_defaults={len(param_defaults)}."
         )
 
-    # 2) Type-check each argument
-    for i, (arg_node, expected_type) in enumerate(zip(fn_expr.arguments, param_types)):
-        arg_type = check_expression(arg_node, symbol_table)
+    # Build an array to hold final AST nodes for each param
+    final_args = [None] * num_params
+    next_positional_index = 0
 
-        # If param_types[i] is None => set it to arg_type
-        if expected_type is None:
-            param_types[i] = arg_type
-            fn_info["param_types"] = param_types
-            expected_type = arg_type
-        else:
-            # unify
-            unified = unify_types(expected_type, arg_type, for_assignment=True)
-            if unified != expected_type:
+    # Distribute arguments
+    for arg_node in fn_expr.arguments:
+        if arg_node.type == "AssignmentExpression":
+            param_name = arg_node.left.name
+            if param_name not in param_names:
                 raise TypeError(
-                    f"Argument {i+1} of function '{fn_expr.name.name}' "
-                    f"expects type '{expected_type}' but got '{arg_type}'"
+                    f"Unknown parameter '{param_name}' in call to '{fn_expr.name.name}'. "
+                    f"Valid names: {param_names}"
                 )
+            idx = param_names.index(param_name)
+            if final_args[idx] is not None:
+                raise TypeError(
+                    f"Parameter '{param_name}' supplied more than once in call to '{fn_expr.name.name}'."
+                )
+            final_args[idx] = arg_node.right
+        else:
+            # Positional argument
+            if next_positional_index >= num_params:
+                raise TypeError(
+                    f"Too many arguments for '{fn_expr.name.name}'. "
+                    f"Expected {num_params}, got more."
+                )
+            final_args[next_positional_index] = arg_node
+            next_positional_index += 1
 
-    # 3) The call expression's result is the function's return type
+    # Fill in defaults or raise error if missing
+    for i, (p_name, p_type, p_default) in enumerate(zip(param_names, param_types, param_defaults)):
+        if final_args[i] is None:
+            if p_default is None:
+                raise TypeError(
+                    f"Missing required parameter '{p_name}' in call to '{fn_expr.name.name}'."
+                )
+            else:
+                final_args[i] = p_default
+
+    # Type-check each final argument
+    for i, arg_node in enumerate(final_args):
+        arg_type = check_expression(arg_node, symbol_table)
+        if param_types[i] is None:
+            param_types[i] = arg_type
+        else:
+            unified = unify_types(param_types[i], arg_type, for_assignment=True)
+            if unified != param_types[i]:
+                raise TypeError(
+                    f"Parameter '{param_names[i]}' expects type '{param_types[i]}' "
+                    f"but got '{arg_type}'"
+                )
+        fn_info["param_types"][i] = param_types[i]
+
+    # The call expression's result is the function's return type
     fn_expr.inferred_type = return_type
     return return_type
-
-

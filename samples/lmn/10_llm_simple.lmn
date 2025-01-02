@@ -1,0 +1,8 @@
+# file: 10_llm_simple.lmn
+
+# Call the LLM with a simple prompt
+let poem = llm(
+    prompt = "Write me a short poem about the sunrise.",
+    model  = "llama3.2"
+)
+print "=== Poem about Sunrise ===" poem
