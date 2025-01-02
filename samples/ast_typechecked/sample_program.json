@@ -261,7 +261,7 @@
             {
               "inferred_type": "string",
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
@@ -281,6 +281,75 @@
                   "inferred_type": "int",
                   "type": "VariableExpression",
                   "name": "y"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "add(a=",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": ", b=",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "y"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "add"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "int",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "a"
+                  },
+                  "right": {
+                    "inferred_type": "int",
+                    "type": "VariableExpression",
+                    "name": "x"
+                  }
+                },
+                {
+                  "inferred_type": "int",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "b"
+                  },
+                  "right": {
+                    "inferred_type": "int",
+                    "type": "VariableExpression",
+                    "name": "y"
+                  }
                 }
               ]
             }
@@ -318,7 +387,7 @@
             {
               "inferred_type": "string",
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
@@ -333,6 +402,51 @@
                   "inferred_type": "int",
                   "type": "VariableExpression",
                   "name": "n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "factorial(n=",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "int",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "n"
+                  },
+                  "right": {
+                    "inferred_type": "int",
+                    "type": "VariableExpression",
+                    "name": "n"
+                  }
                 }
               ]
             }

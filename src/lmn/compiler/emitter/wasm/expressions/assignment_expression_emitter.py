@@ -7,7 +7,7 @@ class AssignmentExpressionEmitter:
          - controller.emit_expression(...)
          - controller._normalize_local_name(...)
          - controller.func_local_map (symbol table for locals)
-         etc.
+         - controller.new_locals (set of new local variables to declare)
         """
         self.controller = controller
 
@@ -24,24 +24,31 @@ class AssignmentExpressionEmitter:
         Emission strategy (C/C++-style):
           1) Evaluate the RHS => push the result on the stack.
           2) local.set $a
-          3) local.get $a   # so the expression itself yields the new value of a on the stack
+          3) local.get $a  # so the expression itself yields the new value of a on the stack
         """
 
-        # 1) Emit code for the right-hand side
+        # 1) Emit code for the right-hand side (RHS)
         right_expr = node["right"]
         self.controller.emit_expression(right_expr, out_lines)
 
-        # 2) local.set <var_name>
+        # 2) The left side must be a variable
         left_var = node["left"]
         if left_var["type"] != "VariableExpression":
             # If your language allows more complex LHS, handle it. For now, assume variable only.
-            raise TypeError(f"AssignmentExpression LHS must be a variable, got {left_var['type']}")
+            raise TypeError(
+                f"AssignmentExpression LHS must be a variable, got {left_var['type']}"
+            )
 
-        raw_name = left_var["name"]
+        raw_name = left_var["name"]  # e.g. "a"
+        if raw_name not in self.controller.func_local_map:
+            # If it's truly new, mark it for declaration.
+            self.controller.new_locals.add(raw_name)
+
+        # 3) Emit local.set using the normalized name for WAT
         normalized_name = self.controller._normalize_local_name(raw_name)
         out_lines.append(f"  local.set {normalized_name}")
 
-        # 3) If your language wants the assignment expression itself to yield the new value
-        #    (like in C, where (a = 5) can appear in further expressions),
-        #    do local.get again so the final value is on stack:
+        # 4) If your language wants the assignment expression itself to yield
+        #    the new value (like C-style '(a = 5)' used in further expressions),
+        #    do local.get so the final value remains on stack:
         out_lines.append(f"  local.get {normalized_name}")

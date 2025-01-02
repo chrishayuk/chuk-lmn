@@ -262,7 +262,7 @@
             {
               "inferred_type": "i32_string",
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "i32_string"
             },
             {
@@ -283,6 +283,78 @@
                   "inferred_type": "i32",
                   "type": "VariableExpression",
                   "name": "y"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": "add(a=",
+              "literal_type": "i32_string"
+            },
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": ", b=",
+              "literal_type": "i32_string"
+            },
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "y"
+            },
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "i32_string"
+            },
+            {
+              "inferred_type": "i32",
+              "type": "FnExpression",
+              "name": {
+                "inferred_type": null,
+                "type": "VariableExpression",
+                "name": "add"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "i32",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "inferred_type": null,
+                    "type": "VariableExpression",
+                    "name": "a"
+                  },
+                  "right": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "x"
+                  }
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "inferred_type": null,
+                    "type": "VariableExpression",
+                    "name": "b"
+                  },
+                  "right": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "y"
+                  }
                 }
               ]
             }
@@ -320,7 +392,7 @@
             {
               "inferred_type": "i32_string",
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "i32_string"
             },
             {
@@ -336,6 +408,53 @@
                   "inferred_type": "i32",
                   "type": "VariableExpression",
                   "name": "n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": "factorial(n=",
+              "literal_type": "i32_string"
+            },
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "i32_string"
+            },
+            {
+              "inferred_type": "i32",
+              "type": "FnExpression",
+              "name": {
+                "inferred_type": null,
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "i32",
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "inferred_type": null,
+                    "type": "VariableExpression",
+                    "name": "n"
+                  },
+                  "right": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "n"
+                  }
                 }
               ]
             }

@@ -220,7 +220,7 @@
             },
             {
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
@@ -237,6 +237,65 @@
                 {
                   "type": "VariableExpression",
                   "name": "y"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "add(a=",
+              "literal_type": "string"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": ", b=",
+              "literal_type": "string"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "y"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "string"
+            },
+            {
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "add"
+              },
+              "arguments": [
+                {
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "a"
+                  },
+                  "right": {
+                    "type": "VariableExpression",
+                    "name": "x"
+                  }
+                },
+                {
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "b"
+                  },
+                  "right": {
+                    "type": "VariableExpression",
+                    "name": "y"
+                  }
                 }
               ]
             }
@@ -268,7 +327,7 @@
             },
             {
               "type": "LiteralExpression",
-              "value": ") = ",
+              "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
@@ -281,6 +340,45 @@
                 {
                   "type": "VariableExpression",
                   "name": "n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "factorial(n=",
+              "literal_type": "string"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "type": "LiteralExpression",
+              "value": ") [named] = ",
+              "literal_type": "string"
+            },
+            {
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "type": "AssignmentExpression",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "n"
+                  },
+                  "right": {
+                    "type": "VariableExpression",
+                    "name": "n"
+                  }
                 }
               ]
             }

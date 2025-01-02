@@ -122,10 +122,6 @@ class WasmEmitter:
         self.functions.append(func_lines)
 
     def emit_top_level_statements_function(self, statements):
-        """
-        Creates a function __top_level__ for top-level statements (not in any user function).
-        We'll call that automatically if the user wants to run it.
-        """
         func_name = "__top_level__"
         self.function_names.append(func_name)
 
@@ -146,12 +142,15 @@ class WasmEmitter:
         for var_name in self.new_locals:
             internal_type = self.func_local_map[var_name]["type"]
             wat_type = self._wasm_basetype(internal_type)
-            local_decls.append(f'  (local {var_name} {wat_type})')
+            # Normalize here => produce (local $x i32) if var_name="x"
+            norm_name = self._normalize_local_name(var_name)
+            local_decls.append(f'  (local {norm_name} {wat_type})')
 
         func_lines[1:1] = local_decls
 
         func_lines.append(')')
         self.functions.append(func_lines)
+
 
     def build_module(self):
         """

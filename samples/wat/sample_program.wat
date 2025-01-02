@@ -53,6 +53,8 @@
     return
   )
   (func $main (result i32)
+    (local $a i32)
+    (local $b i32)
     (local $n i32)
     (local $w i32)
     (local $x i32)
@@ -76,42 +78,75 @@
     local.get $y
     call $add
     call $print_i32
-    i32.const 1045
+    i32.const 1058
+    call $print_string
+    i32.const 1060
+    call $print_string
+    local.get $x
+    call $print_i32
+    i32.const 1067
+    call $print_string
+    local.get $y
+    call $print_i32
+    i32.const 1072
+    call $print_string
+    local.get $x
+    local.set $a
+    local.get $a
+    local.get $y
+    local.set $b
+    local.get $b
+    call $add
+    call $print_i32
+    i32.const 1058
     call $print_string
     i32.const 5
     local.set $n
-    i32.const 1047
+    i32.const 1085
     call $print_string
     local.get $n
     call $print_i32
-    i32.const 1058
+    i32.const 1096
     call $print_string
     local.get $n
     call $factorial
     call $print_i32
-    i32.const 1045
+    i32.const 1058
+    call $print_string
+    i32.const 1114
+    call $print_string
+    local.get $n
+    call $print_i32
+    i32.const 1127
+    call $print_string
+    local.get $n
+    local.set $n
+    local.get $n
+    call $factorial
+    call $print_i32
+    i32.const 1058
     call $print_string
     i32.const 10
     local.set $z
     local.get $z
     call $print_i32
-    i32.const 1063
+    i32.const 1140
     call $print_string
     local.get $z
     call $even_or_odd
     call $print_string
-    i32.const 1045
+    i32.const 1058
     call $print_string
     i32.const 7
     local.set $w
     local.get $w
     call $print_i32
-    i32.const 1068
+    i32.const 1145
     call $print_string
     local.get $w
     call $even_or_odd
     call $print_string
-    i32.const 1045
+    i32.const 1058
     call $print_string
     i32.const 0
     return
@@ -124,10 +159,15 @@
   (data (i32.const 1029) "\6f\64\64\00")
   (data (i32.const 1033) "\61\64\64\28\00")
   (data (i32.const 1038) "\2c\00")
-  (data (i32.const 1040) "\29\20\3d\20\00")
-  (data (i32.const 1045) "\0a\00")
-  (data (i32.const 1047) "\66\61\63\74\6f\72\69\61\6c\28\00")
-  (data (i32.const 1058) "\29\20\3d\20\00")
-  (data (i32.const 1063) "\20\69\73\20\00")
-  (data (i32.const 1068) "\20\69\73\20\00")
+  (data (i32.const 1040) "\29\20\5b\70\6f\73\69\74\69\6f\6e\61\6c\5d\20\3d\20\00")
+  (data (i32.const 1058) "\0a\00")
+  (data (i32.const 1060) "\61\64\64\28\61\3d\00")
+  (data (i32.const 1067) "\2c\20\62\3d\00")
+  (data (i32.const 1072) "\29\20\5b\6e\61\6d\65\64\5d\20\3d\20\00")
+  (data (i32.const 1085) "\66\61\63\74\6f\72\69\61\6c\28\00")
+  (data (i32.const 1096) "\29\20\5b\70\6f\73\69\74\69\6f\6e\61\6c\5d\20\3d\20\00")
+  (data (i32.const 1114) "\66\61\63\74\6f\72\69\61\6c\28\6e\3d\00")
+  (data (i32.const 1127) "\29\20\5b\6e\61\6d\65\64\5d\20\3d\20\00")
+  (data (i32.const 1140) "\20\69\73\20\00")
+  (data (i32.const 1145) "\20\69\73\20\00")
 )
