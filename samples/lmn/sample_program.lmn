@@ -1,15 +1,60 @@
-# Computes n! recursively
-function factorial(n)
-  # If n <= 1, return 1
-  if (n <= 1)
-    return 1
-  else
-    # Otherwise, n * factorial(n - 1)
-    return n * factorial(n - 1)
-  end
+# test_functions.lmn
+# -------------------------
+# 1) Implicitly typed function
+# -------------------------
+function add(a, b)
+    # Return the sum of 'a' and 'b'
+    return a + b
 end
 
-function main()
-  let x = 5
-  print "Factorial of" x "is" factorial(n)
+# -------------------------
+# 2) Type-annotated function
+#    factorial(n: int) -> int
+# -------------------------
+function factorial(n: int) : int
+    # If n <= 1, return 1
+    if n <= 1
+        return 1
+    else
+        # Otherwise, factorial(n) = n * factorial(n - 1)
+        return n * factorial(n - 1)
+    end
+end
+
+# -------------------------
+# 3) Type-annotated function returning a string
+# -------------------------
+function even_or_odd(x: int) : string
+    # Use modulo to check if x is even or odd
+    if (x % 2) == 0
+        return "even"
+    else
+        return "odd"
+    end
+end
+
+# -------------------------
+# 4) Main function (with type annotation)
+#    main() -> int
+# -------------------------
+function main() : int
+    # 4.1) Use 'add' (implicitly typed) to add two numbers
+    let x = 3
+    let y = 5
+    print "add(" x "," y ") = " add(x, y)
+
+    # 4.2) Test the type-annotated 'factorial' function
+    let n = 5
+    print "factorial(" n ") = " factorial(n)
+
+    # 4.3) Show if a number is even or odd using 'even_or_odd'
+    let z = 10
+    print z " is " even_or_odd(z)
+
+    # 4.4) Another quick check on an odd input
+    let w = 7
+    print w " is " even_or_odd(w)
+
+    # Return 0 from main
+    return 0
 end
