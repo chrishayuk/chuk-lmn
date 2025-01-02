@@ -43,7 +43,7 @@
             "right": {
               "inferred_type": "i32_string",
               "type": "LiteralExpression",
-              "value": "gpt-4",
+              "value": "llama3.2",
               "literal_type": "i32_string"
             }
           }

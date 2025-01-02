@@ -1,0 +1,18 @@
+{
+  "namespace": "env",
+  "functions": [
+    {
+      "name": "llm",
+      "signature": {
+        "parameters": [
+          { "name": "prompt_ptr", "type": "i32" },
+          { "name": "model_ptr", "type": "i32" }
+        ],
+        "results": [
+          { "type": "i32" }
+        ]
+      },
+      "handler": "lmn.runtime.host.core.llm.handler:llm_handler"
+    }
+  ]
+}

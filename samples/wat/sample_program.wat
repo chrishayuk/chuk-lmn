@@ -14,8 +14,8 @@
   (memory (export "memory") 1)
   (func $__top_level__
     (local $poem i32)
-    (local $model i32)
     (local $prompt i32)
+    (local $model i32)
     i32.const 1024
     local.set $prompt
     local.get $prompt
@@ -24,16 +24,16 @@
     local.get $model
     call $llm
     local.set $poem
-    i32.const 1071
+    i32.const 1074
     call $print_string
     local.get $poem
     call $print_string
-    i32.const 1098
+    i32.const 1101
     call $print_string
   )
   (export "__top_level__" (func $__top_level__))
   (data (i32.const 1024) "\57\72\69\74\65\20\6d\65\20\61\20\73\68\6f\72\74\20\70\6f\65\6d\20\61\62\6f\75\74\20\74\68\65\20\73\75\6e\72\69\73\65\2e\00")
-  (data (i32.const 1065) "\67\70\74\2d\34\00")
-  (data (i32.const 1071) "\3d\3d\3d\20\50\6f\65\6d\20\61\62\6f\75\74\20\53\75\6e\72\69\73\65\20\3d\3d\3d\00")
-  (data (i32.const 1098) "\0a\00")
+  (data (i32.const 1065) "\6c\6c\61\6d\61\33\2e\32\00")
+  (data (i32.const 1074) "\3d\3d\3d\20\50\6f\65\6d\20\61\62\6f\75\74\20\53\75\6e\72\69\73\65\20\3d\3d\3d\00")
+  (data (i32.const 1101) "\0a\00")
 )

@@ -3,6 +3,6 @@
 # Call the LLM with a simple prompt
 let poem = llm(
     prompt = "Write me a short poem about the sunrise.",
-    model  = "gpt-4"
+    model  = "llama3.2"
 )
 print "=== Poem about Sunrise ===" poem

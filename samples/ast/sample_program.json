@@ -34,7 +34,7 @@
             },
             "right": {
               "type": "LiteralExpression",
-              "value": "gpt-4",
+              "value": "llama3.2",
               "literal_type": "string"
             }
           }
