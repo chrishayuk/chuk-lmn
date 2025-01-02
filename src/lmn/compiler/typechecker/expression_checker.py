@@ -314,25 +314,39 @@ def check_builtin_function_call(fn_expr: FnExpression, fn_info: dict, symbol_tab
     return return_type
 
 def check_user_function_call(fn_expr: FnExpression, fn_info: dict, symbol_table: dict) -> str:
-    """Handles user-defined functions that use positional parameters"""
+    """
+    Allows param inference if param_types[i] == None.
+    """
     param_types = fn_info.get("param_types", [])
-    return_type = fn_info.get("return_type")
-    
-    # Check argument count matches parameter count
+    return_type = fn_info.get("return_type", "void")  # might also be None initially
+
+    # 1) Check argument count
     if len(fn_expr.arguments) != len(param_types):
         raise TypeError(
-            f"Function '{fn_expr.name.name}' expects {len(param_types)} arguments but got {len(fn_expr.arguments)}"
+            f"Function '{fn_expr.name.name}' expects {len(param_types)} argument(s) "
+            f"but got {len(fn_expr.arguments)}"
         )
-    
-    # Type check each argument against the corresponding parameter type
-    for i, (arg, expected_type) in enumerate(zip(fn_expr.arguments, param_types)):
-        arg_type = check_expression(arg, symbol_table)
-        unified = unify_types(expected_type, arg_type, for_assignment=True)
-        
-        if unified != expected_type:
-            raise TypeError(
-                f"Argument {i+1} of function '{fn_expr.name.name}' expects type '{expected_type}' but got '{arg_type}'"
-            )
-    
+
+    # 2) Type-check each argument
+    for i, (arg_node, expected_type) in enumerate(zip(fn_expr.arguments, param_types)):
+        arg_type = check_expression(arg_node, symbol_table)
+
+        # If param_types[i] is None => set it to arg_type
+        if expected_type is None:
+            param_types[i] = arg_type
+            fn_info["param_types"] = param_types
+            expected_type = arg_type
+        else:
+            # unify
+            unified = unify_types(expected_type, arg_type, for_assignment=True)
+            if unified != expected_type:
+                raise TypeError(
+                    f"Argument {i+1} of function '{fn_expr.name.name}' "
+                    f"expects type '{expected_type}' but got '{arg_type}'"
+                )
+
+    # 3) The call expression's result is the function's return type
     fn_expr.inferred_type = return_type
     return return_type
+
+

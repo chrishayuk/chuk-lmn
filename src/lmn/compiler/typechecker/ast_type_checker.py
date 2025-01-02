@@ -4,72 +4,89 @@ from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.function_checker import check_function_definition
 from lmn.compiler.typechecker.statement_checker import check_statement
-from typing import TYPE_CHECKING, Dict, Optional, Any
+from lmn.compiler.typechecker.expression_checker import check_expression
+from typing import Dict, Any
 import logging
 import traceback
-from enum import Enum
-
-if TYPE_CHECKING:
-    from lmn.compiler.ast.statements import FunctionDefinition
 
 # 1) Import the built-in definitions
 from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
+from lmn.compiler.typechecker.utils import unify_types
 
 logger = logging.getLogger(__name__)
 
 class TypeCheckError(Exception):
     """Custom exception for type checking errors with detailed information."""
-    def __init__(self, message: str, node_type: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(self, message: str, node_type: str = None, details: dict = None):
         self.message = message
         self.node_type = node_type
         self.details = details or {}
         super().__init__(self.message)
 
-def log_symbol_table(symbol_table: Dict[str, str]) -> None:
-    """Log the current state of the symbol table."""
+def log_symbol_table(symbol_table: Dict[str, Any]) -> None:
     logger.debug("Current symbol table state:")
     for var_name, var_type in symbol_table.items():
         logger.debug(f"  {var_name}: {var_type}")
 
-def log_type_info(var_name: str, existing_type: Any, new_type: Any, symbol_table: Dict[str, str]) -> None:
-    """Log detailed type information for debugging."""
-    logger.debug(f"Type check info for variable '{var_name}':")
-    logger.debug(f"  - Existing type: {existing_type} (type: {type(existing_type)})")
-    logger.debug(f"  - New type: {new_type} (type: {type(new_type)})")
-    logger.debug(f"  - Current symbol table entry: {symbol_table.get(var_name)}")
-
 def type_check_program(program_node: Program) -> None:
+    """
+    A multi-step approach:
+      1) Gather function definitions into the symbol table, store them in a list
+      2) Partially unify param types from calls (FnExpressions)
+      3) Re-check each stored FunctionDefinition body (now that param types are known)
+      4) Finally, check other top-level statements
+    """
     logger.info("Starting type checking for program")
     
+    # Initialize symbol table with built-ins
+    symbol_table: Dict[str, Any] = {}
+    for fn_name, fn_sig in BUILTIN_FUNCTIONS.items():
+        symbol_table[fn_name] = fn_sig
+
     try:
-        # 2) Initialize an empty symbol table
-        symbol_table: Dict[str, Any] = {}
-        logger.debug("Initialized empty symbol table")
+        # A place to store all function definition nodes for later pass
+        function_nodes = []
 
-        # 3) Load built-in function signatures into the symbol table
-        #    So the typechecker knows about llm, etc.
-        for fn_name, fn_sig in BUILTIN_FUNCTIONS.items():
-            symbol_table[fn_name] = fn_sig
+        logger.debug("=== PASS 1: Gather function definitions & unify call param types ===")
+        # 1) Gather function definitions & store them
+        for node in program_node.body:
+            if node.type == "FunctionDefinition":
+                # Collect param types
+                param_types = []
+                for p in node.params:
+                    declared = getattr(p, "type_annotation", None)
+                    param_types.append(declared)
+                
+                # Possibly None if unannotated
+                rt = getattr(node, "return_type", None)
 
-        # 4) Iterate over each node in the program body
-        for i, node in enumerate(program_node.body):
-            logger.debug(f"Checking top-level node {i+1}/{len(program_node.body)}: {node.type}")
-            logger.debug(f"Node details: {node.__dict__}")
+                # Put in symbol_table
+                symbol_table[node.name] = {
+                    "param_types": param_types,
+                    "return_type": rt
+                }
+                # Also store this node for later re-check
+                function_nodes.append(node)
 
-            try:
-                # This function will handle both FunctionDefinition and statements
-                check_top_level_node(node, symbol_table)
+        # 2) unify param types from calls
+        unify_params_from_calls(program_node, symbol_table)
 
-                # Log the symbol table after each node
+        # 3) Re-check each function definition body
+        logger.debug("=== PASS 2: Re-check each stored function body ===")
+        for fn_node in function_nodes:
+            logger.debug(f"Re-checking function: {fn_node.name}")
+            check_function_definition(fn_node, symbol_table)
+            log_symbol_table(symbol_table)
+
+        # 4) Check other top-level statements (non-function)
+        logger.debug("=== PASS 3: Check other top-level statements ===")
+        for node in program_node.body:
+            if node.type != "FunctionDefinition":
+                check_statement(node, symbol_table)
                 log_symbol_table(symbol_table)
 
-            except Exception as e:
-                logger.error(f"Error processing node {i+1}: {str(e)}")
-                logger.error(f"Node that caused error: {node.__dict__}")
-                raise
-
         logger.info("Type checking completed successfully")
-        
+
     except TypeCheckError as e:
         logger.error(f"Type checking failed: {e.message}")
         if e.details:
@@ -80,33 +97,64 @@ def type_check_program(program_node: Program) -> None:
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
 
-def check_top_level_node(node: Node, symbol_table: dict) -> None:
+# -------------------------------------------------------------------
+# unify_params_from_calls
+# -------------------------------------------------------------------
+def unify_params_from_calls(program_node: Program, symbol_table: dict) -> None:
     """
-    A top-level node might be a FunctionDefinition or a statement 
-    (if your language allows statements at top-level). We'll dispatch accordingly.
+    Recursively find FnExpression calls in the AST,
+    unify param types if unknown.
     """
+    for node in program_node.body:
+        unify_calls_in_node(node, symbol_table)
+
+def unify_calls_in_node(node: Node, symbol_table: dict) -> None:
     node_type = node.type
-    
-    logger.debug(f"Processing node of type: {node_type}")
-    logger.debug(f"Node attributes: {node.__dict__}")
-    
-    try:
-        if node_type == "FunctionDefinition":
-            logger.debug("Checking function definition")
-            check_function_definition(node, symbol_table)
-        else:
-            logger.debug(f"Checking top-level statement: {node_type}")
-            check_statement(node, symbol_table)
-            
-    except (TypeError, NotImplementedError) as e:
-        error_details = {
-            "node_type": node_type,
-            "symbol_table": symbol_table,
-            "node_attributes": node.__dict__
-        }
-        logger.error(f"Error checking {node_type} node: {str(e)}", extra=error_details)
-        raise TypeCheckError(str(e), node_type, error_details)
-    except Exception as e:
-        logger.critical(f"Unexpected error checking {node_type} node: {str(e)}")
-        logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
-        raise
+
+    if node_type == "FnExpression":
+        fn_name = node.name.name
+        fn_info = symbol_table.get(fn_name)
+        if fn_info and "param_types" in fn_info:
+            param_types = fn_info["param_types"]
+            if len(node.arguments) == len(param_types):
+                for i, arg_expr in enumerate(node.arguments):
+                    arg_type = partial_check_expression(arg_expr, symbol_table)
+                    if param_types[i] is None:
+                        param_types[i] = arg_type
+                    else:
+                        unified = unify_types(param_types[i], arg_type, for_assignment=True)
+                        param_types[i] = unified
+                fn_info["param_types"] = param_types
+
+    # Traverse subfields
+    if hasattr(node, "body") and isinstance(node.body, list):
+        for subnode in node.body:
+            unify_calls_in_node(subnode, symbol_table)
+
+    if hasattr(node, "expressions") and isinstance(node.expressions, list):
+        for expr in node.expressions:
+            unify_calls_in_node(expr, symbol_table)
+
+    if hasattr(node, "expression") and node.expression is not None:
+        unify_calls_in_node(node.expression, symbol_table)
+
+    if hasattr(node, "arguments") and isinstance(node.arguments, list):
+        for arg in node.arguments:
+            unify_calls_in_node(arg, symbol_table)
+
+def partial_check_expression(expr: Node, symbol_table: dict) -> str:
+    """
+    Minimal pass-1 expression check to infer arguments for param unification.
+    """
+    if expr.type == "LiteralExpression":
+        lit_type = getattr(expr, "literal_type", "")
+        if lit_type == "string":
+            return "string"
+        return "int"
+    elif expr.type == "VariableExpression":
+        return symbol_table.get(expr.name, "int")
+    elif expr.type == "FnExpression":
+        # skip deeper logic, just return 'void' or 'int'
+        return "void"
+    return "int"
+
