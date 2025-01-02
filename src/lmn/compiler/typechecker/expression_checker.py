@@ -240,45 +240,54 @@ def check_fn_expression(fn_expr: FnExpression, symbol_table: dict) -> str:
 
 
 def check_builtin_function_call(fn_expr: FnExpression, fn_info: dict, symbol_table: dict) -> str:
-    """Handles builtin functions that use named parameters"""
     required_params = fn_info.get("required_params", {})
     optional_params = fn_info.get("optional_params", {})
-    return_type = fn_info.get("return_type", "void")
+    return_type     = fn_info.get("return_type", "void")
 
-    passed_args = {}
-    
+    # 1) Collect named arguments
+    named_args = {}
+    positional_args = []
     for arg in fn_expr.arguments:
         if arg.type == "AssignmentExpression":
             param_name = arg.left.name
             param_type = check_expression(arg.right, symbol_table)
-            passed_args[param_name] = param_type
+            named_args[param_name] = param_type
         else:
-            raise TypeError(
-                f"Builtin function '{fn_expr.name.name}' must be called with named arguments like param=expr"
-            )
+            # It's a positional argument
+            arg_type = check_expression(arg, symbol_table)
+            positional_args.append(arg_type)
+    
+    # 2) If you want to treat positional arguments as filling required params in order
+    req_keys = list(required_params.keys())
+    opt_keys = list(optional_params.keys())
+    i = 0
+    # fill required first
+    for pos_type in positional_args:
+        if i < len(req_keys):
+            param_name = req_keys[i]
+            # unify types with required_params[param_name]
+            unify_types(required_params[param_name], pos_type, for_assignment=True)
+            # Mark that as "satisfied"
+            named_args[param_name] = pos_type
+        else:
+            # maybe fill optional_params next, or raise if you have none left
+            pass
+        i += 1
 
-    # Check required parameters
+    # 3) Now verify required params are all present
     for req_name, req_type in required_params.items():
-        if req_name not in passed_args:
-            raise TypeError(f"Missing required parameter '{req_name}' for builtin function '{fn_expr.name.name}'")
-        
-        actual_type = passed_args[req_name]
-        unified = unify_types(req_type, actual_type, for_assignment=True)
-        if unified != req_type:
-            raise TypeError(f"Parameter '{req_name}' expects '{req_type}' but got '{actual_type}'")
+        if req_name not in named_args:
+            raise TypeError(...)
 
-    # Check optional parameters
+    # 4) Check optional params
     for opt_name, opt_type in optional_params.items():
-        if opt_name in passed_args:
-            actual_type = passed_args[opt_name]
-            unified = unify_types(opt_type, actual_type, for_assignment=True)
-            if unified != opt_type:
-                raise TypeError(
-                    f"Optional parameter '{opt_name}' expects '{opt_type}' but got '{actual_type}'"
-                )
+        if opt_name in named_args:
+            unify_types(opt_type, named_args[opt_name], for_assignment=True)
+        # else it's not provided => that's okay
 
     fn_expr.inferred_type = return_type
     return return_type
+
 
 
 def check_user_function_call(fn_expr: FnExpression, fn_info: dict, symbol_table: dict) -> str:

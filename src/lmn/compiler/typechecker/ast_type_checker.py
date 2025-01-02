@@ -36,20 +36,46 @@ def type_check_program(program_node: Program) -> None:
     """
     logger.info("Starting type checking for program")
     
-    # Initialize symbol table with built-ins
+    # ---------------------------------------------------------------
+    # 1) Initialize symbol table with built-ins
+    # ---------------------------------------------------------------
     symbol_table: Dict[str, Any] = {}
     for fn_name, fn_sig in BUILTIN_FUNCTIONS.items():
         symbol_table[fn_name] = fn_sig
+
+    # ---------------------------------------------------------------
+    # 1a) [FIX] Convert required_params/optional_params => param_names/param_defaults
+    #     for each built-in function so finalize_function_calls can reorder arguments properly.
+    # ---------------------------------------------------------------
+    for fn_name, fn_info in symbol_table.items():
+        # Only do this if the built-in uses "required_params"/"optional_params"
+        required_params = fn_info.get("required_params", {})
+        optional_params = fn_info.get("optional_params", {})
+
+        # If there aren't any, skip
+        if not required_params and not optional_params:
+            continue
+
+        param_names = list(required_params.keys()) + list(optional_params.keys())
+        # For now, default each optional param to None (or you could read actual defaults if you have them)
+        param_defaults = [None] * len(required_params) + [None] * len(optional_params)
+
+        # Put them into the same dict so "finalize_function_calls" can see them
+        fn_info["param_names"] = param_names
+        fn_info["param_defaults"] = param_defaults
+        # Keep return_type as is; keep old dict so you still have "required_params"/"optional_params" if needed
+
+        symbol_table[fn_name] = fn_info
 
     try:
         # A place to store all function definition nodes for later pass
         function_nodes = []
 
         logger.debug("=== PASS 1: Gather function definitions & unify call param types ===")
-        # 1) Gather function definitions & store them
+        # 2) Gather user-defined function definitions & store them in symbol_table
         for node in program_node.body:
             if node.type == "FunctionDefinition":
-                # Collect param types
+                # Collect param types from possible annotations
                 param_types = []
                 for p in node.params:
                     declared = getattr(p, "type_annotation", None)
@@ -66,24 +92,24 @@ def type_check_program(program_node: Program) -> None:
                 # Also store this node for later re-check
                 function_nodes.append(node)
 
-        # 2) unify param types from calls
+        # 3) unify param types from calls
         unify_params_from_calls(program_node, symbol_table)
 
-        # 3) Re-check each function definition body
+        # 4) Re-check each function definition body
         logger.debug("=== PASS 2: Re-check each stored function body ===")
         for fn_node in function_nodes:
             logger.debug(f"Re-checking function: {fn_node.name}")
             check_function_definition(fn_node, symbol_table)
             log_symbol_table(symbol_table)
 
-        # 4) Check other top-level statements (non-function)
+        # 5) Check other top-level statements (non-function)
         logger.debug("=== PASS 3: Check other top-level statements ===")
         for node in program_node.body:
             if node.type != "FunctionDefinition":
                 check_statement(node, symbol_table)
                 log_symbol_table(symbol_table)
 
-        # 5: Convert all calls to purely positional
+        # 6) Convert all calls to purely positional
         logger.debug("=== PASS 4: Finalizing named arguments => positional ===")
         finalize_function_calls(program_node, symbol_table)
 
@@ -99,6 +125,7 @@ def type_check_program(program_node: Program) -> None:
         logger.critical(f"Unexpected error during type checking: {str(e)}")
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
+
 
 # -------------------------------------------------------------------
 # unify_params_from_calls
