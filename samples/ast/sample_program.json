@@ -2,476 +2,58 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "add",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "a"
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "poem"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "llm"
         },
-        {
-          "type": "FunctionParameter",
-          "name": "b"
-        }
-      ],
-      "body": [
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "type": "BinaryExpression",
-            "operator": "+",
+        "arguments": [
+          {
+            "type": "AssignmentExpression",
             "left": {
               "type": "VariableExpression",
-              "name": "a"
+              "name": "prompt"
             },
             "right": {
+              "type": "LiteralExpression",
+              "value": "Write me a short poem about the sunrise.",
+              "literal_type": "string"
+            }
+          },
+          {
+            "type": "AssignmentExpression",
+            "left": {
               "type": "VariableExpression",
-              "name": "b"
+              "name": "model"
+            },
+            "right": {
+              "type": "LiteralExpression",
+              "value": "gpt-4",
+              "literal_type": "string"
             }
           }
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "LiteralExpression",
+          "value": "=== Poem about Sunrise ===",
+          "literal_type": "string"
+        },
+        {
+          "type": "VariableExpression",
+          "name": "poem"
         }
       ]
-    },
-    {
-      "type": "FunctionDefinition",
-      "name": "factorial",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "n",
-          "type_annotation": "int"
-        }
-      ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "type": "BinaryExpression",
-            "operator": "<=",
-            "left": {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 1,
-              "literal_type": "int"
-            }
-          },
-          "thenBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "LiteralExpression",
-                "value": 1,
-                "literal_type": "int"
-              }
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "BinaryExpression",
-                "operator": "*",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "n"
-                },
-                "right": {
-                  "type": "FnExpression",
-                  "name": {
-                    "type": "VariableExpression",
-                    "name": "factorial"
-                  },
-                  "arguments": [
-                    {
-                      "type": "BinaryExpression",
-                      "operator": "-",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "n"
-                      },
-                      "right": {
-                        "type": "LiteralExpression",
-                        "value": 1,
-                        "literal_type": "int"
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "return_type": "int"
-    },
-    {
-      "type": "FunctionDefinition",
-      "name": "even_or_odd",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "x",
-          "type_annotation": "int"
-        }
-      ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "type": "BinaryExpression",
-            "operator": "==",
-            "left": {
-              "type": "BinaryExpression",
-              "operator": "%",
-              "left": {
-                "type": "VariableExpression",
-                "name": "x"
-              },
-              "right": {
-                "type": "LiteralExpression",
-                "value": 2,
-                "literal_type": "int"
-              }
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 0,
-              "literal_type": "int"
-            }
-          },
-          "thenBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "LiteralExpression",
-                "value": "even",
-                "literal_type": "string"
-              }
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "LiteralExpression",
-                "value": "odd",
-                "literal_type": "string"
-              }
-            }
-          ]
-        }
-      ],
-      "return_type": "string"
-    },
-    {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "x"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 3,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "y"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 5,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "add(",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ",",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "y"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ") [positional] = ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "add"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "x"
-                },
-                {
-                  "type": "VariableExpression",
-                  "name": "y"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "add(a=",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ", b=",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "y"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ") [named] = ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "add"
-              },
-              "arguments": [
-                {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
-                },
-                {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "n"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 5,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "factorial(",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ") [positional] = ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "factorial"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "n"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "factorial(n=",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": ") [named] = ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "factorial"
-              },
-              "arguments": [
-                {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "n"
-                  },
-                  "right": {
-                    "type": "VariableExpression",
-                    "name": "n"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "z"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 10,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "z"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": " is ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "even_or_odd"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "z"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "w"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 7,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "VariableExpression",
-              "name": "w"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": " is ",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "even_or_odd"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "w"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 0,
-            "literal_type": "int"
-          }
-        }
-      ],
-      "return_type": "int"
     }
   ]
 }

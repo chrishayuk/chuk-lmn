@@ -7,8 +7,7 @@ BUILTIN_FUNCTIONS = {
             "prompt": "string"
         },
         "optional_params": {
-            "model": "string",
-            "temperature": "double"
+            "model": "string"
         },
         "return_type": "string"
     },

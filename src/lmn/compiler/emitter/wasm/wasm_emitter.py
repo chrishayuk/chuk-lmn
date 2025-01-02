@@ -125,7 +125,6 @@ class WasmEmitter:
         func_name = "__top_level__"
         self.function_names.append(func_name)
 
-        # Reset local-tracking
         self.new_locals = set()
         self.func_local_map = {}
         self.local_counter = 0
@@ -133,23 +132,30 @@ class WasmEmitter:
         func_lines = []
         func_lines.append(f'(func ${func_name}')
 
-        # Emit each statement
+        # 1) Emit each statement, collecting new_locals
         for stmt in statements:
             self.emit_statement(stmt, func_lines)
 
-        # Insert local declarations
+        # 2) Insert local declarations
         local_decls = []
         for var_name in self.new_locals:
+            if var_name not in self.func_local_map:
+                # fallback => auto-declare as i32 or another default
+                self.func_local_map[var_name] = {
+                    "index": self.local_counter,
+                    "type": "i32"
+                }
+                self.local_counter += 1
+
             internal_type = self.func_local_map[var_name]["type"]
             wat_type = self._wasm_basetype(internal_type)
-            # Normalize here => produce (local $x i32) if var_name="x"
             norm_name = self._normalize_local_name(var_name)
             local_decls.append(f'  (local {norm_name} {wat_type})')
 
         func_lines[1:1] = local_decls
-
         func_lines.append(')')
         self.functions.append(func_lines)
+
 
 
     def build_module(self):
@@ -172,11 +178,17 @@ class WasmEmitter:
         lines.append('  (import "env" "print_json" (func $print_json (param i32)))')
         lines.append('  (import "env" "print_string_array" (func $print_string_array (param i32)))')
 
-        # Instead of a single "print_array", define specialized typed-array imports:
+        # Specialized typed-array imports
         lines.append('  (import "env" "print_i32_array" (func $print_i32_array (param i32)))')
         lines.append('  (import "env" "print_i64_array" (func $print_i64_array (param i32)))')
         lines.append('  (import "env" "print_f32_array" (func $print_f32_array (param i32)))')
         lines.append('  (import "env" "print_f64_array" (func $print_f64_array (param i32)))')
+
+        # --------------------------------------------------------------
+        # NEW: Import the llm function
+        # --------------------------------------------------------------
+        # For the signature (prompt_ptr: i32, model_ptr: i32) -> i32
+        lines.append('  (import "env" "llm" (func $llm (param i32 i32) (result i32)))')
 
         if self.import_memory:
             # (A) Import memory => no data segments
@@ -201,7 +213,7 @@ class WasmEmitter:
             for line in f_lines:
                 lines.append(f"  {line}")
 
-        # Export function names
+        # Export each function by name
         for fname in self.function_names:
             lines.append(f'  (export "{fname}" (func ${fname}))')
 
@@ -213,6 +225,7 @@ class WasmEmitter:
 
         lines.append(')')
         return "\n".join(lines) + "\n"
+
 
 
     # -------------------------------------------------------------------------

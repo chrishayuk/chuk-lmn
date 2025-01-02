@@ -1,71 +1,8 @@
-# test_functions_with_named.lmn
-# -------------------------
-# 1) Implicitly typed function
-#    Demonstrates the use of positional and named arguments.
-# -------------------------
-function add(a, b)
-    # Return the sum of 'a' and 'b'
-    return a + b
-end
+# file: 10_llm_integration.lmn
 
-# -------------------------
-# 2) Type-annotated function
-#    factorial(n: int) -> int
-# -------------------------
-function factorial(n: int) : int
-    # If n <= 1, return 1
-    if n <= 1
-        return 1
-    else
-        # Otherwise, factorial(n) = n * factorial(n - 1)
-        return n * factorial(n - 1)
-    end
-end
-
-# -------------------------
-# 3) Type-annotated function returning a string
-# -------------------------
-function even_or_odd(x: int) : string
-    # Use modulo to check if x is even or odd
-    if (x % 2) == 0
-        return "even"
-    else
-        return "odd"
-    end
-end
-
-# -------------------------
-# 4) Main function (with type annotation)
-#    main() -> int
-# -------------------------
-function main() : int
-    # 4.1) Demonstrate positional vs. named arguments with 'add'
-    let x = 3
-    let y = 5
-
-    # 4.1.1) Positional arguments (3 and 5 in order)
-    print "add(" x "," y ") [positional] = " add(x, y)
-
-    # 4.1.2) Named arguments (explicitly matching parameter names)
-    print "add(a=" x ", b=" y ") [named] = " add(a=x, b=y)
-
-    # 4.2) Test the type-annotated 'factorial' function
-    let n = 5
-
-    # 4.2.1) Factorial with positional argument
-    print "factorial(" n ") [positional] = " factorial(n)
-
-    # 4.2.2) Factorial with named argument
-    print "factorial(n=" n ") [named] = " factorial(n=n)
-
-    # 4.3) Show if a number is even or odd using 'even_or_odd'
-    let z = 10
-    print z " is " even_or_odd(z)
-
-    # 4.4) Another quick check on an odd input
-    let w = 7
-    print w " is " even_or_odd(w)
-
-    # Return 0 from main
-    return 0
-end
+# Call the LLM with a simple prompt
+let poem = llm(
+    prompt = "Write me a short poem about the sunrise.",
+    model  = "gpt-4"
+)
+print "=== Poem about Sunrise ===" poem
