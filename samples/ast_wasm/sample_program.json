@@ -368,31 +368,13 @@
               "arguments": [
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
+                  "type": "VariableExpression",
+                  "name": "x"
                 },
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
+                  "type": "VariableExpression",
+                  "name": "y"
                 }
               ]
             }
@@ -440,31 +422,13 @@
               "arguments": [
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
+                  "type": "VariableExpression",
+                  "name": "x"
                 },
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
+                  "type": "VariableExpression",
+                  "name": "y"
                 }
               ]
             }
@@ -650,31 +614,13 @@
               "arguments": [
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "p"
-                  }
+                  "type": "VariableExpression",
+                  "name": "p"
                 },
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "q"
-                  }
+                  "type": "VariableExpression",
+                  "name": "q"
                 }
               ]
             }
@@ -722,31 +668,13 @@
               "arguments": [
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "p"
-                  }
+                  "type": "VariableExpression",
+                  "name": "q"
                 },
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "q"
-                  }
+                  "type": "VariableExpression",
+                  "name": "p"
                 }
               ]
             }
@@ -836,17 +764,8 @@
               "arguments": [
                 {
                   "inferred_type": "i32",
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "inferred_type": null,
-                    "type": "VariableExpression",
-                    "name": "n"
-                  },
-                  "right": {
-                    "inferred_type": "i32",
-                    "type": "VariableExpression",
-                    "name": "n"
-                  }
+                  "type": "VariableExpression",
+                  "name": "n"
                 }
               ]
             }

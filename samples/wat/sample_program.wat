@@ -60,8 +60,6 @@
     return
   )
   (func $main (result i32)
-    (local $a i32)
-    (local $b i32)
     (local $n i32)
     (local $p i32)
     (local $q i32)
@@ -100,11 +98,7 @@
     i32.const 1072
     call $print_string
     local.get $x
-    local.set $a
-    local.get $a
     local.get $y
-    local.set $b
-    local.get $b
     call $add
     call $print_i32
     i32.const 1058
@@ -119,12 +113,8 @@
     call $print_i32
     i32.const 1097
     call $print_string
-    local.get $y
-    local.set $b
-    local.get $b
     local.get $x
-    local.set $a
-    local.get $a
+    local.get $y
     call $add
     call $print_i32
     i32.const 1058
@@ -176,11 +166,7 @@
     i32.const 1208
     call $print_string
     local.get $p
-    local.set $a
-    local.get $a
     local.get $q
-    local.set $b
-    local.get $b
     call $subtract
     call $print_i32
     i32.const 1058
@@ -195,12 +181,8 @@
     call $print_i32
     i32.const 1238
     call $print_string
-    local.get $p
-    local.set $b
-    local.get $b
     local.get $q
-    local.set $a
-    local.get $a
+    local.get $p
     call $subtract
     call $print_i32
     i32.const 1058
@@ -224,8 +206,6 @@
     call $print_i32
     i32.const 1306
     call $print_string
-    local.get $n
-    local.set $n
     local.get $n
     call $factorial
     call $print_i32

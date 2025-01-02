@@ -364,28 +364,14 @@
               },
               "arguments": [
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "x"
                 },
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "y"
                 }
               ]
             }
@@ -431,28 +417,14 @@
               },
               "arguments": [
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "x"
                 },
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "y"
                 }
               ]
             }
@@ -634,28 +606,14 @@
               },
               "arguments": [
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "p"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "p"
                 },
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "q"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "q"
                 }
               ]
             }
@@ -701,28 +659,14 @@
               },
               "arguments": [
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "b"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "p"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "q"
                 },
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "a"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "q"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "p"
                 }
               ]
             }
@@ -809,16 +753,9 @@
               },
               "arguments": [
                 {
-                  "type": "AssignmentExpression",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "n"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "n"
-                  }
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "n"
                 }
               ]
             }

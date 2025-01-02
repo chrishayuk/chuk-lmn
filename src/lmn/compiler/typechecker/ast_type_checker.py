@@ -6,6 +6,7 @@ from typing import Dict, Any
 # 1) Import the built-in definitions
 from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
+from lmn.compiler.typechecker.finalize_arguments_pass import finalize_function_calls
 from lmn.compiler.typechecker.statement_checker import check_statement, check_function_definition
 from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
 from lmn.compiler.typechecker.utils import unify_types
@@ -82,6 +83,11 @@ def type_check_program(program_node: Program) -> None:
                 check_statement(node, symbol_table)
                 log_symbol_table(symbol_table)
 
+        # 5: Convert all calls to purely positional
+        logger.debug("=== PASS 4: Finalizing named arguments => positional ===")
+        finalize_function_calls(program_node, symbol_table)
+
+        # complete
         logger.info("Type checking completed successfully")
 
     except TypeCheckError as e:
