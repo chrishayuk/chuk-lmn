@@ -9,7 +9,7 @@ from lmn.compiler.ast.expressions.variable_expression import VariableExpression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
 # The checker under test
-from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
+from lmn.compiler.typechecker.statements.assignment_statement_checker import check_assignment_statement
 from lmn.compiler.typechecker.utils import unify_types
 
 

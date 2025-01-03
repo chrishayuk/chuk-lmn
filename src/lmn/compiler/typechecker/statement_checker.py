@@ -1,49 +1,53 @@
+# file: lmn/compiler/typechecker/statements/statement_checker.py
 import logging
 from typing import Dict
+
+# lmn imports
+from lmn.compiler.typechecker.statements.statement_dispatcher import StatementDispatcher
 from lmn.compiler.typechecker.expressions.expression_dispatcher import ExpressionDispatcher
-from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
-from lmn.compiler.typechecker.statements.let_statement import check_let_statement
-from lmn.compiler.typechecker.statements.return_statement import check_return_statement
 from lmn.compiler.typechecker.utils import normalize_type
 
+# logger
 logger = logging.getLogger(__name__)
 
 
-def check_statement(stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
+def check_statement(stmt, symbol_table: Dict[str, str], expr_dispatcher: ExpressionDispatcher) -> None:
     """
     Main entry point for statement type-checking.
+    Now uses `StatementDispatcher` for built-in statements
+    like Let, Assignment, Return, etc., while still handling
+    PrintStatement, BlockStatement, IfStatement, and FunctionDefinition
+    via specialized functions.
     """
 
     logger.debug(f"check_statement called for {stmt.type}")
     logger.debug(f"Statement details: {stmt.__dict__}")
     logger.debug(f"Symbol table before statement: {symbol_table}")
 
+    # Create a StatementDispatcher that knows how to handle
+    # LetStatement, AssignmentStatement, ReturnStatement, etc.
+    statement_dispatcher = StatementDispatcher(symbol_table, expr_dispatcher)
+
+    stype = stmt.type
+
     try:
-        stype = stmt.type
-        if stype == "LetStatement":
-            check_let_statement(stmt, symbol_table, dispatcher)
-
-        elif stype == "AssignmentStatement":
-            check_assignment_statement(stmt, symbol_table, dispatcher)
-
-        elif stype == "PrintStatement":
-            check_print_statement(stmt, symbol_table, dispatcher)
-
-        elif stype == "ReturnStatement":
-            check_return_statement(stmt, symbol_table, dispatcher)
-
-        elif stype == "FunctionDefinition":
-            # We handle function definitions right here:
-            check_function_definition(stmt, symbol_table, dispatcher)
+        if stype == "PrintStatement":
+            check_print_statement(stmt, symbol_table, expr_dispatcher)
 
         elif stype == "BlockStatement":
-            check_block_statement(stmt, symbol_table, dispatcher)
+            check_block_statement(stmt, symbol_table, expr_dispatcher)
 
         elif stype == "IfStatement":
-            check_if_statement(stmt, symbol_table, dispatcher)
+            check_if_statement(stmt, symbol_table, expr_dispatcher)
+
+        elif stype == "FunctionDefinition":
+            # We still handle function definitions right here
+            check_function_definition(stmt, symbol_table, expr_dispatcher)
 
         else:
-            raise NotImplementedError(f"Unsupported statement type: {stype}")
+            # For LetStatement, AssignmentStatement, ReturnStatement, etc.
+            # let the new StatementDispatcher handle it
+            statement_dispatcher.check_statement(stmt)
 
         logger.debug("Statement processed successfully.")
         logger.debug(f"Updated symbol table: {symbol_table}")
@@ -58,7 +62,7 @@ def check_statement(stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDi
 
 def check_print_statement(print_stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
     for expr in print_stmt.expressions:
-        # Type-check each expression
+        # Type-check each expression via ExpressionDispatcher
         e_type = dispatcher.check_expression(expr)
         logger.debug(f"Print expr '{expr}' resolved to type {e_type}")
 
@@ -72,7 +76,6 @@ def check_block_statement(block_stmt, symbol_table: Dict[str, str], dispatcher: 
     local_scope = dict(symbol_table)
 
     for stmt in block_stmt.statements:
-        # Check each statement in the block
         check_statement(stmt, local_scope, dispatcher)
 
     logger.debug("Exiting block scope. Local declarations are discarded.")
@@ -90,7 +93,6 @@ def check_if_statement(if_stmt, symbol_table: Dict[str, str], dispatcher: Expres
 
     # 2) Then body
     for stmt in if_stmt.then_body:
-        # Check statements in the then body
         check_statement(stmt, symbol_table, dispatcher)
 
     # 3) ElseIf clauses
@@ -101,13 +103,11 @@ def check_if_statement(if_stmt, symbol_table: Dict[str, str], dispatcher: Expres
                 raise TypeError(f"ElseIf condition must be int/bool, got '{elseif_cond_type}'")
 
             for stmt in elseif_clause.body:
-                # Check statements in the elseif body
                 check_statement(stmt, symbol_table, dispatcher)
 
     # 4) Else body
     if if_stmt.else_body:
         for stmt in if_stmt.else_body:
-            # Check statements in the else body
             check_statement(stmt, symbol_table, dispatcher)
 
     # 5) Mark the entire IfStatement as "void"
@@ -193,5 +193,7 @@ def check_function_definition(func_def, symbol_table: Dict[str, str], dispatcher
     for i, param in enumerate(func_def.params):
         param.type_annotation = param_types[i]
 
-    logger.debug(f"Finished type-checking function '{func_name}' "
-                 f"-> return_type={final_return_type}, param_types={param_types}")
+    logger.debug(
+        f"Finished type-checking function '{func_name}' -> "
+        f"return_type={final_return_type}, param_types={param_types}"
+    )

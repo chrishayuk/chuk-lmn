@@ -47,7 +47,8 @@
           "type": "VariableExpression",
           "name": "poem"
         }
-      ]
+      ],
+      "inferred_type": "i32"
     }
   ]
 }

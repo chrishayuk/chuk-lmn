@@ -46,7 +46,8 @@
           "type": "VariableExpression",
           "name": "poem"
         }
-      ]
+      ],
+      "inferred_type": "void"
     }
   ]
 }

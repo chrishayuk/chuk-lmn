@@ -1,3 +1,5 @@
+# file: lmn/compiler/typechecker/ast_type_checker.py
+
 import logging
 import traceback
 from typing import Dict, Any
@@ -6,10 +8,13 @@ from typing import Dict, Any
 from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.finalize_arguments_pass import finalize_function_calls
-from lmn.compiler.typechecker.statement_checker import check_statement, check_function_definition
 from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
 from lmn.compiler.typechecker.utils import unify_types
 from lmn.compiler.typechecker.expressions.expression_dispatcher import ExpressionDispatcher
+
+# NEW: import your OOP checkers
+from lmn.compiler.typechecker.statements.statement_dispatcher import StatementDispatcher
+from lmn.compiler.typechecker.statements.function_definition_checker import FunctionDefinitionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +68,13 @@ def type_check_program(program_node: Program) -> None:
         symbol_table[fn_name] = fn_info
 
     try:
+        # We'll collect all FunctionDefinition nodes to re-check them after we unify calls
         function_nodes = []
-        dispatcher = ExpressionDispatcher(symbol_table)
 
+        # Create an ExpressionDispatcher for expressions
+        expr_dispatcher = ExpressionDispatcher(symbol_table)
+
+        # Step 1: Gather function definitions & unify param types from calls
         logger.debug("=== PASS 1: Gather function definitions & unify call param types ===")
         for node in program_node.body:
             if node.type == "FunctionDefinition":
@@ -76,26 +85,38 @@ def type_check_program(program_node: Program) -> None:
 
                 rt = getattr(node, "return_type", None)
 
+                # Temporarily store partial info in the symbol_table
                 symbol_table[node.name] = {
                     "param_types": param_types,
                     "return_type": rt
                 }
                 function_nodes.append(node)
 
-        unify_params_from_calls(program_node, symbol_table, dispatcher)
+        # Attempt partial unification from function calls
+        unify_params_from_calls(program_node, symbol_table, expr_dispatcher)
 
+        # Step 2: Re-check each stored function body (with updated param info)
         logger.debug("=== PASS 2: Re-check each stored function body ===")
+        
+        # We create a StatementDispatcher for non-function statements
+        statement_dispatcher = StatementDispatcher(symbol_table, expr_dispatcher)
+        
         for fn_node in function_nodes:
             logger.debug(f"Re-checking function: {fn_node.name}")
-            check_function_definition(fn_node, symbol_table, dispatcher)
+            # Create a FunctionDefinitionChecker for each function node
+            func_def_checker = FunctionDefinitionChecker(symbol_table, statement_dispatcher)
+            func_def_checker.check(fn_node)
             log_symbol_table(symbol_table)
 
+        # Step 3: Check other top-level statements (that aren't function definitions)
         logger.debug("=== PASS 3: Check other top-level statements ===")
         for node in program_node.body:
             if node.type != "FunctionDefinition":
-                check_statement(node, symbol_table, dispatcher)
+                # Let the StatementDispatcher route them
+                statement_dispatcher.check_statement(node)
                 log_symbol_table(symbol_table)
 
+        # Step 4: Finalizing named arguments => positional
         logger.debug("=== PASS 4: Finalizing named arguments => positional ===")
         finalize_function_calls(program_node, symbol_table)
 
@@ -110,7 +131,6 @@ def type_check_program(program_node: Program) -> None:
         logger.critical(f"Unexpected error during type checking: {str(e)}")
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
-
 
 # -------------------------------------------------------------------
 # unify_params_from_calls
@@ -146,6 +166,7 @@ def unify_calls_in_node(node: Node, symbol_table: dict, dispatcher: ExpressionDi
 
                 fn_info["param_types"] = param_types
 
+    # Recurse into subnodes
     if hasattr(node, "body") and isinstance(node.body, list):
         for subnode in node.body:
             unify_calls_in_node(subnode, symbol_table, dispatcher)
@@ -160,7 +181,6 @@ def unify_calls_in_node(node: Node, symbol_table: dict, dispatcher: ExpressionDi
     if hasattr(node, "arguments") and isinstance(node.arguments, list):
         for arg in node.arguments:
             unify_calls_in_node(arg, symbol_table, dispatcher)
-
 
 def partial_check_expression(expr: Node, symbol_table: dict, dispatcher: ExpressionDispatcher) -> str:
     """
