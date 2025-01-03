@@ -1,15 +1,15 @@
-# file: lmn/compiler/typechecker/statement_checker.py
-
 import logging
-from lmn.compiler.typechecker.expression_checker import check_expression
+from typing import Dict
+from lmn.compiler.typechecker.expressions.expression_dispatcher import ExpressionDispatcher
 from lmn.compiler.typechecker.statements.assignment_statement import check_assignment_statement
 from lmn.compiler.typechecker.statements.let_statement import check_let_statement
 from lmn.compiler.typechecker.statements.return_statement import check_return_statement
-from lmn.compiler.typechecker.utils import normalize_type, unify_types
+from lmn.compiler.typechecker.utils import normalize_type
 
 logger = logging.getLogger(__name__)
 
-def check_statement(stmt, symbol_table: dict) -> None:
+
+def check_statement(stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
     """
     Main entry point for statement type-checking.
     """
@@ -21,26 +21,26 @@ def check_statement(stmt, symbol_table: dict) -> None:
     try:
         stype = stmt.type
         if stype == "LetStatement":
-            check_let_statement(stmt, symbol_table)
+            check_let_statement(stmt, symbol_table, dispatcher)
 
         elif stype == "AssignmentStatement":
-            check_assignment_statement(stmt, symbol_table)
+            check_assignment_statement(stmt, symbol_table, dispatcher)
 
         elif stype == "PrintStatement":
-            check_print_statement(stmt, symbol_table)
+            check_print_statement(stmt, symbol_table, dispatcher)
 
         elif stype == "ReturnStatement":
-            check_return_statement(stmt, symbol_table)
+            check_return_statement(stmt, symbol_table, dispatcher)
 
         elif stype == "FunctionDefinition":
             # We handle function definitions right here:
-            check_function_definition(stmt, symbol_table)
+            check_function_definition(stmt, symbol_table, dispatcher)
 
         elif stype == "BlockStatement":
-            check_block_statement(stmt, symbol_table)
+            check_block_statement(stmt, symbol_table, dispatcher)
 
         elif stype == "IfStatement":
-            check_if_statement(stmt, symbol_table)
+            check_if_statement(stmt, symbol_table, dispatcher)
 
         else:
             raise NotImplementedError(f"Unsupported statement type: {stype}")
@@ -56,13 +56,14 @@ def check_statement(stmt, symbol_table: dict) -> None:
         )
 
 
-def check_print_statement(print_stmt, symbol_table: dict) -> None:
+def check_print_statement(print_stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
     for expr in print_stmt.expressions:
-        e_type = check_expression(expr, symbol_table)
+        # Type-check each expression
+        e_type = dispatcher.check_expression(expr)
         logger.debug(f"Print expr '{expr}' resolved to type {e_type}")
 
 
-def check_block_statement(block_stmt, symbol_table: dict) -> None:
+def check_block_statement(block_stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
     """
     Type-check a block by creating a local scope so new variables 
     won't leak out.
@@ -71,46 +72,50 @@ def check_block_statement(block_stmt, symbol_table: dict) -> None:
     local_scope = dict(symbol_table)
 
     for stmt in block_stmt.statements:
-        check_statement(stmt, local_scope)
+        # Check each statement in the block
+        check_statement(stmt, local_scope, dispatcher)
 
     logger.debug("Exiting block scope. Local declarations are discarded.")
     logger.debug(f"Symbol table remains (outer scope) = {symbol_table}")
 
 
-def check_if_statement(if_stmt, symbol_table: dict) -> None:
+def check_if_statement(if_stmt, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher) -> None:
     logger.debug("typechecker: check_if_statement called")
 
     # 1) Condition
-    cond_type = check_expression(if_stmt.condition, symbol_table)
+    cond_type = dispatcher.check_expression(if_stmt.condition)
     logger.debug(f"If condition type: {cond_type}")
     if cond_type not in ("int", "bool"):
         raise TypeError(f"If condition must be int/bool, got '{cond_type}'")
 
     # 2) Then body
     for stmt in if_stmt.then_body:
-        check_statement(stmt, symbol_table)
+        # Check statements in the then body
+        check_statement(stmt, symbol_table, dispatcher)
 
     # 3) ElseIf clauses
     if hasattr(if_stmt, "elseif_clauses"):
         for elseif_clause in if_stmt.elseif_clauses:
-            elseif_cond_type = check_expression(elseif_clause.condition, symbol_table)
+            elseif_cond_type = dispatcher.check_expression(elseif_clause.condition)
             if elseif_cond_type not in ("int", "bool"):
                 raise TypeError(f"ElseIf condition must be int/bool, got '{elseif_cond_type}'")
 
             for stmt in elseif_clause.body:
-                check_statement(stmt, symbol_table)
+                # Check statements in the elseif body
+                check_statement(stmt, symbol_table, dispatcher)
 
     # 4) Else body
     if if_stmt.else_body:
         for stmt in if_stmt.else_body:
-            check_statement(stmt, symbol_table)
+            # Check statements in the else body
+            check_statement(stmt, symbol_table, dispatcher)
 
     # 5) Mark the entire IfStatement as "void"
     if_stmt.inferred_type = "void"
     logger.debug("typechecker: finished check_if_statement")
 
 
-def check_function_definition(func_def, symbol_table: dict):
+def check_function_definition(func_def, symbol_table: Dict[str, str], dispatcher: ExpressionDispatcher):
     """
     A unified approach:
       1. Gather param metadata (names, declared types, defaults).
@@ -160,20 +165,19 @@ def check_function_definition(func_def, symbol_table: dict):
     local_scope["__current_function_return_type__"] = declared_return_type
 
     for i, p_name in enumerate(param_names):
+        # Add parameters to the local scope
         local_scope[p_name] = param_types[i]
 
     # --------------------------------------------------------------------
     # 5) Type-check the function body. ReturnStatements unify the final return type.
     # --------------------------------------------------------------------
     for stmt in func_def.body:
-        check_statement(stmt, local_scope)
+        check_statement(stmt, local_scope, dispatcher)
 
     # --------------------------------------------------------------------
     # 6) Finalize the function's return type
     # --------------------------------------------------------------------
-    final_return_type = local_scope.get("__current_function_return_type__")
-    if final_return_type is None:
-        final_return_type = "void"
+    final_return_type = local_scope.get("__current_function_return_type__", "void")
 
     # Store the unified return type back into the symbol table
     fn_info = symbol_table[func_name]
@@ -185,13 +189,9 @@ def check_function_definition(func_def, symbol_table: dict):
 
     # --------------------------------------------------------------------
     # 7) Persist any updated param types back into the AST
-    #    (in case unify_params_from_calls or body checks changed them)
     # --------------------------------------------------------------------
-    # If you do any inference that modifies param_types[i], you can
-    # reflect that here. If not, no big deal.
     for i, param in enumerate(func_def.params):
         param.type_annotation = param_types[i]
 
     logger.debug(f"Finished type-checking function '{func_name}' "
                  f"-> return_type={final_return_type}, param_types={param_types}")
-

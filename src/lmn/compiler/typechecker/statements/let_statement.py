@@ -1,14 +1,11 @@
 # file: lmn/compiler/typechecker/statements/let_statement.py
-
 import logging
 from typing import Dict
-
-from lmn.compiler.typechecker.expression_checker import check_expression
 from lmn.compiler.typechecker.utils import normalize_type, unify_types
 
 logger = logging.getLogger(__name__)
 
-def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
+def check_let_statement(stmt, symbol_table: Dict[str, str], dispatcher) -> None:
     """
     Type check a 'let' statement and update the symbol table. Examples:
       let x: int = 5
@@ -30,7 +27,7 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
     if expr:
         # 1) Expression => type-check with declared_type as a hint
         logger.debug(f"Type-checking expression for variable '{var_name}'.")
-        expr_type = check_expression(expr, symbol_table, declared_type)
+        expr_type = dispatcher.check_expression(expr, declared_type)
         logger.debug(f"Expression type for '{var_name}' => {expr_type}")
 
         if declared_type:
@@ -42,15 +39,12 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
 
                 # CASE 1: expression is a native ArrayLiteralExpression => expr_type == "array"
                 if expr_type == "array":
-                    # We'll ensure each element's .inferred_type == base_type
                     all_ok = True
                     if hasattr(expr, "elements"):
                         for element_expr in expr.elements:
                             elem_type = getattr(element_expr, "inferred_type", None)
                             if not elem_type:
-                                # If expression checker didn't set it, re-check
-                                elem_type = check_expression(element_expr, symbol_table)
-                            # unify with base_type
+                                elem_type = dispatcher.check_expression(element_expr)
                             unified = unify_types(base_type, elem_type, for_assignment=True)
                             if unified != base_type:
                                 all_ok = False
@@ -71,43 +65,28 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                 # CASE 2: expression is a JSON-literal array => expr_type == "json"
                 elif expr_type == "json":
                     if expr.type == "JsonLiteralExpression" and isinstance(expr.value, list):
-                        # We interpret expr.value as a Python list
                         all_ok = True
                         for val in expr.value:
                             if base_type == "int":
                                 if not isinstance(val, int):
                                     all_ok = False
                                     break
-
                             elif base_type == "long":
-                                # We'll treat Python 'int' as 'long'
                                 if not isinstance(val, int):
                                     all_ok = False
                                     break
-
-                            elif base_type == "float":
-                                # Accept float or int => treat as float
+                            elif base_type in {"float", "double"}:
                                 if not (isinstance(val, float) or isinstance(val, int)):
                                     all_ok = False
                                     break
-
-                            elif base_type == "double":
-                                # Same logic as float, but you store it as double/f64
-                                if not (isinstance(val, float) or isinstance(val, int)):
-                                    all_ok = False
-                                    break
-
                             elif base_type == "string":
                                 if not isinstance(val, str):
                                     all_ok = False
                                     break
-
                             elif base_type == "json":
-                                # Accept any dict or list as valid JSON
                                 if not (isinstance(val, dict) or isinstance(val, list)):
                                     all_ok = False
                                     break
-
                             else:
                                 raise TypeError(f"Unsupported base type '{base_type}' in let statement.")
 
@@ -116,33 +95,27 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                                 f"Array elements do not match '{base_type}' for var '{var_name}'"
                             )
 
-                        # override 'json' => declared_type (e.g. "json[]" or "long[]")
                         symbol_table[var_name] = declared_type
                         stmt.inferred_type = declared_type
                         stmt.variable.inferred_type = declared_type
                         expr.inferred_type = declared_type
                         return
 
-                    else:
-                        # unify "json" with "string[]" => not possible, etc.
-                        unified = unify_types(declared_type, expr_type, for_assignment=True)
-                        if unified != declared_type:
-                            raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
+                    unified = unify_types(declared_type, expr_type, for_assignment=True)
+                    if unified != declared_type:
+                        raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
 
-                        symbol_table[var_name] = declared_type
-                        stmt.inferred_type = declared_type
-                        stmt.variable.inferred_type = declared_type
-                        expr.inferred_type = declared_type
-                        return
+                    symbol_table[var_name] = declared_type
+                    stmt.inferred_type = declared_type
+                    stmt.variable.inferred_type = declared_type
+                    expr.inferred_type = declared_type
+                    return
 
-                # CASE 3: Some other expr_type => unify normally
-                # e.g. if we do let arr:int[] = someFnCall() which returns "int[]" 
                 unified = unify_types(declared_type, expr_type, for_assignment=True)
                 if unified != declared_type:
                     raise TypeError(
                         f"Cannot unify assignment: {expr_type} -> {declared_type}"
                     )
-                # store final
                 symbol_table[var_name] = declared_type
                 stmt.inferred_type = declared_type
                 stmt.variable.inferred_type = declared_type
@@ -166,22 +139,13 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
             # -------------------------------------------
             # 2) No declared type => infer
             # -------------------------------------------
-            # e.g. let colors = [ "red", "green", "blue" ]
-
             if expr_type == "array":
-                # We have a native array => unify subexpressions
-                # e.g. if all are "string", result => "string[]"
-                # if all are "int", => "int[]"
-                # if a mix of int/float => "float[]"?
                 if hasattr(expr, "elements") and expr.elements:
-                    # check the first element's type
-                    elem_type = check_expression(expr.elements[0], symbol_table)
-                    # unify the rest
+                    elem_type = dispatcher.check_expression(expr.elements[0])
                     for e in expr.elements[1:]:
-                        e_type = check_expression(e, symbol_table)
+                        e_type = dispatcher.check_expression(e)
                         elem_type = unify_types(elem_type, e_type, for_assignment=False)
 
-                    # if elem_type is e.g. "string", final => "string[]"
                     final_type = (
                         elem_type + "[]" 
                         if elem_type in ("int", "long", "float", "double", "string", "json")
@@ -189,7 +153,6 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                     )
                     expr.inferred_type = final_type
                 else:
-                    # empty array => "array"
                     final_type = "array"
                     expr.inferred_type = final_type
 
@@ -199,10 +162,7 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                 return
 
             elif expr_type == "json":
-                # bracket-literal => check if it's list
                 if expr.type == "JsonLiteralExpression" and isinstance(expr.value, list) and expr.value:
-                    # attempt uniform check of all elements
-                    # (this is a simple approach; you might refine for double vs. float vs. long)
                     all_int = all(isinstance(v, int) for v in expr.value)
                     all_str = all(isinstance(v, str) for v in expr.value)
                     all_float = all(isinstance(v, float) or isinstance(v, int) for v in expr.value)
@@ -214,7 +174,7 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                     elif all_str:
                         final_type = "string[]"
                     else:
-                        final_type = "json"  # fallback
+                        final_type = "json"
 
                     expr.inferred_type = final_type
                 else:
@@ -225,7 +185,6 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
                 stmt.variable.inferred_type = final_type
 
             else:
-                # Not array or json => use expr_type directly
                 final_type = expr_type
                 symbol_table[var_name] = final_type
                 stmt.inferred_type = final_type
@@ -240,7 +199,6 @@ def check_let_statement(stmt, symbol_table: Dict[str, str]) -> None:
             raise TypeError(
                 f"No type annotation or initializer for '{var_name}' in let statement."
             )
-        # store the declared type in the symbol table
         symbol_table[var_name] = declared_type
         stmt.variable.inferred_type = declared_type
         stmt.inferred_type = declared_type

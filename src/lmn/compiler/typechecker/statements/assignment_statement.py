@@ -1,11 +1,10 @@
 # file: lmn/compiler/typechecker/statements/assignment_statement.py
 import logging
-from lmn.compiler.typechecker.expression_checker import check_expression
 from lmn.compiler.typechecker.utils import unify_types
 
 logger = logging.getLogger(__name__)
 
-def check_assignment_statement(assign_stmt, symbol_table: dict) -> None:
+def check_assignment_statement(assign_stmt, symbol_table: dict, dispatcher) -> None:
     """
     For a statement like: x = expression
     1) Confirm x is in the symbol table.
@@ -29,7 +28,7 @@ def check_assignment_statement(assign_stmt, symbol_table: dict) -> None:
     # 3. Check the expression type (pass the declared type as a 'target_type')
     target_type = symbol_table[var_name]
     logger.debug(f"Checking expression for var '{var_name}' => {assign_stmt.expression}")
-    expr_type = check_expression(assign_stmt.expression, symbol_table, target_type)
+    expr_type = dispatcher.check_expression(assign_stmt.expression, target_type)
     logger.debug(f"Expression type resolved to {expr_type}")
 
     # 4. Unify the existing var type (e.g. "int", "float") with the expression's type
