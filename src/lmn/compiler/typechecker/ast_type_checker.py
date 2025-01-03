@@ -9,10 +9,11 @@ from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.finalize_arguments_pass import finalize_function_calls
 from lmn.compiler.typechecker.builtins import BUILTIN_FUNCTIONS
+from lmn.compiler.typechecker.function_call_type_unifier import unify_params_from_calls
 from lmn.compiler.typechecker.utils import unify_types
 from lmn.compiler.typechecker.expressions.expression_dispatcher import ExpressionDispatcher
 
-# NEW: import your OOP checkers
+# statement and expression checkerss
 from lmn.compiler.typechecker.statements.statement_dispatcher import StatementDispatcher
 from lmn.compiler.typechecker.statements.function_definition_checker import FunctionDefinitionChecker
 
@@ -100,12 +101,17 @@ def type_check_program(program_node: Program) -> None:
         
         # We create a StatementDispatcher for non-function statements
         statement_dispatcher = StatementDispatcher(symbol_table, expr_dispatcher)
-        
+
+        # loop through the stored function nodes
         for fn_node in function_nodes:
             logger.debug(f"Re-checking function: {fn_node.name}")
             # Create a FunctionDefinitionChecker for each function node
             func_def_checker = FunctionDefinitionChecker(symbol_table, statement_dispatcher)
+
+            # Check the function body
             func_def_checker.check(fn_node)
+
+            # log the symbol table
             log_symbol_table(symbol_table)
 
         # Step 3: Check other top-level statements (that aren't function definitions)
@@ -114,6 +120,8 @@ def type_check_program(program_node: Program) -> None:
             if node.type != "FunctionDefinition":
                 # Let the StatementDispatcher route them
                 statement_dispatcher.check_statement(node)
+
+                # log the symbol table
                 log_symbol_table(symbol_table)
 
         # Step 4: Finalizing named arguments => positional
@@ -132,67 +140,5 @@ def type_check_program(program_node: Program) -> None:
         logger.critical(f"Traceback: {''.join(traceback.format_tb(e.__traceback__))}")
         raise
 
-# -------------------------------------------------------------------
-# unify_params_from_calls
-# -------------------------------------------------------------------
-def unify_params_from_calls(program_node: Program, symbol_table: dict, dispatcher: ExpressionDispatcher) -> None:
-    """
-    Recursively find FnExpression calls in the AST,
-    unify param types if unknown.
-    """
-    for node in program_node.body:
-        unify_calls_in_node(node, symbol_table, dispatcher)
 
-def unify_calls_in_node(node: Node, symbol_table: dict, dispatcher: ExpressionDispatcher) -> None:
-    node_type = node.type
 
-    if node_type == "FnExpression":
-        fn_name = node.name.name
-        fn_info = symbol_table.get(fn_name)
-
-        if fn_info and "param_types" in fn_info:
-            param_types = fn_info["param_types"]
-
-            purely_positional = all(a.type != "AssignmentExpression" for a in node.arguments)
-
-            if purely_positional and len(node.arguments) == len(param_types):
-                for i, arg_expr in enumerate(node.arguments):
-                    arg_type = partial_check_expression(arg_expr, symbol_table, dispatcher)
-                    if param_types[i] is None:
-                        param_types[i] = arg_type
-                    else:
-                        unified = unify_types(param_types[i], arg_type, for_assignment=True)
-                        param_types[i] = unified
-
-                fn_info["param_types"] = param_types
-
-    # Recurse into subnodes
-    if hasattr(node, "body") and isinstance(node.body, list):
-        for subnode in node.body:
-            unify_calls_in_node(subnode, symbol_table, dispatcher)
-
-    if hasattr(node, "expressions") and isinstance(node.expressions, list):
-        for expr in node.expressions:
-            unify_calls_in_node(expr, symbol_table, dispatcher)
-
-    if hasattr(node, "expression") and node.expression is not None:
-        unify_calls_in_node(node.expression, symbol_table, dispatcher)
-
-    if hasattr(node, "arguments") and isinstance(node.arguments, list):
-        for arg in node.arguments:
-            unify_calls_in_node(arg, symbol_table, dispatcher)
-
-def partial_check_expression(expr: Node, symbol_table: dict, dispatcher: ExpressionDispatcher) -> str:
-    """
-    Minimal pass-1 expression check to infer arguments for param unification.
-    """
-    if expr.type == "LiteralExpression":
-        lit_type = getattr(expr, "literal_type", "")
-        if lit_type == "string":
-            return "string"
-        return "int"
-    elif expr.type == "VariableExpression":
-        return symbol_table.get(expr.name, "int")
-    elif expr.type == "FnExpression":
-        return "void"
-    return "int"
