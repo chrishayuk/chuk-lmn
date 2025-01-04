@@ -1,20 +1,16 @@
-# src/lmn/runtime/universal_host_loader.py
+# file: lmn/runtime/universal_host_loader.py
 
-import json
 import wasmtime
 import importlib
 import logging
-from pathlib import Path
+from lmn.builtins import BUILTINS  # The merged dictionary from lmn/builtins/__init__.py
 
 logger = logging.getLogger(__name__)
 
 class UniversalHostLoader:
     """
-    A single loader that merges all host_functions.json files from
-    the various feature folders and registers them in Wasmtime.
-
-    Debug logging is done purely via the logging module. 
-    No debug messages go into output_list.
+    A single loader that takes all definitions from `lmn.builtins.BUILTINS`
+    and registers them in Wasmtime.
     """
 
     def __init__(
@@ -22,78 +18,46 @@ class UniversalHostLoader:
         linker: wasmtime.Linker,
         store: wasmtime.Store,
         output_list: list,
-        memory_ref=None,
-        feature_folders=None
+        memory_ref=None
     ):
-        # Public references
         self.linker = linker
         self.store = store
-        self.output_list = output_list  # used for non-debug or final outputs
+        self.output_list = output_list
         self.memory_ref = memory_ref
 
-        # We'll store function definitions in self.func_defs
+        # We'll store function definitions in self.func_defs:
+        #  { "funcName": { "name": "...", "namespace": "...", "signature": {...}, "handler": "...", ... }, ... }
         self.func_defs = {}
 
-        # If no folders provided, you can raise an error or specify defaults
-        if feature_folders is None:
-            feature_folders = [
-                "lmn/runtime/host/core/llm",
-                "lmn/runtime/host/core/print",
-            ]
+        # 1) Merge all built-ins from `BUILTINS` into `self.func_defs`
+        self._merge_builtins(BUILTINS)
 
-        logger.debug("UniversalHostLoader initializing with feature folders: %s", feature_folders)
-
-        # Read each folder’s host_functions.json
-        for folder in feature_folders:
-            json_path = Path(folder) / "host_functions.json"
-            if json_path.exists():
-                logger.debug("Found host_functions.json in '%s'", folder)
-                with json_path.open("r", encoding="utf-8") as f:
-                    config = json.load(f)
-                    namespace = config.get("namespace", "env")
-
-                    for func_def in config["functions"]:
-                        func_name = func_def["name"]
-                        # Merge: include 'namespace' and the entire definition
-                        self.func_defs[func_name] = {
-                            "namespace": namespace,
-                            **func_def
-                        }
-                        logger.debug(
-                            "Loaded function '%s' (namespace='%s', handler='%s')",
-                            func_name,
-                            namespace,
-                            func_def.get("handler"),
-                        )
-            else:
-                logger.debug("No host_functions.json found in folder '%s'", folder)
-
-        # Now register everything with Wasmtime
+        # 2) Register everything with Wasmtime
         self.define_host_functions()
 
     def define_host_functions(self):
         """
-        For each function definition, create a Wasmtime function
-        that calls our universal dispatcher.
+        Convert each entry in self.func_defs into a Wasmtime function
+        and register it with the linker.
         """
         if not self.func_defs:
-            logger.debug("No functions found: self.func_defs is empty.")
+            logger.debug("No functions found in BUILTINS.")
             return
 
         for func_name, def_info in self.func_defs.items():
             name = def_info["name"]
-            namespace = def_info["namespace"]
+            namespace = def_info.get("namespace", "env")  # fallback to "env"
             signature = def_info["signature"]
-            handler_str = def_info.get("handler", "<no handler>")
+            handler_str = def_info.get("handler")
 
-            # Convert JSON signature to Wasmtime FuncType
+            # Convert signature (JSON-like) to Wasmtime FuncType
             param_types = [
                 self._map_json_type_to_wasmtime(param["type"])
-                for param in signature["parameters"]
+                for param in signature.get("parameters", [])
             ]
             result_types = [
                 self._map_json_type_to_wasmtime(ret["type"])
-                for ret in signature["results"]
+                for ret in signature.get("results", [])
             ]
 
             logger.debug(
@@ -110,7 +74,7 @@ class UniversalHostLoader:
 
             wrapped_func = make_wrapper(name)
 
-            # Register the function
+            # Register the function in Wasmtime
             self.linker.define(
                 self.store,
                 namespace,
@@ -120,43 +84,49 @@ class UniversalHostLoader:
 
     def _dispatcher(self, func_name: str, *args):
         """
-        1) Look up the definition for the given func_name in self.func_defs.
-        2) Extract 'handler' from the JSON -> something like "some.module:some_func".
-        3) Import that module + function, call it with (def_info, store, memory_ref, output_list, *wasm_args).
+        Look up the definition for `func_name` in self.func_defs,
+        parse the handler string, import the module, call the handler.
         """
         def_info = self.func_defs[func_name]
         handler_str = def_info.get("handler")
 
-        logger.debug(
-            "Dispatching function '%s' -> handler='%s', wasm_args=%s",
-            func_name, handler_str, args
-        )
+        logger.debug("Dispatching '%s' -> handler='%s', wasm_args=%s",
+                     func_name, handler_str, args)
 
         if not handler_str:
             raise ValueError(f"No 'handler' found for function '{func_name}'")
 
-        # Expecting "module_path:func_in_module"
-        try:
-            module_path, func_name_in_module = handler_str.split(":")
-        except ValueError:
-            raise ValueError(f"handler '{handler_str}' is not in 'module:func' format")
+        # Expect "module_path:func_in_module"
+        module_path, func_name_in_module = handler_str.split(":")
 
-        # Dynamically import the module
         mod = importlib.import_module(module_path)
-
-        # Get the actual function
-        if not hasattr(mod, func_name_in_module):
+        handler_fn = getattr(mod, func_name_in_module, None)
+        if not handler_fn:
             raise ImportError(
                 f"Module '{module_path}' has no attribute '{func_name_in_module}'"
             )
-        handler_fn = getattr(mod, func_name_in_module)
 
-        # Invoke the handler
+        # Call the handler with (def_info, store, memory_ref, output_list, *args)
         return handler_fn(def_info, self.store, self.memory_ref, self.output_list, *args)
+
+    def _merge_builtins(self, builtins_dict: dict):
+        """
+        Convert the loaded BUILTINS dictionary into `self.func_defs` shape.
+        
+        We assume each key in BUILTINS is the function name, and the value
+        is a dict with at least { "name", "namespace", "signature", "handler", ... }.
+        """
+        for fn_name, fn_info in builtins_dict.items():
+            # Ensure the "name" field is set if missing
+            if "name" not in fn_info:
+                fn_info["name"] = fn_name
+
+            # Store it in self.func_defs
+            self.func_defs[fn_name] = fn_info
 
     def _map_json_type_to_wasmtime(self, t: str) -> wasmtime.ValType:
         """
-        Converts JSON types ('i32', 'i64', 'f32', 'f64') to wasmtime.ValType.
+        Convert JSON string types ('i32', 'i64', 'f32', 'f64') to wasmtime.ValType.
         Extend as needed if you have more types.
         """
         if t == "i32":
@@ -168,6 +138,6 @@ class UniversalHostLoader:
         elif t == "f64":
             return wasmtime.ValType.f64()
         else:
-            msg = f"Unsupported type '{t}' in JSON"
+            msg = f"Unsupported type '{t}' in built-ins"
             logger.error(msg)
             raise ValueError(msg)

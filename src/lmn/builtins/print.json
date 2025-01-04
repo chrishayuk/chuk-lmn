@@ -1,0 +1,321 @@
+{
+    "print_i32": {
+      "description": "Print a 32-bit integer to stdout",
+      "typechecker": {
+        "params": [
+          {
+            "name": "x",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_i32",
+            "signature": {
+              "parameters": [
+                { "name": "x", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_i64": {
+      "description": "Print a 64-bit integer to stdout",
+      "typechecker": {
+        "params": [
+          {
+            "name": "x",
+            "type": "long",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_i64",
+            "signature": {
+              "parameters": [
+                { "name": "x", "type": "i64" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_f32": {
+      "description": "Print a 32-bit floating-point number",
+      "typechecker": {
+        "params": [
+          {
+            "name": "x",
+            "type": "float",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_f32",
+            "signature": {
+              "parameters": [
+                { "name": "x", "type": "f32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_f64": {
+      "description": "Print a 64-bit floating-point number",
+      "typechecker": {
+        "params": [
+          {
+            "name": "x",
+            "type": "double",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_f64",
+            "signature": {
+              "parameters": [
+                { "name": "x", "type": "f64" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_string": {
+      "description": "Print a UTF-8 string from memory",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_string",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_json": {
+      "description": "Print JSON text from memory",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_json",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_i32_array": {
+      "description": "Print an array of 32-bit integers",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "int[]",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_i32_array",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_i64_array": {
+      "description": "Print an array of 64-bit integers",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "long[]",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_i64_array",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_f32_array": {
+      "description": "Print an array of 32-bit floats",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "float[]",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_f32_array",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_f64_array": {
+      "description": "Print an array of 64-bit floats",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "double[]",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_f64_array",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    },
+  
+    "print_string_array": {
+      "description": "Print an array of strings",
+      "typechecker": {
+        "params": [
+          {
+            "name": "ptr",
+            "type": "string[]",
+            "required": true
+          }
+        ],
+        "return_type": "void"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "print_string_array",
+            "signature": {
+              "parameters": [
+                { "name": "ptr", "type": "i32" }
+              ],
+              "results": []
+            },
+            "handler": "lmn.runtime.host.core.print.handler:print_handler"
+          }
+        ]
+      }
+    }
+  }
+  

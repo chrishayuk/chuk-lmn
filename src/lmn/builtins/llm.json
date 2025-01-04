@@ -1,0 +1,40 @@
+{
+    "llm": {
+      "description": "Generic LLM call",
+      "typechecker": {
+        "params": [
+          {
+            "name": "prompt",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "required": false,
+            "default": "llama3.2"
+          }
+        ],
+        "return_type": "string"
+      },
+      "wasm": {
+        "namespace": "env",
+        "functions": [
+          {
+            "name": "llm",
+            "signature": {
+              "parameters": [
+                { "name": "prompt", "type": "i32" },
+                { "name": "model",  "type": "i32" }
+              ],
+              "results": [
+                { "type": "i32" }
+              ]
+            },
+            "handler": "lmn.runtime.host.core.llm.handler:llm_handler"
+          }
+        ]
+      }
+    }
+  }
+  
