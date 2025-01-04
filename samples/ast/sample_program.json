@@ -25,18 +25,6 @@
               "value": "Write me a short poem about the sunrise.",
               "literal_type": "string"
             }
-          },
-          {
-            "type": "AssignmentExpression",
-            "left": {
-              "type": "VariableExpression",
-              "name": "model"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": "llama3.2",
-              "literal_type": "string"
-            }
           }
         ]
       }
