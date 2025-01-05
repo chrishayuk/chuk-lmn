@@ -4,7 +4,6 @@ from pydantic import Field
 
 # ast's
 from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
 
 class Program(ASTNode):
     # program node type

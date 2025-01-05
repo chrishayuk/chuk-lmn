@@ -11,7 +11,7 @@ class AssignmentExpression(ExpressionBase):
     If your parser transforms compound assignments (a += b) into
     something like (a = (a + b)), then the 'operator' may not be needed here.
     """
-    # Use the NodeKind enum member for assignment expressions
+    # Assignment
     type: Literal["AssignmentExpression"] = "AssignmentExpression"
 
     # The left side (often a variable or lvalue)

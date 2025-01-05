@@ -1,10 +1,20 @@
 # file: lmn/compiler/parser/expressions/expression_parser.py
 
+import logging
+
+from lmn.compiler.parser.expressions.function_expression_parser import FunctionExpressionParser
 from lmn.compiler.parser.expressions.unary_parser import UnaryParser
 from lmn.compiler.parser.expressions.binary_parser import BinaryParser
 from lmn.compiler.parser.expressions.primary_parser import PrimaryParser
+
+# Instead of referencing STATEMENT_BOUNDARY_TOKENS directly,
+# we import is_statement_boundary for two-mode handling (expression vs. statement).
+from lmn.compiler.parser.statements.statement_boundaries import is_statement_boundary
+
 from lmn.compiler.lexer.token_type import LmnTokenType
-from lmn.compiler.parser.statements.statement_boundaries import STATEMENT_BOUNDARY_TOKENS
+
+# logger
+logger = logging.getLogger(__name__)
 
 class ExpressionParser:
     """
@@ -21,6 +31,9 @@ class ExpressionParser:
         self.unary_parser = UnaryParser(self.parser, self)
         self.primary_parser = PrimaryParser(self.parser, self)
 
+        # Instantiate your existing FunctionExpressionParser
+        self.function_expression_parser = FunctionExpressionParser(self.parser, self)
+
     def _skip_comments(self):
         """
         Helper method to skip any COMMENT tokens in the current token stream.
@@ -32,10 +45,15 @@ class ExpressionParser:
     def _is_statement_boundary(self):
         """
         Check if the current token is one of the statement boundary tokens.
+        However, for expression context, we exclude 'function' from the set
+        so inline function definitions are allowed (e.g., let sum_func = function(...) ... end).
         """
         token = self.parser.current_token
-        return (token is None 
-                or token.token_type in STATEMENT_BOUNDARY_TOKENS)
+        if not token:
+            return True
+
+        # Use in_expression=True => 'function' won't terminate expression parsing
+        return is_statement_boundary(token.token_type, in_expression=True)
 
     # -------------------------------------------------------------------------
     # (1) parse_expression: top-level entry point for expressions
@@ -77,7 +95,6 @@ class ExpressionParser:
             LmnTokenType.MINUS_EQ,
             LmnTokenType.EQ_PLUS,
             LmnTokenType.EQ_MINUS,
-            # ... add more if needed, e.g. MUL_EQ, DIV_EQ, etc.
         ):
             op_token = current
             self.parser.advance()  # consume the operator
@@ -162,30 +179,55 @@ class ExpressionParser:
         Defer to the BinaryParser for precedence among +, -, *, /, //, %, etc.
         We pass min_prec=0 by default, but you can adjust if needed.
         """
+        # skip comments
         self._skip_comments()
+
+        # check if there is a statement boundary
         if self._is_statement_boundary():
             return None
 
-        # We'll assume our BinaryParser implements something like:
-        # parse_binary_expr(min_prec=0) with a precedence table
+        # parse binary expression
         return self.binary_parser.parse_binary_expr(min_prec=prec)
 
     # -------------------------------------------------------------------------
     # (4) parse_unary_expr: defers to UnaryParser for prefix ops
     # -------------------------------------------------------------------------
     def parse_unary_expr(self):
+        # skip comments
         self._skip_comments()
+
+        # check if there is a statement boundary
         if self._is_statement_boundary():
             return None
+        
+        # Check if it's an inline function
+        logger.debug("parse_unary_expr sees token: %s", self.parser.current_token)
+        if (self.parser.current_token 
+            and self.parser.current_token.token_type == LmnTokenType.FUNCTION):
 
+            # Delegate parsing to your existing FunctionExpressionParser
+            logger.debug("parse_unary_expr calling parse_function_expression()")
+            func_exp = self.function_expression_parser.parse_function_expression()
+            logger.info(f"parse_unary_expr received from parse_function_expression(): {func_exp}")
+            # to dict
+            logger.info(func_exp.to_dict())
+
+            # return the expression
+            return func_exp
+        
+        # parse unary expression
         return self.unary_parser.parse_unary_expr()
 
     # -------------------------------------------------------------------------
     # (5) parse_primary: defers to PrimaryParser for literals, variables, etc.
     # -------------------------------------------------------------------------
     def parse_primary(self):
+        # skip comments
         self._skip_comments()
+
+        # check if there is a statement boundary
         if self._is_statement_boundary():
             return None
-
+        
+        # parse primary
         return self.primary_parser.parse_primary()
