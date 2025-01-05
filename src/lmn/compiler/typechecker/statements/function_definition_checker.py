@@ -5,7 +5,6 @@ import logging
 from lmn.compiler.typechecker.statements.base_statement_checker import BaseStatementChecker
 from lmn.compiler.typechecker.utils import normalize_type
 
-# logger
 logger = logging.getLogger(__name__)
 
 class FunctionDefinitionChecker(BaseStatementChecker):
@@ -31,7 +30,6 @@ class FunctionDefinitionChecker(BaseStatementChecker):
 
         for param in func_def.params:
             param_names.append(param.name)
-
             declared_type = getattr(param, "type_annotation", None) or "int"
             declared_type = normalize_type(declared_type)
             param_types.append(declared_type)
@@ -41,7 +39,9 @@ class FunctionDefinitionChecker(BaseStatementChecker):
             else:
                 param_defaults.append(None)
 
-        # 2) Preliminary return type (could be overridden by final unification)
+        # --------------------------------------------------------------------
+        # 2) Preliminary return type
+        # --------------------------------------------------------------------
         declared_return_type = getattr(func_def, "return_type", None) or "void"
         declared_return_type = normalize_type(declared_return_type)
 
@@ -50,23 +50,28 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         # --------------------------------------------------------------------
         self.symbol_table[func_name] = {
             "param_names":    param_names,
-            "param_types":    param_types[:],   # make a copy if you like
+            "param_types":    param_types[:],  # copy if needed
             "param_defaults": param_defaults,
             "return_type":    declared_return_type
         }
 
         # --------------------------------------------------------------------
-        # 4) Create a local scope and add parameters
+        # 4) Create local scope, add parameters, and mark them "assigned"
         # --------------------------------------------------------------------
         local_scope = dict(self.symbol_table)
         local_scope["__current_function_return_type__"] = declared_return_type
 
+        # Create or retrieve a set of assigned variables
+        assigned_vars = local_scope.get("__assigned_vars__", set())
+
         for i, p_name in enumerate(param_names):
-            # Add parameters to the local scope
             local_scope[p_name] = param_types[i]
+            assigned_vars.add(p_name)
+
+        local_scope["__assigned_vars__"] = assigned_vars
 
         # --------------------------------------------------------------------
-        # 5) Type-check the function body. ReturnStatements unify the final return type.
+        # 5) Type-check the function body
         # --------------------------------------------------------------------
         for stmt in func_def.body:
             self.dispatcher.check_statement(stmt, local_scope)
@@ -76,7 +81,7 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         # --------------------------------------------------------------------
         final_return_type = local_scope.get("__current_function_return_type__", "void")
 
-        # Store the unified return type back into the symbol table
+        # Update symbol table
         fn_info = self.symbol_table[func_name]
         fn_info["return_type"] = final_return_type
         self.symbol_table[func_name] = fn_info
@@ -85,7 +90,7 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         func_def.return_type = final_return_type
 
         # --------------------------------------------------------------------
-        # 7) Persist any updated param types back into the AST
+        # 7) Persist updated param types back into the AST
         # --------------------------------------------------------------------
         for i, param in enumerate(func_def.params):
             param.type_annotation = param_types[i]

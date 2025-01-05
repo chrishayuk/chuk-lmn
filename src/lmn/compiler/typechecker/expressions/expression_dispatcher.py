@@ -19,31 +19,39 @@ from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpress
 from lmn.compiler.ast.expressions.postfix_expression import PostfixExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
 
-# Dispatcher to route expression checks to the appropriate class
 class ExpressionDispatcher:
     def __init__(self, symbol_table: Dict[str, str]):
-        # set the symbol table
+        # Global or outer symbol table
         self.symbol_table = symbol_table
 
-    def check_expression(self, expr: Expression, target_type: Optional[str] = None) -> str:
+    def check_expression(
+        self,
+        expr: Expression,
+        target_type: Optional[str] = None,
+        local_scope: Optional[Dict[str, str]] = None
+    ) -> str:
+        """
+        Dispatch the expression to the appropriate checker. 
+        If local_scope is provided, pass it down to the checker 
+        so variables/assignments are resolved in that scope.
+        """
         if isinstance(expr, LiteralExpression):
-            return LiteralChecker(self, self.symbol_table).check(expr, target_type)
+            return LiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, BinaryExpression):
-            return BinaryChecker(self, self.symbol_table).check(expr, target_type)
+            return BinaryChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, JsonLiteralExpression):
-            return JsonLiteralChecker(self, self.symbol_table).check(expr, target_type)
+            return JsonLiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, ArrayLiteralExpression):
-            return ArrayLiteralChecker(self, self.symbol_table).check(expr, target_type)
+            return ArrayLiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, VariableExpression):
-            return VariableChecker(self, self.symbol_table).check(expr, target_type)
+            return VariableChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, UnaryExpression):
-            return UnaryChecker(self, self.symbol_table).check(expr, target_type)
+            return UnaryChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, AssignmentExpression):
-            return AssignmentChecker(self, self.symbol_table).check(expr, target_type)
+            return AssignmentChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, PostfixExpression):
-            return PostfixChecker(self, self.symbol_table).check(expr, target_type)
+            return PostfixChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, FnExpression):
-            return FnChecker(self, self.symbol_table).check(expr, target_type)
+            return FnChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         else:
             raise NotImplementedError(f"No checker available for {type(expr).__name__}.")
-

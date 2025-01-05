@@ -14,12 +14,17 @@ from lmn.compiler.typechecker.statements.block_statement_checker import BlockSta
 from lmn.compiler.typechecker.statements.if_statement_checker import IfStatementChecker
 from lmn.compiler.typechecker.statements.function_definition_checker import FunctionDefinitionChecker
 
-# logger
 logger = logging.getLogger(__name__)
 
 class StatementDispatcher:
     def __init__(self, symbol_table: Dict[str, str], expr_dispatcher):
-        # Symbol table for variable lookup
+        """
+        symbol_table:
+            The global or outer symbol table.
+
+        expr_dispatcher:
+            The ExpressionDispatcher that handles expression-level type checks.
+        """
         self.symbol_table = symbol_table
         self.expr_dispatcher = expr_dispatcher
 
@@ -31,44 +36,48 @@ class StatementDispatcher:
         """
         old_table = self.symbol_table
         if local_scope is not None:
+            # Temporarily replace self.symbol_table with local_scope
             self.symbol_table = local_scope
 
         try:
-            stype = stmt.type
+            stype = getattr(stmt, "type", None)
             logger.debug(f"Dispatching statement type: {stype}")
 
             if stype == "LetStatement":
-                LetStatementChecker(self.symbol_table, self).check(stmt)
-
+                LetStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "AssignmentStatement":
-                AssignmentStatementChecker(self.symbol_table, self).check(stmt)
-
+                AssignmentStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "ReturnStatement":
-                ReturnStatementChecker(self.symbol_table, self).check(stmt)
-
+                ReturnStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "PrintStatement":
-                PrintStatementChecker(self.symbol_table, self).check(stmt)
-
+                PrintStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "BlockStatement":
-                BlockStatementChecker(self.symbol_table, self).check(stmt)
-
+                BlockStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "IfStatement":
-                IfStatementChecker(self.symbol_table, self).check(stmt)
-
+                IfStatementChecker(self.symbol_table, self).check(stmt, local_scope)
             elif stype == "FunctionDefinition":
                 FunctionDefinitionChecker(self.symbol_table, self).check(stmt)
-
             else:
                 logger.error(f"No checker available for statement type: {stype}")
                 raise NotImplementedError(f"No checker available for statement type: {stype}")
 
         finally:
-            # revert to old table
+            # Revert to the original table after checking this statement
             if local_scope is not None:
                 self.symbol_table = old_table
 
-    def check_expression(self, expr, hinted_type=None):
+    def check_expression(self, expr: Node, target_type=None, local_scope: Dict[str, str] = None):
         """
-        Typically delegates to self.expr_dispatcher for expression type-checking.
+        Delegates to self.expr_dispatcher for expression type-checking.
+        Ensures we pass local_scope so expressions see the same local variables.
         """
-        return self.expr_dispatcher.check_expression(expr, hinted_type)
+        # If a local_scope is provided, temporarily override self.symbol_table
+        old_table = self.symbol_table
+        if local_scope is not None:
+            self.symbol_table = local_scope
+
+        try:
+            return self.expr_dispatcher.check_expression(expr, target_type, local_scope=local_scope)
+        finally:
+            if local_scope is not None:
+                self.symbol_table = old_table

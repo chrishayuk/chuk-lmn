@@ -2,11 +2,10 @@
 import logging
 from typing import Dict
 
-# lmn imports
+# lmn imports
 from lmn.compiler.typechecker.statements.base_statement_checker import BaseStatementChecker
 from lmn.compiler.typechecker.utils import unify_types
 
-# logger
 logger = logging.getLogger(__name__)
 
 class ReturnStatementChecker(BaseStatementChecker):
@@ -15,24 +14,33 @@ class ReturnStatementChecker(BaseStatementChecker):
     for 'return' statements within functions.
     """
 
-    def check(self, stmt) -> None:
+    def check(self, stmt, local_scope: Dict[str, str] = None) -> None:
         """
         Type-check a return statement in a function.
+
+        If local_scope is provided, we use it for checking variable assignments
+        and updating the function's return type. Otherwise, we fall back to
+        self.symbol_table (the global one) — but typically, we want a local_scope
+        inside a function body.
         """
         expr = getattr(stmt, "expression", None)
 
+        # Decide which table to use
+        scope = local_scope if local_scope is not None else self.symbol_table
+
         # The function's currently known or declared return type
-        declared_return_type = self.symbol_table.get("__current_function_return_type__", None)
+        declared_return_type = scope.get("__current_function_return_type__", None)
 
         if expr:
             # 1) We have a return expression => type-check it
             logger.debug("Type-checking return expression.")
-            expr_type = self.dispatcher.check_expression(expr)
+            # Pass the same scope when checking the expression
+            expr_type = self.dispatcher.check_expression(expr, local_scope=scope)
 
             if declared_return_type is None:
                 # No type known yet => adopt the expression's type
                 logger.debug(f"No declared return type. Adopting type '{expr_type}'.")
-                self.symbol_table["__current_function_return_type__"] = expr_type
+                scope["__current_function_return_type__"] = expr_type
                 stmt.inferred_type = expr_type
             else:
                 # 2) We already have a declared return type => unify
@@ -46,7 +54,7 @@ class ReturnStatementChecker(BaseStatementChecker):
                     # If the old type was "void", adopt the new one
                     if declared_return_type == "void":
                         logger.debug(f"Updating return type from 'void' to '{expr_type}'.")
-                        self.symbol_table["__current_function_return_type__"] = expr_type
+                        scope["__current_function_return_type__"] = expr_type
                         stmt.inferred_type = expr_type
                     else:
                         # Real mismatch => raise error
@@ -67,7 +75,7 @@ class ReturnStatementChecker(BaseStatementChecker):
             logger.debug("No return expression. Defaulting to 'void'.")
             if declared_return_type is None:
                 # adopt 'void'
-                self.symbol_table["__current_function_return_type__"] = "void"
+                scope["__current_function_return_type__"] = "void"
                 stmt.inferred_type = "void"
             elif declared_return_type != "void":
                 # The user returns "nothing" but we had a known non-void => mismatch

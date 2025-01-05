@@ -35,12 +35,12 @@ def log_symbol_table(symbol_table: Dict[str, Any]) -> None:
 
 def type_check_program(program_node: Program) -> None:
     """
-    A multi-step approach:
-      1) Gather function definitions into the symbol table
-      2) Partially unify param types from calls (FnExpressions)
-      3) Re-check each stored FunctionDefinition body (param types are known)
-      4) Check other top-level statements
-      5) Finalize named => positional arguments
+    Approach A:
+      - PASS 0a: Put top-level FunctionDefinition nodes into the symbol table,
+                 storing param_names/param_types/param_defaults (ensuring matching lengths).
+      - PASS 0b: Process top-level LetStatements (so closures like 'sum_func' 
+                 are also recognized in the symbol table).
+      - Then do partial unification, function body checks, etc.
     """
     logger.info("Starting type checking for program")
 
@@ -54,6 +54,7 @@ def type_check_program(program_node: Program) -> None:
 
     # ---------------------------------------------------------------
     # (B) Convert "typechecker.params" => param_names, param_types, param_defaults
+    #     for built-ins
     # ---------------------------------------------------------------
     for fn_name, fn_info in symbol_table.items():
         # Pull out the typechecker info
@@ -61,7 +62,6 @@ def type_check_program(program_node: Program) -> None:
         params_list = tc_info.get("params", [])
         return_type = tc_info.get("return_type", "any")
 
-        # If there's no params, skip
         if not params_list:
             continue
 
@@ -69,69 +69,83 @@ def type_check_program(program_node: Program) -> None:
         param_types = []
         param_defaults = []
 
-        # Build up the param data
         for pdef in params_list:
             p_name = pdef["name"]
             p_type = pdef.get("type", "any")
             p_required = pdef.get("required", False)
             p_default = pdef.get("default", None)
 
-            # Store param name and type
             param_names.append(p_name)
             param_types.append(p_type)
 
-            # Decide how to store the default
             if p_required and p_default is None:
-                # No default for a required param
                 param_defaults.append(None)
             else:
-                # If there's a default, store an actual AST node
                 if p_default is not None:
-                    # Create a LiteralExpression node
                     default_expr = LiteralExpression(
-                        type=NodeKind.LITERAL,      # or "LiteralExpression"
+                        type=NodeKind.LITERAL,
                         value=p_default,
                         literal_type="string",
-                        inferred_type="string"      # optional
+                        inferred_type="string"
                     )
                     param_defaults.append(default_expr)
                 else:
                     param_defaults.append(None)
 
-        # Assign them into the fn_info for the finalize pass
         fn_info["param_names"] = param_names
         fn_info["param_types"] = param_types
         fn_info["param_defaults"] = param_defaults
-
-        # Also store return_type if needed
         fn_info["return_type"] = return_type
-
-        # Put back
         symbol_table[fn_name] = fn_info
 
     try:
-        # We'll collect all FunctionDefinition nodes to re-check them after unification
+        # We'll gather function definitions in a list to re-check them later
         function_nodes = []
 
-        # ExpressionDispatcher for expressions
+        # Create the dispatchers
         expr_dispatcher = ExpressionDispatcher(symbol_table)
+        statement_dispatcher = StatementDispatcher(symbol_table, expr_dispatcher)
 
-        # === PASS 1: Gather function definitions & unify param types from calls
-        logger.debug("=== PASS 1: Gather function definitions & unify call param types ===")
+        # === PASS 0a: Insert top-level FunctionDefinition in symbol table, ensuring param_names & co.
+        logger.debug("=== PASS 0a: Pre-insert top-level FunctionDefinition names in symbol table ===")
         for node in program_node.body:
             if node.type == "FunctionDefinition":
+                # Build param_names, param_types, param_defaults (matching lengths)
+                param_names = []
                 param_types = []
+                param_defaults = []
                 for p in node.params:
-                    declared = getattr(p, "type_annotation", None)
-                    param_types.append(declared)
+                    # p has p.name, p.type_annotation
+                    param_names.append(p.name)
+                    # We store None initially; partial unification or body check can fill it
+                    param_types.append(None)
+                    param_defaults.append(None)
 
+                # If the node has a declared return_type, store it
                 rt = getattr(node, "return_type", None)
 
-                # Temporarily store partial info in the symbol_table for user-defined funcs
                 symbol_table[node.name] = {
+                    "is_function": True,
+                    "param_names": param_names,
                     "param_types": param_types,
+                    "param_defaults": param_defaults,
                     "return_type": rt
                 }
+                # We'll do deeper checks in PASS 2
+
+        # === PASS 0b: Process top-level LetStatement nodes
+        logger.debug("=== PASS 0b: Process top-level let statements (closures, aliasing, etc.) ===")
+        for node in program_node.body:
+            if node.type == "LetStatement":
+                statement_dispatcher.check_statement(node)
+                log_symbol_table(symbol_table)
+
+        # === PASS 1: Gather function definitions for re-check => unify param types from calls
+        logger.debug("=== PASS 1: Gather function definitions & unify call param types ===")
+
+        # Actually store them in a separate list for final checks
+        for node in program_node.body:
+            if node.type == "FunctionDefinition":
                 function_nodes.append(node)
 
         # Attempt partial unification from function calls
@@ -139,22 +153,20 @@ def type_check_program(program_node: Program) -> None:
 
         # === PASS 2: Re-check each stored function body
         logger.debug("=== PASS 2: Re-check each stored function body ===")
-        statement_dispatcher = StatementDispatcher(symbol_table, expr_dispatcher)
-
         for fn_node in function_nodes:
             logger.debug(f"Re-checking function: {fn_node.name}")
             func_def_checker = FunctionDefinitionChecker(symbol_table, statement_dispatcher)
             func_def_checker.check(fn_node)
             log_symbol_table(symbol_table)
 
-        # === PASS 3: Check other top-level statements
+        # === PASS 3: Check other top-level statements (besides FunctionDefinition, LetStatement)
         logger.debug("=== PASS 3: Check other top-level statements ===")
         for node in program_node.body:
-            if node.type != "FunctionDefinition":
+            if node.type not in ("FunctionDefinition", "LetStatement"):
                 statement_dispatcher.check_statement(node)
                 log_symbol_table(symbol_table)
 
-        # === PASS 4: Finalizing named arguments => positional
+        # === PASS 4: Finalizing named => positional arguments
         logger.debug("=== PASS 4: Finalizing named arguments => positional ===")
         finalize_function_calls(program_node, symbol_table)
 
