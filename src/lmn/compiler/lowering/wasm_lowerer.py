@@ -94,6 +94,12 @@ def lower_node(node: Any) -> None:
     Then recurse into child nodes.
     """
 
+    # A) Safely extract the node's 'type' field (if any)
+    nodetype = getattr(node, "type", None)
+    if not nodetype:
+        # This node doesn't define 'type' => skip or handle generically
+        return
+
     # ------------------------------------------------------------------------
     # A) If it's a LiteralExpression, we do two things:
     #    1) If .inferred_type is None, fill it from .literal_type (converted).
