@@ -4,19 +4,20 @@ from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class ElseIfClause(ASTNode):
+class ElseIfClause(StatementBase):
     """
     Represents a single 'elseif' block:
       elseif (condition) { body... }
     """
     # elseif node type
-    type: Literal[NodeKind.ELSEIF] = NodeKind.ELSEIF
+    type: Literal["ElseIfClause"] = "ElseIfClause"
 
-    # the condition and body
+    # condition
     condition: "Expression"
+
+    # body
     body: List["Statement"] = Field(default_factory=list)
 
     # pydantic model config

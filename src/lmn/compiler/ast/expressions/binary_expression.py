@@ -3,13 +3,12 @@ from __future__ import annotations
 from typing import Literal, Optional
 
 # import ast's
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 
 class BinaryExpression(ExpressionBase):
     """ A binary expression node, e.g. (a + b). """
     # binary expression node, e.g. (a + b)
-    type: Literal[NodeKind.BINARY] = NodeKind.BINARY
+    type: Literal["BinaryExpression"] = "BinaryExpression"
 
     # The operator, e.g. '+'
     operator: str

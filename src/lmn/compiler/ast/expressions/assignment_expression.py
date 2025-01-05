@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Literal, Optional
 
 # lmn imports
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 
 class AssignmentExpression(ExpressionBase):
@@ -13,7 +12,7 @@ class AssignmentExpression(ExpressionBase):
     something like (a = (a + b)), then the 'operator' may not be needed here.
     """
     # Use the NodeKind enum member for assignment expressions
-    type: Literal[NodeKind.ASSIGNMENTEXPRESSION] = NodeKind.ASSIGNMENTEXPRESSION
+    type: Literal["AssignmentExpression"] = "AssignmentExpression"
 
     # The left side (often a variable or lvalue)
     left: "Expression"

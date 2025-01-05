@@ -4,7 +4,6 @@ from typing import List, Literal
 
 # lmn imports
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
-from lmn.compiler.ast.node_kind import NodeKind
 
 class ArrayLiteralExpression(ExpressionBase):
     """
@@ -12,7 +11,7 @@ class ArrayLiteralExpression(ExpressionBase):
     Each 'element' is a normal Expression, so we can have anything inside.
     """
     # type of the node is ARRAY_LITERAL
-    type: Literal[NodeKind.ARRAY_LITERAL] = NodeKind.ARRAY_LITERAL
+    type: Literal["ArrayLiteralExpression"] = "ArrayLiteralExpression"
 
     # list of elements inside the array as expressions
     elements: List["Expression"]  

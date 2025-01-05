@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Literal, Optional
 
-from lmn.compiler.ast.node_kind import NodeKind
+# lmn imports
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 
 class PostfixExpression(ExpressionBase):
@@ -10,9 +10,14 @@ class PostfixExpression(ExpressionBase):
     A postfix expression node, e.g. operand++ or operand--.
     Inherits from ExpressionBase for shared fields like inferred_type.
     """
-    type: Literal[NodeKind.POSTFIX] = NodeKind.POSTFIX
+    # set the type as postfix
+    type: Literal["PostfixExpression"] = "PostfixExpression"
+
+    # set the operator
     operator: str
     operand: "Expression"  # The sub-expression being incremented/decremented
+
+    # inferred type
     inferred_type: Optional[str] = None
 
     def __str__(self):

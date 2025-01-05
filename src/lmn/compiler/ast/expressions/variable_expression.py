@@ -4,14 +4,13 @@ from typing import Literal, Optional
 
 # import ast's
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
-from lmn.compiler.ast.node_kind import NodeKind
 
 class VariableExpression(ExpressionBase):
     """
     A variable reference, e.g. x or fact
     """
     # node type is VARIABLE
-    type: Literal[NodeKind.VARIABLE] = NodeKind.VARIABLE
+    type: Literal["VariableExpression"] = "VariableExpression"
 
     # name of the variable
     name: str

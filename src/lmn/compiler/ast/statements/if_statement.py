@@ -4,11 +4,10 @@ from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.statements.else_if_clause import ElseIfClause
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class IfStatement(ASTNode):
+class IfStatement(StatementBase):
     """
     Represents an 'if' statement with optional else and multiple elseif blocks:
       if (condition) { thenBody... }
@@ -17,7 +16,7 @@ class IfStatement(ASTNode):
       else { elseBody... }
     """
     # The type of the node
-    type: Literal[NodeKind.IF] = NodeKind.IF
+    type: Literal["IfStatement"] = "IfStatement"
 
     # The condition and body of the if statement
     condition: "Expression"

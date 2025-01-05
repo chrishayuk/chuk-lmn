@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Union, Optional, Literal
 
 # lmn imports
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.lexer.token import Token
@@ -17,7 +16,7 @@ class LiteralExpression(ExpressionBase):
     """
 
     # set the node as a literal
-    type: Literal[NodeKind.LITERAL] = NodeKind.LITERAL
+    type: Literal["LiteralExpression"] = "LiteralExpression"
 
     # The value of the literal
     value: Union[int, float, str]   

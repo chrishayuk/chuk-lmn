@@ -4,16 +4,16 @@ from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class PrintStatement(ASTNode):
+class PrintStatement(StatementBase):
     """
     A 'print' statement that prints one or more expressions/nodes.
     e.g. print expr1 expr2 ...
     """
     # set the type of this node to be 'PRINT'
-    type: Literal[NodeKind.PRINT] = NodeKind.PRINT
+    type: Literal["PrintStatement"] = "PrintStatement"
+    
 
     # a list of expressions/nodes to be printed
     expressions: List["Expression"] = Field(default_factory=list)

@@ -2,7 +2,7 @@
 from __future__ import annotations
 from lmn.compiler.ast.ast_node import ASTNode
 
-class Statement(ASTNode):
+class StatementBase(ASTNode):
     """
     Base class for all LMN statement AST nodes.
     """

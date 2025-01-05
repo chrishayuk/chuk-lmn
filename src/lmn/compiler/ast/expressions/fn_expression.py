@@ -5,7 +5,6 @@ from pydantic import Field
 
 # Import ast's
 from lmn.compiler.ast.expressions.expression_base import ExpressionBase
-from lmn.compiler.ast.node_kind import NodeKind
 
 class FnExpression(ExpressionBase):
     """
@@ -15,7 +14,7 @@ class FnExpression(ExpressionBase):
     """
 
     # set the node kind as a function expression
-    type: Literal[NodeKind.FN] = NodeKind.FN
+    type: Literal["FnExpression"] = "FnExpression"
 
     # We use forward references ("Expression") to avoid circular imports.
 

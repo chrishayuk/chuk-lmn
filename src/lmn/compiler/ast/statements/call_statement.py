@@ -4,14 +4,13 @@ from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class CallStatement(ASTNode):
+class CallStatement(StatementBase):
     """
     Represents: call "someTool" expr1 expr2 ...
     """
-    type: Literal[NodeKind.CALL] = NodeKind.CALL
+    type: Literal["CallStatement"] = "CallStatement"
     tool_name: str
 
     # arguments

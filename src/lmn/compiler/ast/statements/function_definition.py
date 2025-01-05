@@ -1,15 +1,15 @@
 # lmn/compiler/ast/statements/function_definition.py
+from __future__ import annotations
 from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.statements.function_parameter import FunctionParameter
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class FunctionDefinition(ASTNode):
+class FunctionDefinition(StatementBase):
     # The kind of the node
-    type: Literal[NodeKind.FUNCTION_DEF] = NodeKind.FUNCTION_DEF
+    type: Literal["FunctionDefinition"] = "FunctionDefinition"
 
     # name of the function
     name: str
@@ -18,7 +18,7 @@ class FunctionDefinition(ASTNode):
     params: List[FunctionParameter] = Field(default_factory=list)
 
     # Now 'body' is a list of Node objects
-    body: List["Node"] = Field(default_factory=list)
+    body: List["Statement"] = Field(default_factory=list)
 
     def __str__(self):
         # create a string representation of the parameters

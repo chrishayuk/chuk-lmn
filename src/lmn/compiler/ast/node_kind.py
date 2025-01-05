@@ -13,11 +13,13 @@ class NodeKind(str, Enum):
     ARRAY_LITERAL = "ArrayLiteralExpression"
     JSON_LITERAL = "JsonLiteralExpression"
     CONVERSION_EXPRESSION = "ConversionExpression"
+    ANONYMOUS_FUNCTION = "AnonymousFunction"
 
     # Statements
     CALL = "CallStatement"
     FOR = "ForStatement"
     FUNCTION_DEF = "FunctionDefinition"
+    FUNCTION_PARAMETER = "FunctionParameter"
     IF = "IfStatement"
     ELSEIF = "ElseIfClause"
     PRINT = "PrintStatement"

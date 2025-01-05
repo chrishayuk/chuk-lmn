@@ -1,18 +1,17 @@
 # file: lmn/compiler/ast/statements/for_statement.py
-
 from __future__ import annotations
 from typing import List, Optional, Literal
 from pydantic import Field
 
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+# lmn imports
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class ForStatement(ASTNode):
+class ForStatement(StatementBase):
     """
     Represents a 'for' loop, e.g.:
       for <variable> <start_expr> to <end_expr> step <step_expr> { ...body... }
     """
-    type: Literal[NodeKind.FOR] = NodeKind.FOR
+    type: Literal["ForStatement"] = "ForStatement"
 
     # If 'variable' might be a VariableExpression or other node, use a forward ref:
     variable: "Expression"

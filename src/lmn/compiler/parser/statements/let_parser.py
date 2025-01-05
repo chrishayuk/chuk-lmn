@@ -1,8 +1,12 @@
 # file: lmn/compiler/parser/statements/let_parser.py
 
+import logging
+
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.parser.parser_utils import expect_token, current_token_is
 from lmn.compiler.ast import LetStatement, VariableExpression
+
+logger = logging.getLogger(__name__)
 
 class LetParser:
     def __init__(self, parent_parser):
@@ -19,9 +23,17 @@ class LetParser:
             let strVal: string = "Hello"
             let data: json = {"key":"val"}
             let arrOfStr: string[] = ["red","green"]
+
+        Also supports inline functions if ExpressionParser can handle them:
+            let sum_func = function(a, b)
+                return a + b
+            end
         """
+        logger.debug("Starting parse of 'let' statement. Current token: %r", self.parser.current_token)
+
         # 1) Consume the 'let' token (already current_token)
         self.parser.advance()  # move past LmnTokenType.LET
+        logger.debug("Consumed 'let'. Next token: %r", self.parser.current_token)
 
         # 2) Expect an IDENTIFIER for the variable name
         var_token = expect_token(
@@ -29,15 +41,17 @@ class LetParser:
             LmnTokenType.IDENTIFIER,
             "Expected variable name after 'let'"
         )
+        logger.debug("Found variable name token: %r", var_token)
         self.parser.advance()  # consume the variable name token
+        logger.debug("After consuming variable name, current token: %r", self.parser.current_token)
 
         # 3) Check for optional ': type'
         type_annotation = None
         if current_token_is(self.parser, LmnTokenType.COLON):
             # consume ':'
             self.parser.advance()
+            logger.debug("Detected ':' for type annotation.")
 
-            # Extend valid_type_tokens to include STRING_TYPE, JSON_TYPE
             valid_type_tokens = (
                 LmnTokenType.INT,
                 LmnTokenType.LONG,
@@ -53,6 +67,7 @@ class LetParser:
             ):
                 # This is the base type as a string (e.g. "int", "string", "json")
                 type_annotation = self.parser.current_token.value
+                logger.debug("Base type annotation: %r", type_annotation)
                 self.parser.advance()  # consume that type keyword
 
                 # Optional bracket pair => e.g. "string" -> "string[]"
@@ -68,10 +83,8 @@ class LetParser:
                         )
                     self.parser.advance()  # consume ']'
 
-                    # Append '[]' to e.g. "int" => "int[]"
-                    # or "string" => "string[]", "json" => "json[]"
                     type_annotation += "[]"
-
+                    logger.debug("Detected array type annotation, now: %r", type_annotation)
             else:
                 raise SyntaxError(
                     "Expected a type keyword (int, long, float, double, string, json) after ':'"
@@ -81,15 +94,19 @@ class LetParser:
         initializer_expr = None
         if current_token_is(self.parser, LmnTokenType.EQ):
             self.parser.advance()  # consume '='
+            logger.debug("Detected '=' for initializer expression.")
             initializer_expr = self.parser.expression_parser.parse_expression()
             if not initializer_expr:
                 raise SyntaxError(
                     f"Expected an expression after 'let {var_token.value} ='"
                 )
+            logger.debug("Parsed initializer expression: %r", initializer_expr)
 
         # 5) Build and return the LetStatement node
-        return LetStatement(
+        let_statement = LetStatement(
             variable=VariableExpression(name=var_token.value),
             expression=initializer_expr,
             type_annotation=type_annotation
         )
+        logger.debug("Constructed LetStatement node: %r", let_statement)
+        return let_statement

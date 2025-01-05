@@ -16,6 +16,7 @@ from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
 from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
+from lmn.compiler.ast.expressions.anonymous_function_expression import AnonymousFunctionExpression
 
 # set the expression union type
 Expression = Annotated[
@@ -29,7 +30,8 @@ Expression = Annotated[
         PostfixExpression,
         AssignmentExpression,
         JsonLiteralExpression,
-        ArrayLiteralExpression
+        ArrayLiteralExpression,
+        AnonymousFunctionExpression
     ],
     Field(discriminator="type")
 ]
@@ -41,6 +43,7 @@ BinaryExpression.model_rebuild()
 UnaryExpression.model_rebuild()
 PostfixExpression.model_rebuild()
 FnExpression.model_rebuild()
+AnonymousFunctionExpression.model_rebuild()
 AssignmentExpression.model_rebuild()
 ConversionExpression.model_rebuild()
 JsonLiteralExpression.model_rebuild()
@@ -70,9 +73,9 @@ Statement = Annotated[
         ForStatement,
         AssignmentStatement,
         LetStatement,
-        ReturnStatement,
         FunctionParameter,
         FunctionDefinition,
+        ReturnStatement,
         PrintStatement,
         CallStatement,
         BlockStatement,
@@ -94,17 +97,21 @@ Node = Annotated[
 ]
 
 # rebuild models
-IfStatement.model_rebuild()
-ElseIfClause.model_rebuild()
-CallStatement.model_rebuild()
-LetStatement.model_rebuild()
-AssignmentStatement.model_rebuild()
-ReturnStatement.model_rebuild()
-PrintStatement.model_rebuild()
-FunctionParameter.model_rebuild()
-FunctionDefinition.model_rebuild()
-ForStatement.model_rebuild()
-BlockStatement.model_rebuild()
+IfStatement.model_rebuild(force=True)
+ElseIfClause.model_rebuild(force=True)
+CallStatement.model_rebuild(force=True)
+AssignmentStatement.model_rebuild(force=True)
+PrintStatement.model_rebuild(force=True)
+FunctionParameter.model_rebuild(force=True)
+FunctionDefinition.model_rebuild(force=True)
+ReturnStatement.model_rebuild(force=True)
+LetStatement.model_rebuild(force=True)
+ForStatement.model_rebuild(force=True)
+BlockStatement.model_rebuild(force=True)
+
+ReturnStatement.model_rebuild(force=True)
+BinaryExpression.model_rebuild(force=True)
+AnonymousFunctionExpression.model_rebuild(force=True)
 
 # rebuild program node
 Program.model_rebuild()

@@ -4,15 +4,14 @@ from typing import List, Literal
 from pydantic import Field
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class BlockStatement(ASTNode):
+class BlockStatement(StatementBase):
     # type of the node
-    type: Literal[NodeKind.BLOCK] = NodeKind.BLOCK
+    type: Literal["BlockStatement"] = "BlockStatement"
 
     # statements of the block
-    statements: List["Node"] = Field(default_factory=list)
+    statements: List["Statement"] = Field(default_factory=list)
 
     def __str__(self):
         # get the string representation of the block

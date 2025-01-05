@@ -1,6 +1,8 @@
 # file: lmn/compiler/ast/__init__.py
 from __future__ import annotations
 
+from lmn.compiler.ast.statements.function_parameter import FunctionParameter
+
 # Common
 from .ast_node import ASTNode
 from .node_kind import NodeKind
@@ -20,6 +22,7 @@ from .expressions.postfix_expression import PostfixExpression
 from .expressions.array_literal_expression import ArrayLiteralExpression
 from .expressions.assignment_expression import AssignmentExpression
 from .expressions.json_literal_expression import JsonLiteralExpression
+from .expressions.anonymous_function_expression import AnonymousFunctionExpression
 
 # Statements - submodels
 from .statements.call_statement import CallStatement
@@ -48,16 +51,21 @@ AssignmentExpression.model_rebuild()
 PostfixExpression.model_rebuild()
 JsonLiteralExpression.model_rebuild()
 ArrayLiteralExpression.model_rebuild()
+AnonymousFunctionExpression.model_rebuild()
 
 # Statements
 CallStatement.model_rebuild()
 ForStatement.model_rebuild()
 FunctionDefinition.model_rebuild()
+FunctionParameter.model_rebuild()
+ReturnStatement.model_rebuild()
 IfStatement.model_rebuild()
 PrintStatement.model_rebuild()
-ReturnStatement.model_rebuild()
 AssignmentStatement.model_rebuild()
 LetStatement.model_rebuild()
+
+ReturnStatement.model_rebuild(force=True)
+BinaryExpression.model_rebuild(force=True)
 
 # Program
 Program.model_rebuild()

@@ -3,12 +3,11 @@ from __future__ import annotations
 from typing import Literal, Optional
 
 # lmn imports
-from lmn.compiler.ast.ast_node import ASTNode
-from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class AssignmentStatement(ASTNode):
+class AssignmentStatement(StatementBase):
     # define the model configuration
-    type: Literal[NodeKind.ASSIGNMENTSTATEMENT] = NodeKind.ASSIGNMENTSTATEMENT
+    type: Literal["AssignmentStatement"] = "AssignmentStatement"
 
     # <- string name for the left-hand side
     variable_name: str  

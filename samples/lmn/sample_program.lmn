@@ -1,7 +1,124 @@
-# file: 10_llm_simple.lmn
+# test_functions_with_named.lmn
 
-# Call the LLM with a simple prompt
-let poem = llm(
-    prompt = "Write me a short poem about the sunrise."
-)
-print "=== Poem about Sunrise ===" poem
+# -------------------------
+# 1) Implicitly typed function: add(a, b)
+#    Demonstrates the use of positional and named arguments.
+# -------------------------
+function add(a, b)
+    # Return the sum of 'a' and 'b'
+    return a + b
+end
+
+# -------------------------
+# 1.1) Another implicitly typed function: subtract(a, b)
+#      This one isn't commutative, so reversing 'a' and 'b'
+#      will cause a different result—helpful to demonstrate
+#      correct vs. incorrect usage/order of arguments.
+# -------------------------
+function subtract(a, b)
+    return a - b
+end
+
+# -------------------------
+# 2) Type-annotated function: factorial(n: int) -> int
+# -------------------------
+function factorial(n: int) : int
+    # If n <= 1, return 1
+    if n <= 1
+        return 1
+    else
+        # Otherwise, factorial(n) = n * factorial(n - 1)
+        return n * factorial(n - 1)
+    end
+end
+
+# -------------------------
+# 3) Type-annotated function returning a string
+# -------------------------
+function even_or_odd(x: int) : string
+    # Use modulo to check if x is even or odd
+    if (x % 2) == 0
+        return "even"
+    else
+        return "odd"
+    end
+end
+
+# -------------------------
+# 4) Assigning a function to a variable
+#    4.1) Inline function stored in 'sum_func'
+#    4.2) Existing function 'add' stored in 'sum_func_alias'
+# -------------------------
+
+# 4.1) Inline/anonymous function
+let sum_func = function (a, b)
+    return a + b
+end
+
+# 4.2) Existing function
+let sum_func_alias = add
+
+# -------------------------
+# 5) Main function (with type annotation)
+#    main() -> int
+# -------------------------
+function main() : int
+    # 5.1) Demonstrate positional vs. named arguments with 'add'
+    let x = 3
+    let y = 5
+
+    # 5.1.1) Positional arguments (3 and 5 in order)
+    print "add(" x "," y ") [positional] = " add(x, y)
+
+    # 5.1.2) Named arguments (matching parameter names in order)
+    print "add(a=" x ", b=" y ") [named] = " add(a=x, b=y)
+
+    # 5.1.3) Named arguments but swapped
+    print "add(b=" y ", a=" x ") [named out of order] = " add(b=y, a=x)
+
+    # 5.2) Show how reversing arguments can be "wrong" in certain functions
+    #      We'll use our new 'subtract(a, b)' function
+    let p = 3
+    let q = 5
+
+    # sub(3,5) is -2
+    print "subtract(" p "," q ") [positional] = " subtract(p, q)
+
+    # sub(5,3) is 2
+    print "subtract(" q "," p ") [positional swapped] = " subtract(q, p)
+
+    # Named arguments in original order => subtract(a=3, b=5)
+    print "subtract(a=" p ", b=" q ") [named] = " subtract(a=p, b=q)
+
+    # Named arguments swapped => subtract(b=3, a=5)
+    # This is effectively 5 - 3 = 2, which may be "wrong" depending on your intention
+    print "subtract(b=" p ", a=" q ") [named out of order] = " subtract(b=p, a=q)
+
+    # 5.3) Test the type-annotated 'factorial' function
+    let n = 5
+
+    # Factorial with positional argument
+    print "factorial(" n ") [positional] = " factorial(n)
+
+    # Factorial with named argument
+    print "factorial(n=" n ") [named] = " factorial(n=n)
+
+    # 5.4) Show if a number is even or odd using 'even_or_odd'
+    let z = 10
+    print z " is " even_or_odd(z)
+
+    # Another quick check on an odd input
+    let w = 7
+    print w " is " even_or_odd(w)
+
+    # 5.5) Demonstrate calling the function stored in 'sum_func'
+    let a = 10
+    let b = 20
+    print "sum_func(" a "," b ") [inline function in a variable] = " sum_func(a, b)
+
+    # 5.6) Demonstrate calling the existing function stored in 'sum_func_alias'
+    print "sum_func_alias(7,9) [existing function in a variable] = " sum_func_alias(7, 9)
+
+    # Return 0 from main
+    return 0
+end

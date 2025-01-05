@@ -1,21 +1,28 @@
 # file: lmn/compiler/ast/statements/return_statement.py
 from __future__ import annotations
-from typing import Optional, Literal
-from pydantic import Field
+from typing import TYPE_CHECKING, Optional, Literal
 
-from lmn.compiler.ast.ast_node import ASTNode
+# lmn imports
 from lmn.compiler.ast.node_kind import NodeKind
+from lmn.compiler.ast.statements.statement_base import StatementBase
 
-class ReturnStatement(ASTNode):
+# Only import Expression when type checking,
+# so at runtime we avoid a potential circular import or missing definition.
+if TYPE_CHECKING:
+    # Adjust the path as needed to where you define Expression
+    from lmn.compiler.ast.mega_union import Expression
+
+class ReturnStatement(StatementBase):
     """
     Represents a 'return' statement, optionally returning an expression.
     e.g. return expr
     """
-    type: Literal[NodeKind.RETURN] = NodeKind.RETURN
+    type: Literal["ReturnStatement"] = "ReturnStatement"
 
-    # If there's an expression to return, we reference 'Node' by a string
-    # to avoid importing the union directly.
-    expression: Optional["Expression"] = None
+    # Now we reference ExpressionBase (or your union) directly
+    # instead of a string. Because of `if TYPE_CHECKING:`,
+    # Python won't do a runtime import that might cause cycles.
+    expression: Optional[Expression] = None
 
     def __str__(self):
         return f"return {self.expression}"
