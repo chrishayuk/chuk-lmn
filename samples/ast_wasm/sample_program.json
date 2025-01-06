@@ -257,13 +257,30 @@
             null
           ]
         ],
-        "return_type": null,
+        "return_type": "int",
         "body": [
-          {}
+          {
+            "type": "ReturnStatement",
+            "expression": {
+              "inferred_type": "i32",
+              "type": "BinaryExpression",
+              "operator": "+",
+              "left": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "inferred_type": "i32",
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            },
+            "inferred_type": "i32"
+          }
         ]
       },
-      "inferred_type": "i32",
-      "type_annotation": null
+      "inferred_type": "i32"
     },
     {
       "type": "LetStatement",
@@ -277,8 +294,7 @@
         "type": "VariableExpression",
         "name": "add"
       },
-      "inferred_type": "i32",
-      "type_annotation": null
+      "inferred_type": "i32"
     },
     {
       "type": "FunctionDefinition",
@@ -298,8 +314,7 @@
             "value": 3,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "LetStatement",
@@ -314,8 +329,7 @@
             "value": 5,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -495,8 +509,7 @@
             "value": 3,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "LetStatement",
@@ -511,8 +524,7 @@
             "value": 5,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -747,8 +759,7 @@
             "value": 5,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -841,8 +852,7 @@
             "value": 10,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -890,8 +900,7 @@
             "value": 7,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -939,8 +948,7 @@
             "value": 10,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "LetStatement",
@@ -955,8 +963,7 @@
             "value": 20,
             "literal_type": "i32"
           },
-          "inferred_type": "i32",
-          "type_annotation": null
+          "inferred_type": "i32"
         },
         {
           "type": "PrintStatement",
@@ -990,7 +997,7 @@
               "literal_type": "i32_string"
             },
             {
-              "inferred_type": null,
+              "inferred_type": "i32",
               "type": "FnExpression",
               "name": {
                 "inferred_type": null,
