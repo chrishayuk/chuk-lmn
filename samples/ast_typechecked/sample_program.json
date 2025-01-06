@@ -106,7 +106,7 @@
               "literal_type": "int"
             }
           },
-          "then_body": [
+          "thenBody": [
             {
               "type": "ReturnStatement",
               "expression": {
@@ -118,8 +118,8 @@
               "inferred_type": "int"
             }
           ],
-          "elseif_clauses": [],
-          "else_body": [
+          "elseifClauses": [],
+          "elseBody": [
             {
               "type": "ReturnStatement",
               "expression": {
@@ -135,7 +135,6 @@
                   "inferred_type": "int",
                   "type": "FnExpression",
                   "name": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "factorial"
                   },
@@ -207,7 +206,7 @@
               "literal_type": "int"
             }
           },
-          "then_body": [
+          "thenBody": [
             {
               "type": "ReturnStatement",
               "expression": {
@@ -219,8 +218,8 @@
               "inferred_type": "string"
             }
           ],
-          "elseif_clauses": [],
-          "else_body": [
+          "elseifClauses": [],
+          "elseBody": [
             {
               "type": "ReturnStatement",
               "expression": {
@@ -257,13 +256,30 @@
             null
           ]
         ],
-        "return_type": null,
+        "return_type": "int",
         "body": [
-          {}
+          {
+            "type": "ReturnStatement",
+            "expression": {
+              "inferred_type": "int",
+              "type": "BinaryExpression",
+              "operator": "+",
+              "left": {
+                "inferred_type": "int",
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "inferred_type": "int",
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            },
+            "inferred_type": "int"
+          }
         ]
       },
-      "inferred_type": "function",
-      "type_annotation": null
+      "inferred_type": "function"
     },
     {
       "type": "LetStatement",
@@ -277,8 +293,7 @@
         "type": "VariableExpression",
         "name": "add"
       },
-      "inferred_type": "function",
-      "type_annotation": null
+      "inferred_type": "function"
     },
     {
       "type": "FunctionDefinition",
@@ -298,8 +313,7 @@
             "value": 3,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "LetStatement",
@@ -314,8 +328,7 @@
             "value": 5,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -352,7 +365,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
@@ -407,7 +419,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
@@ -462,7 +473,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
@@ -495,8 +505,7 @@
             "value": 3,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "LetStatement",
@@ -511,8 +520,7 @@
             "value": 5,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -549,7 +557,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
@@ -604,7 +611,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
@@ -659,7 +665,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
@@ -714,7 +719,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
@@ -747,8 +751,7 @@
             "value": 5,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -774,7 +777,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "factorial"
               },
@@ -813,7 +815,6 @@
               "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "factorial"
               },
@@ -841,8 +842,7 @@
             "value": 10,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -862,7 +862,6 @@
               "inferred_type": "string",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "even_or_odd"
               },
@@ -890,8 +889,7 @@
             "value": 7,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -911,7 +909,6 @@
               "inferred_type": "string",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "even_or_odd"
               },
@@ -939,8 +936,7 @@
             "value": 10,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "LetStatement",
@@ -955,8 +951,7 @@
             "value": 20,
             "literal_type": "int"
           },
-          "inferred_type": "int",
-          "type_annotation": null
+          "inferred_type": "int"
         },
         {
           "type": "PrintStatement",
@@ -990,10 +985,9 @@
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
+              "inferred_type": "int",
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "sum_func"
               },
@@ -1023,10 +1017,8 @@
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "sum_func_alias"
               },

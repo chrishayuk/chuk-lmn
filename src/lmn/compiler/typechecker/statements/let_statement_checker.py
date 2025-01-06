@@ -27,9 +27,9 @@ class LetStatementChecker(BaseStatementChecker):
         """
         Type-check a 'let' statement and update either the local_scope or
         the global symbol table. If the right-hand side is an anonymous
-        function, store it as a closure. If it's an existing function
-        reference (alias), copy its signature. Otherwise, unify with
-        declared or inferred types.
+        function, store it (and type-check its body). If it's an existing 
+        function reference (alias), copy its signature. Otherwise, unify 
+        with declared or inferred types.
         """
         # Decide which table to modify
         scope = local_scope if local_scope is not None else self.symbol_table
@@ -52,6 +52,7 @@ class LetStatementChecker(BaseStatementChecker):
                 raise TypeError(
                     f"No type annotation or initializer for '{var_name}' in let statement."
                 )
+            # Mark variable in scope with declared type
             scope[var_name] = declared_type
             stmt.variable.inferred_type = declared_type
             stmt.inferred_type = declared_type
@@ -63,35 +64,47 @@ class LetStatementChecker(BaseStatementChecker):
         if isinstance(expr, AnonymousFunctionExpression):
             logger.debug(f"Detected an inline anonymous function for variable '{var_name}'")
 
-            # Gather param names/types from expr.parameters
+            # Gather param names/types
             param_names = []
             param_types = []
             for (p_name, p_type) in expr.parameters:
                 param_names.append(p_name)
-                param_types.append(p_type or None)
+                # If p_type is missing, default to 'int' or a suitable fallback
+                param_types.append(p_type or "int")
 
-            # Build a closure info dict
+            # 1) Create a new local scope for the function
+            function_scope = dict(scope)
+            function_scope["__current_function_return_type__"] = expr.return_type or "void"
+            assigned_vars = function_scope.get("__assigned_vars__", set())
+
+            # Insert parameters into function scope
+            for i, p_name in enumerate(param_names):
+                function_scope[p_name] = param_types[i]
+                assigned_vars.add(p_name)
+            function_scope["__assigned_vars__"] = assigned_vars
+
+            # 2) Type-check each statement in expr.body
+            for stmt_in_body in expr.body:
+                self.dispatcher.check_statement(stmt_in_body, local_scope=function_scope)
+
+            # 3) Get the final return type from the function scope
+            final_return_type = function_scope.get("__current_function_return_type__", "void")
+            expr.return_type = final_return_type  # store on the node
+            expr.inferred_type = "function"
+
+            # 4) Optionally store closure info in the scope
             closure_info = {
                 "is_closure": True,
                 "param_names": param_names,
                 "param_types": param_types,
-                "return_type": expr.return_type or None,  # if no return type declared
+                "return_type": final_return_type,
                 "ast_node": expr
             }
-
-            # If there's a declared type, unify or skip
-            final_type = "function"
-            if declared_type and declared_type != "function":
-                logger.debug(
-                    f"Ignoring declared type '{declared_type}' and using 'function' for anonymous function."
-                )
-                # or unify_types(declared_type, "function") if you want strict checks
-
-            # Store in scope
             scope[var_name] = closure_info
-            stmt.inferred_type = final_type
-            stmt.variable.inferred_type = final_type
-            expr.inferred_type = final_type
+
+            # Mark the let-stmt and var node as "function"
+            stmt.inferred_type = "function"
+            stmt.variable.inferred_type = "function"
             self._mark_assigned(scope, var_name)
             return
 
@@ -274,7 +287,8 @@ class LetStatementChecker(BaseStatementChecker):
                 return
 
             elif expr_type == "json":
-                if (expr.type == "JsonLiteralExpression"
+                if (
+                    expr.type == "JsonLiteralExpression"
                     and isinstance(expr.value, list)
                     and expr.value
                 ):

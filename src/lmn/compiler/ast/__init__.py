@@ -33,39 +33,39 @@ from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
 from .statements.let_statement import LetStatement
 from .statements.assignment_statement import AssignmentStatement
+from .statements.block_statement import BlockStatement
 
 # Program
 from lmn.compiler.ast.program import Program
 
 #
-# Rebuild calls
+# Rebuild calls — now in a single block, each with force=True
+# so Pydantic can finalize forward references
 #
 
 # Expressions
-LiteralExpression.model_rebuild()
-VariableExpression.model_rebuild()
-BinaryExpression.model_rebuild()
-UnaryExpression.model_rebuild()
-FnExpression.model_rebuild()
-AssignmentExpression.model_rebuild()
-PostfixExpression.model_rebuild()
-JsonLiteralExpression.model_rebuild()
-ArrayLiteralExpression.model_rebuild()
-AnonymousFunctionExpression.model_rebuild()
+LiteralExpression.model_rebuild(force=True)
+VariableExpression.model_rebuild(force=True)
+BinaryExpression.model_rebuild(force=True)
+UnaryExpression.model_rebuild(force=True)
+FnExpression.model_rebuild(force=True)
+AssignmentExpression.model_rebuild(force=True)
+PostfixExpression.model_rebuild(force=True)
+JsonLiteralExpression.model_rebuild(force=True)
+ArrayLiteralExpression.model_rebuild(force=True)
+AnonymousFunctionExpression.model_rebuild(force=True)
 
 # Statements
-CallStatement.model_rebuild()
-ForStatement.model_rebuild()
-FunctionDefinition.model_rebuild()
-FunctionParameter.model_rebuild()
-ReturnStatement.model_rebuild()
-IfStatement.model_rebuild()
-PrintStatement.model_rebuild()
-AssignmentStatement.model_rebuild()
-LetStatement.model_rebuild()
-
+CallStatement.model_rebuild(force=True)
+ForStatement.model_rebuild(force=True)
+FunctionDefinition.model_rebuild(force=True)
+FunctionParameter.model_rebuild(force=True)
 ReturnStatement.model_rebuild(force=True)
-BinaryExpression.model_rebuild(force=True)
+IfStatement.model_rebuild(force=True)
+PrintStatement.model_rebuild(force=True)
+AssignmentStatement.model_rebuild(force=True)
+LetStatement.model_rebuild(force=True)
+BlockStatement.model_rebuild(force=True)
 
 # Program
-Program.model_rebuild()
+Program.model_rebuild(force=True)

@@ -2,27 +2,26 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Literal
 
-# lmn imports
-from lmn.compiler.ast.node_kind import NodeKind
 from lmn.compiler.ast.statements.statement_base import StatementBase
 
-# Only import Expression when type checking,
-# so at runtime we avoid a potential circular import or missing definition.
 if TYPE_CHECKING:
-    # Adjust the path as needed to where you define Expression
+    # Import the union of expression types only when type-checking,
+    # preventing circular imports at runtime.
     from lmn.compiler.ast.mega_union import Expression
+
 
 class ReturnStatement(StatementBase):
     """
     Represents a 'return' statement, optionally returning an expression.
     e.g. return expr
     """
+    # The 'type' field is used by Pydantic's discriminated union logic
     type: Literal["ReturnStatement"] = "ReturnStatement"
 
-    # Now we reference ExpressionBase (or your union) directly
-    # instead of a string. Because of `if TYPE_CHECKING:`,
-    # Python won't do a runtime import that might cause cycles.
-    expression: Optional[Expression] = None
+    # Instead of 'Optional[str]', 'dict', or a partial type, we reference
+    # 'Expression' from mega_union.py. This ensures Pydantic sees the sub-node
+    # as a discriminated union, parsing it into a real node (BinaryExpression, etc.).
+    expression: Optional["Expression"] = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"return {self.expression}"

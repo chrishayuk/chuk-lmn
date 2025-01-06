@@ -3,8 +3,7 @@ from typing import Annotated, Union
 from pydantic import Field
 
 #
-# 1) Import all expression submodels
-#    (If any submodel references 'Node', we'll skip rebuilding until after Node is declared.)
+# 1) Import all expression submodels (do not rebuild yet)
 #
 from lmn.compiler.ast.expressions.array_literal_expression import ArrayLiteralExpression
 from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
@@ -18,41 +17,9 @@ from lmn.compiler.ast.expressions.fn_expression import FnExpression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 from lmn.compiler.ast.expressions.anonymous_function_expression import AnonymousFunctionExpression
 
-# set the expression union type
-Expression = Annotated[
-    Union[
-        LiteralExpression,
-        VariableExpression,
-        BinaryExpression,
-        UnaryExpression,
-        FnExpression,
-        ConversionExpression,
-        PostfixExpression,
-        AssignmentExpression,
-        JsonLiteralExpression,
-        ArrayLiteralExpression,
-        AnonymousFunctionExpression
-    ],
-    Field(discriminator="type")
-]
-
-# Rebuild expression submodels that do NOT reference 'Node'
-LiteralExpression.model_rebuild()
-VariableExpression.model_rebuild()
-BinaryExpression.model_rebuild()
-UnaryExpression.model_rebuild()
-PostfixExpression.model_rebuild()
-FnExpression.model_rebuild()
-AnonymousFunctionExpression.model_rebuild()
-AssignmentExpression.model_rebuild()
-ConversionExpression.model_rebuild()
-JsonLiteralExpression.model_rebuild()
-ArrayLiteralExpression.model_rebuild()
-
 #
-# 2) Import statement submodels
+# 2) Import all statement submodels (do not rebuild yet)
 #
-
 from lmn.compiler.ast.statements.block_statement import BlockStatement
 from lmn.compiler.ast.statements.function_parameter import FunctionParameter
 from lmn.compiler.ast.statements.if_statement import IfStatement
@@ -65,9 +32,36 @@ from lmn.compiler.ast.statements.assignment_statement import AssignmentStatement
 from lmn.compiler.ast.statements.let_statement import LetStatement
 from lmn.compiler.ast.statements.call_statement import CallStatement
 
+#
+# 3) Import Program (which references 'Node' in body: List['Node'])
+#
+from lmn.compiler.ast.program import Program
+
+#
+# 4) Define the Expression union
+#
+Expression = Annotated[
+    Union[
+        LiteralExpression,
+        VariableExpression,
+        BinaryExpression,
+        UnaryExpression,
+        FnExpression,
+        ConversionExpression,
+        PostfixExpression,
+        AssignmentExpression,
+        JsonLiteralExpression,
+        ArrayLiteralExpression,
+        AnonymousFunctionExpression,
+    ],
+    Field(discriminator="type")
+]
+
+#
+# 5) Define the Statement union
+#
 Statement = Annotated[
     Union[
-        # If you want them all in one union, list them here
         IfStatement,
         ElseIfClause,
         ForStatement,
@@ -84,34 +78,47 @@ Statement = Annotated[
 ]
 
 #
-# 3) Import Program (which references 'Node' in body: List['Node'])
+# 6) Define Node: Expression | Statement | Program
 #
-from lmn.compiler.ast.program import Program
 Node = Annotated[
     Union[
         Expression,   # union of all expression submodels
         Statement,    # union of all statement submodels
-        Program       # Program references 'Node'
+        Program,      # Program references 'Node'
     ],
     Field(discriminator="type")
 ]
 
-# rebuild models
+#
+# 7) Finally, rebuild all classes in one place, forcing resolution
+#    of forward references. We do this only *after* all imports & union definitions.
+#
+
+# Expressions
+LiteralExpression.model_rebuild(force=True)
+VariableExpression.model_rebuild(force=True)
+BinaryExpression.model_rebuild(force=True)
+UnaryExpression.model_rebuild(force=True)
+PostfixExpression.model_rebuild(force=True)
+FnExpression.model_rebuild(force=True)
+AssignmentExpression.model_rebuild(force=True)
+ConversionExpression.model_rebuild(force=True)
+JsonLiteralExpression.model_rebuild(force=True)
+ArrayLiteralExpression.model_rebuild(force=True)
+AnonymousFunctionExpression.model_rebuild(force=True)
+
+# Statements
 IfStatement.model_rebuild(force=True)
 ElseIfClause.model_rebuild(force=True)
-CallStatement.model_rebuild(force=True)
+ForStatement.model_rebuild(force=True)
 AssignmentStatement.model_rebuild(force=True)
-PrintStatement.model_rebuild(force=True)
+LetStatement.model_rebuild(force=True)
 FunctionParameter.model_rebuild(force=True)
 FunctionDefinition.model_rebuild(force=True)
 ReturnStatement.model_rebuild(force=True)
-LetStatement.model_rebuild(force=True)
-ForStatement.model_rebuild(force=True)
+PrintStatement.model_rebuild(force=True)
+CallStatement.model_rebuild(force=True)
 BlockStatement.model_rebuild(force=True)
 
-ReturnStatement.model_rebuild(force=True)
-BinaryExpression.model_rebuild(force=True)
-AnonymousFunctionExpression.model_rebuild(force=True)
-
-# rebuild program node
-Program.model_rebuild()
+# Program
+Program.model_rebuild(force=True)

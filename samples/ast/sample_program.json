@@ -7,36 +7,30 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "a",
-          "type_annotation": null
+          "name": "a"
         },
         {
           "type": "FunctionParameter",
-          "name": "b",
-          "type_annotation": null
+          "name": "b"
         }
       ],
       "body": [
         {
           "type": "ReturnStatement",
           "expression": {
-            "inferred_type": null,
             "type": "BinaryExpression",
             "operator": "+",
             "left": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "a"
             },
             "right": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "b"
             }
           }
         }
-      ],
-      "return_type": null
+      ]
     },
     {
       "type": "FunctionDefinition",
@@ -44,36 +38,30 @@
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "a",
-          "type_annotation": null
+          "name": "a"
         },
         {
           "type": "FunctionParameter",
-          "name": "b",
-          "type_annotation": null
+          "name": "b"
         }
       ],
       "body": [
         {
           "type": "ReturnStatement",
           "expression": {
-            "inferred_type": null,
             "type": "BinaryExpression",
             "operator": "-",
             "left": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "a"
             },
             "right": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "b"
             }
           }
         }
-      ],
-      "return_type": null
+      ]
     },
     {
       "type": "FunctionDefinition",
@@ -89,65 +77,54 @@
         {
           "type": "IfStatement",
           "condition": {
-            "inferred_type": null,
             "type": "BinaryExpression",
             "operator": "<=",
             "left": {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "n"
             },
             "right": {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": 1,
               "literal_type": "int"
             }
           },
-          "then_body": [
+          "thenBody": [
             {
               "type": "ReturnStatement",
               "expression": {
-                "inferred_type": null,
                 "type": "LiteralExpression",
                 "value": 1,
                 "literal_type": "int"
               }
             }
           ],
-          "elseif_clauses": [],
-          "else_body": [
+          "elseifClauses": [],
+          "elseBody": [
             {
               "type": "ReturnStatement",
               "expression": {
-                "inferred_type": null,
                 "type": "BinaryExpression",
                 "operator": "*",
                 "left": {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "n"
                 },
                 "right": {
-                  "inferred_type": null,
                   "type": "FnExpression",
                   "name": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "factorial"
                   },
                   "arguments": [
                     {
-                      "inferred_type": null,
                       "type": "BinaryExpression",
                       "operator": "-",
                       "left": {
-                        "inferred_type": null,
                         "type": "VariableExpression",
                         "name": "n"
                       },
                       "right": {
-                        "inferred_type": null,
                         "type": "LiteralExpression",
                         "value": 1,
                         "literal_type": "int"
@@ -176,49 +153,42 @@
         {
           "type": "IfStatement",
           "condition": {
-            "inferred_type": null,
             "type": "BinaryExpression",
             "operator": "==",
             "left": {
-              "inferred_type": null,
               "type": "BinaryExpression",
               "operator": "%",
               "left": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "x"
               },
               "right": {
-                "inferred_type": null,
                 "type": "LiteralExpression",
                 "value": 2,
                 "literal_type": "int"
               }
             },
             "right": {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": 0,
               "literal_type": "int"
             }
           },
-          "then_body": [
+          "thenBody": [
             {
               "type": "ReturnStatement",
               "expression": {
-                "inferred_type": null,
                 "type": "LiteralExpression",
                 "value": "even",
                 "literal_type": "string"
               }
             }
           ],
-          "elseif_clauses": [],
-          "else_body": [
+          "elseifClauses": [],
+          "elseBody": [
             {
               "type": "ReturnStatement",
               "expression": {
-                "inferred_type": null,
                 "type": "LiteralExpression",
                 "value": "odd",
                 "literal_type": "string"
@@ -232,12 +202,10 @@
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": null,
         "type": "VariableExpression",
         "name": "sum_func"
       },
       "expression": {
-        "inferred_type": null,
         "type": "AnonymousFunction",
         "parameters": [
           [
@@ -249,28 +217,35 @@
             null
           ]
         ],
-        "return_type": null,
         "body": [
-          {}
+          {
+            "type": "ReturnStatement",
+            "expression": {
+              "type": "BinaryExpression",
+              "operator": "+",
+              "left": {
+                "type": "VariableExpression",
+                "name": "a"
+              },
+              "right": {
+                "type": "VariableExpression",
+                "name": "b"
+              }
+            }
+          }
         ]
-      },
-      "inferred_type": null,
-      "type_annotation": null
+      }
     },
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": null,
         "type": "VariableExpression",
         "name": "sum_func_alias"
       },
       "expression": {
-        "inferred_type": null,
         "type": "VariableExpression",
         "name": "add"
-      },
-      "inferred_type": null,
-      "type_annotation": null
+      }
     },
     {
       "type": "FunctionDefinition",
@@ -280,82 +255,65 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "x"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 3,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "y"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 5,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "add(",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "x"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ",",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "y"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "x"
                 },
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "y"
                 }
@@ -367,66 +325,53 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "add(a=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "x"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ", b=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "y"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [named] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "a"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "x"
                   }
                 },
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "b"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "y"
                   }
@@ -439,66 +384,53 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "add(b=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "y"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ", a=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "x"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [named out of order] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "add"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "b"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "y"
                   }
                 },
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "a"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "x"
                   }
@@ -510,82 +442,65 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "p"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 3,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "q"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 5,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "subtract(",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "p"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ",",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "q"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "p"
                 },
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "q"
                 }
@@ -597,49 +512,40 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "subtract(",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "q"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ",",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "p"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [positional swapped] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "q"
                 },
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "p"
                 }
@@ -651,66 +557,53 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "subtract(a=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "p"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ", b=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "q"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [named] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "a"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "p"
                   }
                 },
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "b"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "q"
                   }
@@ -723,66 +616,53 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "subtract(b=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "p"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ", a=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "q"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [named out of order] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "subtract"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "b"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "p"
                   }
                 },
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "a"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "q"
                   }
@@ -794,50 +674,40 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "n"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 5,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "factorial(",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "n"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [positional] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "factorial"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "n"
                 }
@@ -849,41 +719,33 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "factorial(n=",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "n"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [named] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "factorial"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "AssignmentExpression",
                   "left": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "n"
                   },
                   "right": {
-                    "inferred_type": null,
                     "type": "VariableExpression",
                     "name": "n"
                   }
@@ -895,44 +757,35 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "z"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 10,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "z"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": " is ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "even_or_odd"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "z"
                 }
@@ -943,44 +796,35 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "w"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 7,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "w"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": " is ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "even_or_odd"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "w"
                 }
@@ -991,82 +835,65 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "a"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 10,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": null,
             "type": "VariableExpression",
             "name": "b"
           },
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 20,
             "literal_type": "int"
-          },
-          "inferred_type": null,
-          "type_annotation": null
+          }
         },
         {
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "sum_func(",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "a"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ",",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "VariableExpression",
               "name": "b"
             },
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": ") [inline function in a variable] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "sum_func"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "a"
                 },
                 {
-                  "inferred_type": null,
                   "type": "VariableExpression",
                   "name": "b"
                 }
@@ -1078,28 +905,23 @@
           "type": "PrintStatement",
           "expressions": [
             {
-              "inferred_type": null,
               "type": "LiteralExpression",
               "value": "sum_func_alias(7,9) [existing function in a variable] = ",
               "literal_type": "string"
             },
             {
-              "inferred_type": null,
               "type": "FnExpression",
               "name": {
-                "inferred_type": null,
                 "type": "VariableExpression",
                 "name": "sum_func_alias"
               },
               "arguments": [
                 {
-                  "inferred_type": null,
                   "type": "LiteralExpression",
                   "value": 7,
                   "literal_type": "int"
                 },
                 {
-                  "inferred_type": null,
                   "type": "LiteralExpression",
                   "value": 9,
                   "literal_type": "int"
@@ -1111,7 +933,6 @@
         {
           "type": "ReturnStatement",
           "expression": {
-            "inferred_type": null,
             "type": "LiteralExpression",
             "value": 0,
             "literal_type": "int"
