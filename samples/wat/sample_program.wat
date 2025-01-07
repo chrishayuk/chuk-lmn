@@ -12,6 +12,12 @@
   (import "env" "print_f64_array" (func $print_f64_array (param i32)))
   (import "env" "llm" (func $llm (param i32 i32) (result i32)))
   (memory (export "memory") 1)
+  (func $anon_0 (param $a i32) (param $b i32) (result i32)
+    local.get $a
+    local.get $b
+    i32.add
+    return
+  )
   (func $add (param $a i32) (param $b i32) (result i32)
     local.get $a
     local.get $b
@@ -251,7 +257,7 @@
     call $print_string
     local.get $a
     local.get $b
-    call $sum_func
+    call $anon_0
     call $print_i32
     i32.const 1058
     call $print_string
@@ -259,27 +265,19 @@
     call $print_string
     i32.const 7
     i32.const 9
-    call $sum_func_alias
+    call $add
     call $print_i32
     i32.const 1058
     call $print_string
     i32.const 0
     return
   )
-  (func $__top_level__
-    (local $sum_func i32)
-    (local $sum_func_alias i32)
-    i32.const 0
-    local.set $sum_func
-    local.get $add
-    local.set $sum_func_alias
-  )
+  (export "anon_0" (func $anon_0))
   (export "add" (func $add))
   (export "subtract" (func $subtract))
   (export "factorial" (func $factorial))
   (export "even_or_odd" (func $even_or_odd))
   (export "main" (func $main))
-  (export "__top_level__" (func $__top_level__))
   (data (i32.const 1024) "\65\76\65\6e\00")
   (data (i32.const 1029) "\6f\64\64\00")
   (data (i32.const 1033) "\61\64\64\28\00")
