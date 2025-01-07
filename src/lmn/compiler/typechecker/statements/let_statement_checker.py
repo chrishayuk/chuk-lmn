@@ -31,68 +31,63 @@ class LetStatementChecker(BaseStatementChecker):
         function reference (alias), copy its signature. Otherwise, unify 
         with declared or inferred types.
         """
-        # Decide which table to modify
-        scope = local_scope if local_scope is not None else self.symbol_table
+        scope = local_scope if local_scope else self.symbol_table
 
         var_name = stmt.variable.name
+        logger.debug(f"\n=== LetStatementChecker ===")
         logger.debug(f"Processing 'let' statement for variable '{var_name}'")
 
         # Possibly "int", "string[]", etc. Could be None if no annotation.
         type_annotation = getattr(stmt, "type_annotation", None)
         declared_type = normalize_type(type_annotation) if type_annotation else None
-        logger.debug(f"Type annotation for '{var_name}': {declared_type}")
+        logger.debug(f"Declared type annotation for '{var_name}': {declared_type}")
 
-        # The right-hand side expression
         expr = stmt.expression
 
         # A) No expression => must have annotation or raise error
         if not expr:
-            logger.debug(f"No initializer expression for 'let {var_name}'.")
+            logger.debug(f"No initializer expression for 'let {var_name}'. Checking if declared_type is required.")
             if not declared_type:
                 raise TypeError(
                     f"No type annotation or initializer for '{var_name}' in let statement."
                 )
-            # Mark variable in scope with declared type
+            logger.debug(f"No expression => storing declared type '{declared_type}' for '{var_name}'.")
             scope[var_name] = declared_type
             stmt.variable.inferred_type = declared_type
             stmt.inferred_type = declared_type
             self._mark_assigned(scope, var_name)
-            logger.debug(f"Marking '{var_name}' as '{declared_type}' in scope.")
+            self._debug_symbol_tables(var_name, f"after storing declared type '{declared_type}' with no initializer")
             return
 
-        # B) Check if the expression is an AnonymousFunction
+        # B) If expression is an AnonymousFunction => store closure
         if isinstance(expr, AnonymousFunctionExpression):
-            logger.debug(f"Detected an inline anonymous function for variable '{var_name}'")
-
-            # Gather param names/types
-            param_names = []
-            param_types = []
+            logger.debug(f"Detected an inline AnonymousFunction for variable '{var_name}'")
+            param_names, param_types = [], []
             for (p_name, p_type) in expr.parameters:
                 param_names.append(p_name)
-                # If p_type is missing, default to 'int' or a suitable fallback
-                param_types.append(p_type or "int")
+                param_types.append(p_type or "int")  # default fallback
 
-            # 1) Create a new local scope for the function
+            # Create child scope
             function_scope = dict(scope)
             function_scope["__current_function_return_type__"] = expr.return_type or "void"
             assigned_vars = function_scope.get("__assigned_vars__", set())
 
-            # Insert parameters into function scope
+            # Insert parameters
             for i, p_name in enumerate(param_names):
                 function_scope[p_name] = param_types[i]
                 assigned_vars.add(p_name)
             function_scope["__assigned_vars__"] = assigned_vars
 
-            # 2) Type-check each statement in expr.body
+            # Type-check the inline function's body
+            logger.debug(f"Type-checking body of the inline function assigned to '{var_name}'")
             for stmt_in_body in expr.body:
                 self.dispatcher.check_statement(stmt_in_body, local_scope=function_scope)
 
-            # 3) Get the final return type from the function scope
             final_return_type = function_scope.get("__current_function_return_type__", "void")
-            expr.return_type = final_return_type  # store on the node
+            expr.return_type = final_return_type
             expr.inferred_type = "function"
 
-            # 4) Optionally store closure info in the scope
+            # Build closure info
             closure_info = {
                 "is_closure": True,
                 "param_names": param_names,
@@ -100,26 +95,36 @@ class LetStatementChecker(BaseStatementChecker):
                 "return_type": final_return_type,
                 "ast_node": expr
             }
-            scope[var_name] = closure_info
 
-            # Mark the let-stmt and var node as "function"
+            logger.debug(f"Storing inline closure for '{var_name}': {closure_info}")
+            # Store in local scope + global symbol table
+            scope[var_name] = closure_info
+            self.symbol_table[var_name] = closure_info
+
             stmt.inferred_type = "function"
             stmt.variable.inferred_type = "function"
             self._mark_assigned(scope, var_name)
+            self._debug_symbol_tables(var_name, "after storing an inline closure")
             return
 
-        # C) Check if the expression is a VariableExpression referencing a known function/closure
-        #    e.g. let sum_func_alias = add
+        # C) If expression is a VariableExpression referencing a known function/closure
         if isinstance(expr, VariableExpression):
             rhs_name = expr.name
-            # If the RHS is in scope and is a function or closure => alias
+            logger.debug(f"Checking if '{rhs_name}' is a known function/closure in scope.")
             if rhs_name in scope:
                 rhs_info = scope[rhs_name]
-                if rhs_info.get("is_closure") or rhs_info.get("is_function") or "param_names" in rhs_info:
-                    logger.debug(
-                        f"Aliasing function '{rhs_name}' to new variable '{var_name}'"
+
+                # Confirm it's a dict describing a function or closure
+                if (
+                    isinstance(rhs_info, dict)
+                    and (
+                        rhs_info.get("is_closure")
+                        or rhs_info.get("is_function")
+                        or "param_names" in rhs_info
                     )
-                    # Copy param signature arrays
+                ):
+                    logger.debug(f"Aliasing function/closure '{rhs_name}' => new variable '{var_name}'")
+
                     param_names = rhs_info.get("param_names", [])
                     param_types = rhs_info.get("param_types", [])
                     param_defaults = rhs_info.get("param_defaults", [])
@@ -133,28 +138,54 @@ class LetStatementChecker(BaseStatementChecker):
                         "return_type": return_type,
                     }
 
-                    final_type = "function"
+                    logger.debug(
+                        f"Storing alias info for '{var_name}': {alias_info}\n"
+                        f"Also storing in self.symbol_table to ensure finalize pass won't skip it."
+                    )
                     scope[var_name] = alias_info
+                    self.symbol_table[var_name] = alias_info
+
+                    final_type = "function"
                     stmt.inferred_type = final_type
                     stmt.variable.inferred_type = final_type
                     expr.inferred_type = final_type
                     self._mark_assigned(scope, var_name)
+                    self._debug_symbol_tables(var_name, "after aliasing a known function/closure")
                     return
                 else:
-                    # The RHS is a variable but not a function => unify as normal
-                    logger.debug(f"RHS '{rhs_name}' not recognized as function/closure; continuing normal flow...")
+                    logger.debug(
+                        f"RHS '{rhs_name}' found in scope but not recognized as function/closure; continuing normal flow..."
+                    )
 
-        # D) Otherwise => do array/JSON/unification logic as normal
+        # D) Otherwise => normal type-check logic
         logger.debug(f"Type-checking expression for variable '{var_name}'.")
-        expr_type = self.dispatcher.check_expression(
-            expr, target_type=declared_type, local_scope=scope
-        )
+        expr_type = self.dispatcher.check_expression(expr, target_type=declared_type, local_scope=scope)
         logger.debug(f"Expression type for '{var_name}' => {expr_type}")
 
+        # If we got a closure dictionary, store it
+        if isinstance(expr_type, dict) and expr_type.get("is_closure"):
+            logger.debug(
+                f"'{var_name}' is assigned a closure dictionary with "
+                f"param_types={expr_type.get('param_types')} and return_type={expr_type.get('return_type')}.\n"
+                f"Storing in both scope and self.symbol_table."
+            )
+            scope[var_name] = expr_type
+            self.symbol_table[var_name] = expr_type
+
+            stmt.inferred_type = "function"
+            stmt.variable.inferred_type = "function"
+            expr.inferred_type = "function"
+            self._mark_assigned(scope, var_name)
+            self._debug_symbol_tables(var_name, "after storing a closure dictionary from normal type-check logic")
+            return
+
+        #
+        # If not a closure, unify or store type as normal
+        #
         if declared_type:
-            # 1) If declared_type ends with "[]", handle typed arrays
+            # If declared_type ends with "[]", handle typed arrays
             if declared_type.endswith("[]"):
-                base_type = declared_type[:-2]  # e.g. "int[]" => "int"
+                base_type = declared_type[:-2]
                 if expr_type == "array":
                     all_ok = True
                     if hasattr(expr, "elements"):
@@ -174,15 +205,17 @@ class LetStatementChecker(BaseStatementChecker):
                             f"Array elements do not match '{base_type}' for var '{var_name}'"
                         )
 
+                    logger.debug(f"Storing typed array '{declared_type}' for '{var_name}'.")
                     scope[var_name] = declared_type
                     stmt.inferred_type = declared_type
                     stmt.variable.inferred_type = declared_type
                     expr.inferred_type = declared_type
                     self._mark_assigned(scope, var_name)
+                    self._debug_symbol_tables(var_name, f"after storing typed array '{declared_type}'")
                     return
 
                 elif expr_type == "json":
-                    # Possibly a JSON-literal array => check each element
+                    # Possibly a JSON-literal array => check elements
                     if expr.type == "JsonLiteralExpression" and isinstance(expr.value, list):
                         all_ok = True
                         for val in expr.value:
@@ -207,63 +240,66 @@ class LetStatementChecker(BaseStatementChecker):
                                     all_ok = False
                                     break
                             else:
-                                raise TypeError(
-                                    f"Unsupported base type '{base_type}' in let statement."
-                                )
+                                raise TypeError(f"Unsupported base type '{base_type}' in let statement.")
 
                         if not all_ok:
                             raise TypeError(
                                 f"Array elements do not match '{base_type}' for var '{var_name}'"
                             )
 
+                        logger.debug(f"Storing typed array '{declared_type}' from JSON-literal for '{var_name}'.")
                         scope[var_name] = declared_type
                         stmt.inferred_type = declared_type
                         stmt.variable.inferred_type = declared_type
                         expr.inferred_type = declared_type
                         self._mark_assigned(scope, var_name)
+                        self._debug_symbol_tables(var_name, f"after storing typed array from JSON-literal '{declared_type}'")
                         return
 
                     # else unify
                     unified = unify_types(declared_type, expr_type, for_assignment=True)
                     if unified != declared_type:
-                        raise TypeError(
-                            f"Cannot unify assignment: {expr_type} -> {declared_type}"
-                        )
+                        raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
+
                     scope[var_name] = declared_type
                     stmt.inferred_type = declared_type
                     stmt.variable.inferred_type = declared_type
                     expr.inferred_type = declared_type
                     self._mark_assigned(scope, var_name)
+                    self._debug_symbol_tables(var_name, f"after unify JSON -> declared_type '{declared_type}'")
                     return
 
                 # Non-array expression unifying with array type
                 unified = unify_types(declared_type, expr_type, for_assignment=True)
                 if unified != declared_type:
-                    raise TypeError(
-                        f"Cannot unify assignment: {expr_type} -> {declared_type}"
-                    )
+                    raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
+
+                logger.debug(f"Storing array type '{declared_type}' for '{var_name}'.")
                 scope[var_name] = declared_type
                 stmt.inferred_type = declared_type
                 stmt.variable.inferred_type = declared_type
                 expr.inferred_type = declared_type
                 self._mark_assigned(scope, var_name)
+                self._debug_symbol_tables(var_name, f"after unify declared array type '{declared_type}'")
                 return
 
-            # 2) If declared_type is NOT an array
+            # declared_type is not an array => unify
             unified = unify_types(declared_type, expr_type, for_assignment=True)
             if unified != declared_type:
-                raise TypeError(
-                    f"Cannot assign '{expr_type}' to var of type '{declared_type}'"
-                )
+                raise TypeError(f"Cannot assign '{expr_type}' to var of type '{declared_type}'")
+
+            logger.debug(f"Storing declared type '{declared_type}' for '{var_name}'.")
             scope[var_name] = declared_type
             stmt.inferred_type = declared_type
             stmt.variable.inferred_type = declared_type
             expr.inferred_type = declared_type
             self._mark_assigned(scope, var_name)
+            self._debug_symbol_tables(var_name, f"after unify declared type '{declared_type}'")
 
         else:
             # No declared type => infer from expr_type
             if expr_type == "array":
+                logger.debug(f"Inferring array type for '{var_name}'.")
                 if hasattr(expr, "elements") and expr.elements:
                     elem_type = self.dispatcher.check_expression(expr.elements[0], local_scope=scope)
                     for e in expr.elements[1:]:
@@ -280,13 +316,16 @@ class LetStatementChecker(BaseStatementChecker):
                     final_type = "array"
                     expr.inferred_type = final_type
 
-                scope[var_name] = final_type
-                stmt.inferred_type = final_type
-                stmt.variable.inferred_type = final_type
+                logger.debug(f"Storing inferred array type '{expr.inferred_type}' for '{var_name}'.")
+                scope[var_name] = expr.inferred_type
+                stmt.inferred_type = expr.inferred_type
+                stmt.variable.inferred_type = expr.inferred_type
                 self._mark_assigned(scope, var_name)
+                self._debug_symbol_tables(var_name, f"after inferring array type '{expr.inferred_type}'")
                 return
 
             elif expr_type == "json":
+                logger.debug(f"Inferring json type for '{var_name}'.")
                 if (
                     expr.type == "JsonLiteralExpression"
                     and isinstance(expr.value, list)
@@ -309,22 +348,37 @@ class LetStatementChecker(BaseStatementChecker):
                 else:
                     final_type = "json"
 
+                logger.debug(f"Storing inferred json-based type '{final_type}' for '{var_name}'.")
                 scope[var_name] = final_type
                 stmt.inferred_type = final_type
                 stmt.variable.inferred_type = final_type
                 self._mark_assigned(scope, var_name)
+                self._debug_symbol_tables(var_name, f"after inferring json-based type '{final_type}'")
 
             else:
-                final_type = expr_type
-                scope[var_name] = final_type
-                stmt.inferred_type = final_type
-                stmt.variable.inferred_type = final_type
+                # Just store it as final_type
+                logger.debug(f"Inferring type '{expr_type}' for '{var_name}'.")
+                scope[var_name] = expr_type
+                stmt.inferred_type = expr_type
+                stmt.variable.inferred_type = expr_type
                 self._mark_assigned(scope, var_name)
+                self._debug_symbol_tables(var_name, f"after inferring normal type '{expr_type}'")
 
     def _mark_assigned(self, scope: Dict[str, str], var_name: str) -> None:
-        """
-        Helper to mark var_name as assigned in the local scope's assigned-vars set.
-        """
         assigned_vars = scope.get("__assigned_vars__", set())
         assigned_vars.add(var_name)
         scope["__assigned_vars__"] = assigned_vars
+        logger.debug(
+            f"Marked '{var_name}' as assigned in scope; assigned_vars now: {assigned_vars}"
+        )
+
+    def _debug_symbol_tables(self, var_name: str, context_msg: str) -> None:
+        """
+        Helper to dump relevant local scope + global symbol_table 
+        for extended debugging after we store a function/closure or do a unify.
+        """
+        logger.debug(f"[{context_msg}] Current local scope keys: {list(self.symbol_table.keys())}")
+        if var_name in self.symbol_table:
+            logger.debug(f"[{context_msg}] self.symbol_table['{var_name}'] => {self.symbol_table[var_name]}")
+        else:
+            logger.debug(f"[{context_msg}] '{var_name}' not in self.symbol_table at all.")

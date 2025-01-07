@@ -19,10 +19,7 @@ class ConversionExpression(ExpressionBase):
 
     # We'll store the expression being converted, referencing 'Expression' as a forward ref
     source_expr: "Expression"
-
-    # If you store an inferred type
-    inferred_type: Optional[str] = None
-
+    
     def __str__(self):
         return (f"ConversionExpression({self.from_type}->{self.to_type}, "
                 f"source_expr={self.source_expr})")

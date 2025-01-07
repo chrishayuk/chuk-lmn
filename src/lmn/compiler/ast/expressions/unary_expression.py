@@ -12,14 +12,10 @@ class UnaryExpression(ExpressionBase):
     """
     # set the node as Unary
     type: Literal["UnaryExpression"] = "UnaryExpression"
-    
 
     # operator
     operator: str
     operand: "Expression"
-
-    # inferred type
-    inferred_type: Optional[str] = None
 
     def __str__(self):
         return f"({self.operator} {self.operand})"

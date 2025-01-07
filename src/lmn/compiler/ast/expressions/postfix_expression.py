@@ -17,9 +17,6 @@ class PostfixExpression(ExpressionBase):
     operator: str
     operand: "Expression"  # The sub-expression being incremented/decremented
 
-    # inferred type
-    inferred_type: Optional[str] = None
-
     def __str__(self):
         # For printing/debugging, e.g. '(x++)'
         return f"({self.operand}{self.operator})"

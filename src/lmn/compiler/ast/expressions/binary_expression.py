@@ -20,9 +20,6 @@ class BinaryExpression(ExpressionBase):
     left: "Expression"  
     right: "Expression"
 
-    # This field is optional if ExpressionBase doesn't already have it.
-    inferred_type: Optional[str] = None
-
     def __str__(self):
         # Return the string representation of the binary expression
         return f"({self.left} {self.operator} {self.right})"

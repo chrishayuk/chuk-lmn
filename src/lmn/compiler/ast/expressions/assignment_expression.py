@@ -20,9 +20,6 @@ class AssignmentExpression(ExpressionBase):
     # The right side (any expression)
     right: "Expression"
 
-    # Optional if you do type inference
-    inferred_type: Optional[str] = None
-
     def __str__(self):
         # Return the string representation of the assignment expression
         return f"({self.left} = {self.right})"

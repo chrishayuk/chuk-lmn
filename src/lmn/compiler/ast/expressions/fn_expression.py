@@ -24,9 +24,6 @@ class FnExpression(ExpressionBase):
     # arguments of the function expression
     arguments: List["Expression"] = Field(default_factory=list)
 
-    # inferred type of the function expression
-    inferred_type: Optional[str] = None
-
     def __str__(self):
         # output the node as a string
         args_str = ", ".join(str(arg) for arg in self.arguments)

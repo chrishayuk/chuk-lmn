@@ -1,4 +1,5 @@
 # file: lmn/compiler/typechecker/finalize_arguments_pass.py
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ def finalize_function_calls(node, symbol_table: dict):
     node_type = getattr(node, "type", None)
     logger.debug(f"Visiting node: {node_type}")
 
-    # 1) Recurse into sub-nodes
+    # 1) Recurse into child lists (body, expressions, etc.)
     if hasattr(node, "body") and isinstance(node.body, list):
         logger.debug(f"Node {node_type} has a 'body' with {len(node.body)} children")
         for child in node.body:
@@ -33,11 +34,10 @@ def finalize_function_calls(node, symbol_table: dict):
 
     if hasattr(node, "arguments") and isinstance(node.arguments, list):
         logger.debug(f"Node {node_type} has 'arguments' with {len(node.arguments)} children")
-        # Recurse into each argument first in case of nested calls
         for arg in node.arguments:
             finalize_function_calls(arg, symbol_table)
 
-    # 2) If it's a FunctionDefinition => handle params + body
+    # 2) If it's a FunctionDefinition => handle params
     if node_type == "FunctionDefinition":
         if hasattr(node, "params"):
             func_name = getattr(node, "name", "unknown")
@@ -56,7 +56,6 @@ def finalize_function_calls(node, symbol_table: dict):
 
         # Check if 'name' is a typical VariableExpression node
         if getattr(fn_name_node, "type", None) == "VariableExpression":
-            # e.g., node.name.name == "add"
             fn_name = getattr(fn_name_node, "name", None)
         else:
             logger.debug("FnExpression name is not a simple VariableExpression; skipping reordering.")
@@ -74,16 +73,17 @@ def finalize_function_calls(node, symbol_table: dict):
 
         logger.debug(f"Function '{fn_name}' => param_names={param_names}, param_defaults={param_defaults}")
 
-        # Build a new array final_args
         final_args = [None] * num_params
         next_pos_index = 0
 
         old_args = node.arguments
         logger.debug(f"Original arguments: {len(old_args)} => {old_args}")
 
+        # Sort arguments
+        from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
         for arg_node in old_args:
-            # If it's an AssignmentExpression => named argument
             if getattr(arg_node, "type", None) == "AssignmentExpression":
+                # Named argument
                 param_name = getattr(arg_node.left, "name", None)
                 if param_name not in param_names:
                     logger.debug(f"Named argument '{param_name}' not in param_names of '{fn_name}'; skipping.")
@@ -92,7 +92,7 @@ def finalize_function_calls(node, symbol_table: dict):
                 logger.debug(f"Placing named argument for param '{param_name}' at index {idx}")
                 final_args[idx] = arg_node.right
             else:
-                # It's a positional argument
+                # positional
                 if next_pos_index < num_params:
                     logger.debug(f"Placing positional argument at index {next_pos_index}")
                     final_args[next_pos_index] = arg_node
@@ -100,7 +100,7 @@ def finalize_function_calls(node, symbol_table: dict):
                 else:
                     logger.debug("Too many positional arguments? Skipping or ignoring...")
 
-        # Fill defaults where needed
+        # Fill defaults if needed
         for i, p_default in enumerate(param_defaults):
             if final_args[i] is None and p_default is not None:
                 logger.debug(f"Filling default for param '{param_names[i]}' at index {i}")
@@ -108,11 +108,10 @@ def finalize_function_calls(node, symbol_table: dict):
             elif final_args[i] is None:
                 logger.debug(f"No argument provided for required param '{param_names[i]}' in '{fn_name}'")
 
-        # Replace the old array with the new purely-positional array
         node.arguments = final_args
         logger.debug(f"After reordering: {node.arguments}")
 
-        # Also finalize each new argument (some might be FnExpressions)
+        # Recursively finalize each new argument
         for i, arg in enumerate(node.arguments):
             if arg:
                 logger.debug(f"Recursively finalizing argument {i} for function '{fn_name}'")

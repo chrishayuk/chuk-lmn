@@ -15,8 +15,5 @@ class VariableExpression(ExpressionBase):
     # name of the variable
     name: str
 
-    # inferred type of the variable
-    inferred_type: Optional[str] = None
-
     def __str__(self):
         return self.name

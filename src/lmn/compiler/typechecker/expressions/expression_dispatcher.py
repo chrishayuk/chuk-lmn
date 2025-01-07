@@ -9,6 +9,11 @@ from lmn.compiler.typechecker.expressions.literal_checker import LiteralChecker
 from lmn.compiler.typechecker.expressions.postfix_checker import PostfixChecker
 from lmn.compiler.typechecker.expressions.unary_checker import UnaryChecker
 from lmn.compiler.typechecker.expressions.variable_checker import VariableChecker
+
+# Suppose you add a new checker:
+from lmn.compiler.typechecker.expressions.anonymous_function_checker import AnonymousFunctionChecker
+
+# Import your various AST expression classes
 from lmn.compiler.ast.expressions.literal_expression import LiteralExpression
 from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
 from lmn.compiler.ast.expressions.json_literal_expression import JsonLiteralExpression
@@ -18,6 +23,9 @@ from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
 from lmn.compiler.ast.expressions.postfix_expression import PostfixExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
+
+# If your anonymous function node is called AnonymousFunctionExpression:
+from lmn.compiler.ast.expressions.anonymous_function_expression import AnonymousFunctionExpression
 
 class ExpressionDispatcher:
     def __init__(self, symbol_table: Dict[str, str]):
@@ -53,5 +61,8 @@ class ExpressionDispatcher:
             return PostfixChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, FnExpression):
             return FnChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+        elif isinstance(expr, AnonymousFunctionExpression):
+            return AnonymousFunctionChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+
         else:
             raise NotImplementedError(f"No checker available for {type(expr).__name__}.")

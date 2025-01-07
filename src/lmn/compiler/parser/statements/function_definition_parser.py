@@ -1,4 +1,4 @@
-# function_definition_parser.py
+# file: lmn/compiler/parser/statements/function_definition_parser.py
 
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.ast.statements.function_definition import FunctionDefinition
@@ -17,8 +17,14 @@ class FunctionDefinitionParser:
             result = a + b
             return result
         end
+
+        or with no typed return:
+
+        function sum(a: int, b: int)
+            ...
+        end
         """
-        # 'function' is already consumed in statement_parser, so we expect an IDENTIFIER next.
+        # 'function' is already consumed in statement_parser, so expect IDENTIFIER next
         func_token = self._expect(
             LmnTokenType.IDENTIFIER,
             "Expected function name after 'function'"
@@ -29,26 +35,23 @@ class FunctionDefinitionParser:
         self._expect(LmnTokenType.LPAREN, "Expected '(' after function name")
         self.parser.advance()  # consume '('
 
-        # --------------------------------------------------
-        # Parse parameter list (handling optional types).
-        # --------------------------------------------------
+        # Parse parameters
         params = self._parse_parameters()
 
         self._expect(LmnTokenType.RPAREN, "Expected ')' after parameters")
         self.parser.advance()  # consume ')'
 
-        # --------------------------------------------------
-        # Parse optional return type (e.g. ": int") 
-        # --------------------------------------------------
+        # ---------------------------------------
+        # Parse optional return type: e.g. ": int"
+        # ---------------------------------------
         return_type = None
         if (
-            self.parser.current_token 
+            self.parser.current_token
             and self.parser.current_token.token_type == LmnTokenType.COLON
         ):
-            # Consume ':'
-            self.parser.advance()
+            self.parser.advance()  # consume ':'
 
-            # Accept built-in type tokens AND IDENTIFIER
+            # Accept built-in type tokens, plus IDENTIFIER, plus FUNCTION
             valid_type_tokens = [
                 LmnTokenType.IDENTIFIER,
                 LmnTokenType.INT,
@@ -56,9 +59,9 @@ class FunctionDefinitionParser:
                 LmnTokenType.FLOAT,
                 LmnTokenType.DOUBLE,
                 LmnTokenType.STRING_TYPE,
-                LmnTokenType.JSON_TYPE
+                LmnTokenType.JSON_TYPE,
+                LmnTokenType.FUNCTION  # for "function" as a type
             ]
-
             if (
                 not self.parser.current_token
                 or self.parser.current_token.token_type not in valid_type_tokens
@@ -66,10 +69,10 @@ class FunctionDefinitionParser:
                 raise SyntaxError("Expected return type after ':' in function definition")
 
             return_type_token = self.parser.current_token
-            return_type = return_type_token.value  # e.g., "int", "float", "MyType"
-            self.parser.advance()  # consume the return-type token
+            return_type = return_type_token.value  # e.g. "int", "function", ...
+            self.parser.advance()  # consume that token
 
-        # Parse the body until 'end'.
+        # Parse the body until 'end'
         body_stmts = self._parse_block(until_tokens=[LmnTokenType.END])
 
         self._expect(LmnTokenType.END, "Expected 'end' after function body")
@@ -79,14 +82,13 @@ class FunctionDefinitionParser:
             name=func_name,
             params=params,
             body=body_stmts,
-            return_type=return_type  # Only if your AST node has this field
+            return_type=return_type
         )
-
 
     def _parse_parameters(self):
         """
-        Parses zero or more parameters, e.g.:
-        a, b: string, c: int[], ...
+        Parses zero or more parameters, e.g.: 
+          a, b: string, c: int[], ...
         Returns a list of `FunctionParameter`.
         """
         params = []
@@ -102,7 +104,7 @@ class FunctionDefinitionParser:
                 "Expected parameter name"
             )
             param_name = param_token.value
-            self.parser.advance()  # consume the param name
+            self.parser.advance()  # consume param name
 
             param_type = None
 
@@ -113,13 +115,14 @@ class FunctionDefinitionParser:
             ):
                 self.parser.advance()  # consume ':'
 
-                # Now we expect a base type token (IDENTIFIER, INT, LONG, FLOAT, DOUBLE)
+                # Now we expect either built-in type or IDENTIFIER or FUNCTION
                 valid_type_tokens = [
                     LmnTokenType.IDENTIFIER,
                     LmnTokenType.INT,
                     LmnTokenType.LONG,
                     LmnTokenType.FLOAT,
                     LmnTokenType.DOUBLE,
+                    LmnTokenType.FUNCTION  # in case you want param : function
                 ]
                 if (
                     not self.parser.current_token
@@ -130,7 +133,7 @@ class FunctionDefinitionParser:
                     )
 
                 type_token = self.parser.current_token
-                param_type = type_token.value  # e.g., "int", "float", ...
+                param_type = type_token.value
                 self.parser.advance()  # consume the type token
 
                 # 3) Check if the next tokens are '[ ]' for an array type
@@ -138,10 +141,12 @@ class FunctionDefinitionParser:
                     self.parser.current_token
                     and self.parser.current_token.token_type == LmnTokenType.LBRACKET
                 ):
-                    # Must match a following RBRACKET
+                    # Must match a following ']'
                     self.parser.advance()  # consume '['
-                    if not self.parser.current_token or \
-                    self.parser.current_token.token_type != LmnTokenType.RBRACKET:
+                    if (
+                        not self.parser.current_token
+                        or self.parser.current_token.token_type != LmnTokenType.RBRACKET
+                    ):
                         raise SyntaxError("Expected ']' for array type annotation")
                     self.parser.advance()  # consume ']'
 
@@ -155,7 +160,7 @@ class FunctionDefinitionParser:
             )
             params.append(function_param)
 
-            # If next token is a comma, consume it and parse the next param
+            # If next token is a comma, consume it => parse next param
             if (
                 self.parser.current_token
                 and self.parser.current_token.token_type == LmnTokenType.COMMA
@@ -166,20 +171,21 @@ class FunctionDefinitionParser:
 
         return params
 
-
     def _parse_block(self, until_tokens):
         """
-        Reads statements until one of the tokens in `until_tokens` is encountered.
-        Skips COMMENT/NEWLINE tokens if needed.
+        Reads statements until one of the tokens in `until_tokens`.
+        Skips COMMENT/NEWLINE if needed.
         """
         statements = []
         while (
             self.parser.current_token
             and self.parser.current_token.token_type not in until_tokens
         ):
-
-            # Skip COMMENT, NEWLINE if you allow blank lines or comments
-            if self.parser.current_token.token_type in (LmnTokenType.COMMENT, LmnTokenType.NEWLINE):
+            # skip blank lines / comments
+            if self.parser.current_token.token_type in (
+                LmnTokenType.COMMENT,
+                LmnTokenType.NEWLINE
+            ):
                 self.parser.advance()
                 continue
 
@@ -187,7 +193,7 @@ class FunctionDefinitionParser:
             if stmt:
                 statements.append(stmt)
             else:
-                # If parse_statement returned None, consume a token or break
+                # If parse_statement returned None, consume or break
                 self.parser.advance()
 
         return statements
@@ -195,7 +201,7 @@ class FunctionDefinitionParser:
     def _expect(self, token_type, err_msg):
         """
         Verifies that current_token is `token_type`.
-        Does NOT advance; do that in your code as needed.
+        Does NOT advance.
         """
         if (
             not self.parser.current_token

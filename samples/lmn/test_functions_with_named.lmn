@@ -1,4 +1,5 @@
 # test_functions_with_named.lmn
+
 # -------------------------
 # 1) Implicitly typed function: add(a, b)
 #    Demonstrates the use of positional and named arguments.
@@ -19,8 +20,7 @@ function subtract(a, b)
 end
 
 # -------------------------
-# 2) Type-annotated function
-#    factorial(n: int) -> int
+# 2) Type-annotated function: factorial(n: int) -> int
 # -------------------------
 function factorial(n: int) : int
     # If n <= 1, return 1
@@ -46,13 +46,17 @@ end
 
 # -------------------------
 # 4) Assigning a function to a variable
-#    Here we define a new function inline and store it in 'sum_func'.
-#    Alternatively, you could store an existing function like 'add'
-#    in a variable by doing: let sum_func = add
+#    4.1) Inline function stored in 'sum_func'
+#    4.2) Existing function 'add' stored in 'sum_func_alias'
 # -------------------------
+
+# 4.1) Inline/anonymous function
 let sum_func = function (a, b)
     return a + b
 end
+
+# 4.2) Existing function
+let sum_func_alias = add
 
 # -------------------------
 # 5) Main function (with type annotation)
@@ -110,11 +114,10 @@ function main() : int
     # 5.5) Demonstrate calling the function stored in 'sum_func'
     let a = 10
     let b = 20
-    print "sum_func(" a "," b ") [function in a variable] = " sum_func(a, b)
+    print "sum_func(" a "," b ") [inline function in a variable] = " sum_func(a, b)
 
-    # You could also do something like:
-    let my_add_alias = add
-    print "my_add_alias(7, 9) = " my_add_alias(7, 9)
+    # 5.6) Demonstrate calling the existing function stored in 'sum_func_alias'
+    print "sum_func_alias(7,9) [existing function in a variable] = " sum_func_alias(7, 9)
 
     # Return 0 from main
     return 0
