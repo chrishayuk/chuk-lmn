@@ -1,35 +1,34 @@
 # file: lmn/compiler/lowering/wasm_lowerer.py
 
 from typing import Optional, Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 ##############################################################################
 # 1) Mappings from language-level types to WASM-level (or pointer-level) types
 ##############################################################################
 
 LANG_TO_WASM_SCALARS: Dict[str, str] = {
-    "int":        "i32",
-    "long":       "i64",
-    "float":      "f32",
-    "double":     "f64",
-
-    # If your DSL or typechecker uses the literal string "f64" 
-    # to indicate a double-precision float, add this:
-    "f64":        "f64",
-
-    "string":     "i32_string",
+    "int":    "i32",
+    "long":   "i64",
+    "float":  "f32",
+    "double": "f64",
+    "f64":    "f64",        # Some DSLs explicitly say "f64" for double-precision
+    "string": "i32_string",
     "i32_string": "i32_string",
-    "json":       "i32_json",
+    "json":   "i32_json",
 }
 
-
 LANG_TO_WASM_ARRAYS: Dict[str, str] = {
-    "int[]":      "i32_ptr",
-    "long[]":     "i64_ptr",
-    "float[]":    "f32_ptr",
-    "double[]":   "f64_ptr",
-    "string[]":   "i32_string_array",
-    "json[]":     "i32_json_array",
-    "array":      "i32_ptr"
+    "int[]":     "i32_ptr",
+    "long[]":    "i64_ptr",
+    "float[]":   "f32_ptr",
+    "double[]":  "f64_ptr",
+    "string[]":  "i32_string_array",
+    "json[]":    "i32_json_array",
+    # If the DSL uses "array" as a general untyped array:
+    "array":     "i32_ptr",
 }
 
 ##############################################################################
@@ -38,34 +37,36 @@ LANG_TO_WASM_ARRAYS: Dict[str, str] = {
 
 def lower_type(lang_type: Optional[str]) -> str:
     """
-    Convert a language-level type string to a WASM-level type
-    (e.g. "int[]" => "i32_ptr", "json" => "i32_json", "string" => "i32_string").
+    Convert a language-level type string to a WASM-level type.
+    e.g. "int[]" => "i32_ptr", "json" => "i32_json", "string" => "i32_string", etc.
 
-    If unknown, defaults to "i32".
+    If `lang_type` is not a string (e.g. it's a dict for closures, or None),
+    we'll return "i32" by default.
     """
-    if not lang_type:
+    # If it's None or not a string, default to "i32"
+    if not isinstance(lang_type, str):
         return "i32"
 
-    # 1) If the entire type is in LANG_TO_WASM_ARRAYS:
+    # 1) If the entire type is in LANG_TO_WASM_ARRAYS
     if lang_type in LANG_TO_WASM_ARRAYS:
         return LANG_TO_WASM_ARRAYS[lang_type]
 
-    # 2) If it's in LANG_TO_WASM_SCALARS:
+    # 2) If it's in LANG_TO_WASM_SCALARS
     if lang_type in LANG_TO_WASM_SCALARS:
         return LANG_TO_WASM_SCALARS[lang_type]
 
-    # 3) If it ends with "[]", handle T[] => T_ptr forms
+    # 3) If it ends with "[]", handle T[] => T_ptr
     if lang_type.endswith("[]"):
-        base_type = lang_type[:-2]
-        if base_type in LANG_TO_WASM_SCALARS:
-            if base_type == "string":
+        base = lang_type[:-2]
+        if base in LANG_TO_WASM_SCALARS:
+            if base == "string":
                 return "i32_string_array"
-            elif base_type == "json":
+            elif base == "json":
                 return "i32_json_array"
             else:
-                return LANG_TO_WASM_SCALARS[base_type] + "_ptr"
+                return LANG_TO_WASM_SCALARS[base] + "_ptr"
         else:
-            return "i32_ptr"
+            return "i32_ptr"  # unknown array => treat as i32_ptr
 
     # 4) Otherwise fallback to "i32"
     return "i32"
@@ -77,11 +78,15 @@ def lower_type(lang_type: Optional[str]) -> str:
 
 def lower_program_to_wasm_types(program_node: Any) -> None:
     """
-    Called on the top-level 'Program' node to recursively lower every statement.
+    Called on the top-level 'Program' node to recursively lower every statement,
+    converting .inferred_type / .type_annotation / .return_type from
+    language-level types to WASM-level types.
     """
+    logger.debug("lower_program_to_wasm_types: starting to process top-level body.")
     body = getattr(program_node, "body", [])
     for stmt in body:
         lower_node(stmt)
+
 
 ##############################################################################
 # 4) Recursively lower a single AST node
@@ -89,107 +94,85 @@ def lower_program_to_wasm_types(program_node: Any) -> None:
 
 def lower_node(node: Any) -> None:
     """
-    Convert node.inferred_type / node.type_annotation / node.return_type
-    and also node.literal_type for literals, to WASM-level strings.
-    Then recurse into child nodes.
+    Recursively update node.inferred_type, node.type_annotation,
+    node.return_type, and node.literal_type to WASM-level strings.
+    Then descend into children (body, expressions, sub-nodes).
     """
-
-    # A) Safely extract the node's 'type' field (if any)
-    nodetype = getattr(node, "type", None)
-    if not nodetype:
-        # This node doesn't define 'type' => skip or handle generically
+    if not node:
         return
 
-    # ------------------------------------------------------------------------
-    # A) If it's a LiteralExpression, we do two things:
-    #    1) If .inferred_type is None, fill it from .literal_type (converted).
-    #    2) Then also lower .literal_type itself, so it's no longer "string"/"f64"/etc.
-    # ------------------------------------------------------------------------
-    if node.type == "LiteralExpression":
+    node_type = getattr(node, "type", None)
+    logger.debug(f"Visiting node: {node_type}")
 
-        # 1) If .inferred_type is missing, fill from .literal_type
+    # A) If it's a LiteralExpression
+    if node_type == "LiteralExpression":
+        # 1) If no .inferred_type, fill it from .literal_type
         if getattr(node, "inferred_type", None) is None:
             lit_type = getattr(node, "literal_type", None)
             if lit_type:
-                # Convert "string" => "i32_string", "f64" => "f64", etc.
-                lowered_lit_type = lower_type(lit_type)
-                node.inferred_type = lowered_lit_type  # e.g. "i32_string"
+                node.inferred_type = lower_type(lit_type)
 
-        # 2) Also lower the existing literal_type field itself
-        #    so it doesn't stay "string"/"f64". 
-        #    If you prefer to *remove* literal_type from the AST, do:
-        #
-        #    if hasattr(node, "literal_type"):
-        #        del node.literal_type
-        #
-        #    Instead of reassigning below.
+        # 2) Also lower the .literal_type
         if hasattr(node, "literal_type") and node.literal_type:
             node.literal_type = lower_type(node.literal_type)
-            # Now literal_type is something like "i32_string" or "f64"
 
-    # ------------------------------------------------------------------------
-    # B) Lower node.inferred_type for any node type (including literals)
-    # ------------------------------------------------------------------------
+    # B) Lower node.inferred_type (if present)
     inferred = getattr(node, "inferred_type", None)
     if inferred is not None:
         node.inferred_type = lower_type(inferred)
 
-    # ------------------------------------------------------------------------
-    # C) Lower node.type_annotation, if present
-    # ------------------------------------------------------------------------
+    # C) Lower node.type_annotation (if present)
     if hasattr(node, "type_annotation") and node.type_annotation:
         node.type_annotation = lower_type(node.type_annotation)
 
-    # ------------------------------------------------------------------------
     # D) If it's a FunctionDefinition => unify .return_type
-    # ------------------------------------------------------------------------
-    if node.type == "FunctionDefinition":
+    if node_type == "FunctionDefinition":
         if hasattr(node, "return_type") and node.return_type:
             node.return_type = lower_type(node.return_type)
 
-    # ------------------------------------------------------------------------
-    # Special node-type handling
-    # ------------------------------------------------------------------------
+    # -------------- Special cases or sub-fields --------------
 
-    # (E1) ConversionExpression => from_type, to_type, source_expr
-    if node.type == "ConversionExpression":
+    # Example: ConversionExpression => from_type, to_type, source_expr
+    if node_type == "ConversionExpression":
         from_t = getattr(node, "from_type", None)
-        to_t   = getattr(node, "to_type", None)
         if from_t:
             node.from_type = lower_type(from_t)
+        to_t = getattr(node, "to_type", None)
         if to_t:
             node.to_type = lower_type(to_t)
         if getattr(node, "source_expr", None):
             lower_node(node.source_expr)
 
-    # (E2) FnExpression => lower 'name' if it's a nested dict, plus arguments
-    if node.type == "FnExpression":
-        maybe_name_node = getattr(node, "name", None)
-        if maybe_name_node and isinstance(maybe_name_node, dict):
-            lower_node(maybe_name_node)
+    # Example: FnExpression => reorder & lower children
+    if node_type == "FnExpression":
+        name_node = getattr(node, "name", None)
+        # If name is itself a nested node/dict, we can recursively lower that
+        if name_node and isinstance(name_node, dict):
+            lower_node(name_node)
 
+        # Also handle arguments
         if hasattr(node, "arguments"):
             for arg in node.arguments:
                 lower_node(arg)
 
-    # (E3) LetStatement => variable + expression
-    if node.type == "LetStatement":
+    # LetStatement => variable + expression
+    if node_type == "LetStatement":
         if getattr(node, "variable", None):
             lower_node(node.variable)
         if getattr(node, "expression", None):
             lower_node(node.expression)
 
-    # (E4) PrintStatement => node.expressions
+    # If the node has .expressions => lower them
     if hasattr(node, "expressions"):
         for expr in node.expressions:
             lower_node(expr)
 
-    # (E5) If the node has .body (Program, FunctionDefinition, BlockStatement)
+    # If the node has a .body => lower each child
     if hasattr(node, "body") and node.body:
         for child in node.body:
             lower_node(child)
 
-    # (E6) If the node has .params (function parameters)
+    # If the node has .params => they might have type_annotation
     if hasattr(node, "params"):
         for p in node.params:
             if getattr(p, "type_annotation", None):
@@ -197,23 +180,18 @@ def lower_node(node: Any) -> None:
             if getattr(p, "inferred_type", None):
                 p.inferred_type = lower_type(p.inferred_type)
 
-    # (E7) Single-child expressions: operand / left / right
-
-    if node.type == "AssignmentExpression":
-        # If this node itself has an inferred_type, lower it
-        inferred_assn = getattr(node, "inferred_type", None)
-        if inferred_assn is not None:
-            node.inferred_type = lower_type(inferred_assn)
-
-        # Recurse into left side (param name) and right side (value)
+    # E) If it's an AssignmentExpression => lower left & right
+    if node_type == "AssignmentExpression":
+        # Lower the node's own inferred_type
+        if getattr(node, "inferred_type", None):
+            node.inferred_type = lower_type(node.inferred_type)
         if getattr(node, "left", None):
             lower_node(node.left)
         if getattr(node, "right", None):
             lower_node(node.right)
+        return
 
-        return  # skip the generic .operand/.left/.right recursion below
-
-    # If not an AssignmentExpression, handle the generic .operand/.left/.right
+    # Generic fallback: handle .operand / .left / .right / .arguments
     if getattr(node, "operand", None):
         lower_node(node.operand)
     if getattr(node, "left", None):
@@ -224,8 +202,8 @@ def lower_node(node: Any) -> None:
         for arg in node.arguments:
             lower_node(arg)
 
-    # (F) IfStatement => condition, then_body, elseif_clauses, else_body
-    if node.type == "IfStatement":
+    # Example: IfStatement => condition, then_body, elseif_clauses, else_body
+    if node_type == "IfStatement":
         if getattr(node, "condition", None):
             lower_node(node.condition)
         if getattr(node, "then_body", None):
@@ -238,25 +216,24 @@ def lower_node(node: Any) -> None:
             for s in node.else_body:
                 lower_node(s)
 
-    if node.type == "ElseIfClause":
+    if node_type == "ElseIfClause":
         if getattr(node, "condition", None):
             lower_node(node.condition)
         if getattr(node, "body", None):
             for st in node.body:
                 lower_node(st)
 
-    if node.type == "WhileStatement":
+    if node_type == "WhileStatement":
         if getattr(node, "condition", None):
             lower_node(node.condition)
         if getattr(node, "body", None):
             for st in node.body:
                 lower_node(st)
 
-    if node.type == "ReturnStatement":
+    if node_type == "ReturnStatement":
         if getattr(node, "expression", None):
             lower_node(node.expression)
 
-    if node.type == "AssignmentStatement":
+    if node_type == "AssignmentStatement":
         if getattr(node, "expression", None):
             lower_node(node.expression)
-    # ... Additional expansions go here ...
