@@ -11,5 +11,5 @@ end
 
 function main()
   let x = 5
-  print "Factorial of" x "is" factorial(x)
+  print "Factorial of " x " is " factorial(x)
 end

@@ -5,6 +5,7 @@ import logging
 import sys
 import os
 
+# Make sure this import pulls in your updated 4-step pipeline code:
 from lmn.compiler.pipeline import compile_code_to_wat
 
 logging.basicConfig(
@@ -12,9 +13,25 @@ logging.basicConfig(
     format="%(levelname)s - %(name)s - %(message)s"
 )
 
+DEFAULT_SNIPPET = r"""
+function fact(n)
+  if n <= 1
+    return 1
+  else
+    return n * fact(n - 1)
+  end
+end
+
+function main()
+  print "Factorial of 5 is "
+  print fact(5)
+  return 0
+end
+"""
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Compile LMN code all the way from source to .wat and/or .wasm (in memory)."
+        description="Compile LMN code from source to .wat and/or .wasm using the 4-step pipeline."
     )
     parser.add_argument(
         "file",
@@ -31,7 +48,7 @@ def main():
     )
     args = parser.parse_args()
 
-    # 1) Read LMN source (from file or default)
+    # 1) Gather LMN source
     if args.file:
         file_path = os.path.abspath(args.file)
         if not os.path.exists(file_path):
@@ -49,29 +66,19 @@ def main():
             print(f"Error reading file '{file_path}': {e}")
             sys.exit(1)
     else:
-        code = r"""
-function fact(n)
-  if n <= 1
-    return 1
-  else
-    return n * fact(n - 1)
-  end
-end
+        code = DEFAULT_SNIPPET
 
-print fact(5)
-"""
-
-    # 2) Decide if we also want WASM bytes in memory
+    # 2) Decide if we want WASM bytes
     also_produce_wasm = bool(args.wasm)
 
-    # 3) Compile code to WAT (and WASM bytes if also_produce_wasm=True)
+    # 3) Compile code using the updated pipeline
     try:
         wat_text, wasm_bytes = compile_code_to_wat(code, also_produce_wasm=also_produce_wasm)
     except Exception as e:
         print(f"Compilation error: {e}")
         sys.exit(1)
 
-    # 4) Handle WAT output
+    # 4) Output WAT
     if args.wat:
         wat_path = os.path.abspath(args.wat)
         try:
@@ -82,12 +89,11 @@ print fact(5)
             print(f"Error writing .wat file: {e}")
             sys.exit(1)
     else:
-        # If user didn't request a .wat file and didn't request .wasm either,
-        # just print the WAT to stdout
+        # If no .wat and no .wasm requested, just print WAT
         if not args.wasm:
             print(wat_text)
 
-    # 5) Handle WASM output
+    # 5) Output WASM
     if args.wasm:
         if not wasm_bytes:
             print("Error: 'wasm_bytes' is None. Possibly wat2wasm wasn't found?")
@@ -100,7 +106,6 @@ print fact(5)
         except OSError as e:
             print(f"Error writing .wasm file: {e}")
             sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

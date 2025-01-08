@@ -2,82 +2,17 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "hello_llm",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "message",
-          "type_annotation": null
-        }
-      ],
-      "body": [
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "i32_string",
-            "type": "VariableExpression",
-            "name": "result"
-          },
-          "expression": {
-            "inferred_type": "i32_string",
-            "type": "FnExpression",
-            "name": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": null,
-                "type": "VariableExpression",
-                "name": "message"
-              },
-              {
-                "inferred_type": "i32_string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "i32_string"
-              }
-            ]
-          },
-          "inferred_type": "i32_string"
-        },
-        {
-          "type": "ReturnStatement",
-          "expression": {
-            "inferred_type": "i32_string",
-            "type": "VariableExpression",
-            "name": "result"
-          },
-          "inferred_type": "i32_string"
-        }
-      ],
-      "return_type": "i32_string"
-    },
-    {
       "type": "LetStatement",
       "variable": {
         "inferred_type": "i32_string",
         "type": "VariableExpression",
-        "name": "y"
+        "name": "greeting"
       },
       "expression": {
         "inferred_type": "i32_string",
-        "type": "FnExpression",
-        "name": {
-          "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "hello_llm"
-        },
-        "arguments": [
-          {
-            "inferred_type": "i32_string",
-            "type": "LiteralExpression",
-            "value": "write a limerick about cheese",
-            "literal_type": "i32_string"
-          }
-        ]
+        "type": "LiteralExpression",
+        "value": "Hello\\nWorld!",
+        "literal_type": "i32_string"
       },
       "inferred_type": "i32_string"
     },
@@ -87,7 +22,7 @@
         {
           "inferred_type": "i32_string",
           "type": "VariableExpression",
-          "name": "y"
+          "name": "greeting"
         }
       ],
       "inferred_type": "i32"
@@ -97,26 +32,16 @@
       "variable": {
         "inferred_type": "i32_string",
         "type": "VariableExpression",
-        "name": "z"
+        "name": "typedGreeting"
       },
       "expression": {
         "inferred_type": "i32_string",
-        "type": "FnExpression",
-        "name": {
-          "inferred_type": null,
-          "type": "VariableExpression",
-          "name": "hello_llm"
-        },
-        "arguments": [
-          {
-            "inferred_type": "i32_string",
-            "type": "LiteralExpression",
-            "value": "hello",
-            "literal_type": "i32_string"
-          }
-        ]
+        "type": "LiteralExpression",
+        "value": "Hello typed world",
+        "literal_type": "i32_string"
       },
-      "inferred_type": "i32_string"
+      "inferred_type": "i32_string",
+      "type_annotation": "i32_string"
     },
     {
       "type": "PrintStatement",
@@ -124,7 +49,415 @@
         {
           "inferred_type": "i32_string",
           "type": "VariableExpression",
-          "name": "z"
+          "name": "typedGreeting"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "user"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
+        }
+      },
+      "inferred_type": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "User data:",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "user"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "typedUser"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "name": "Alice",
+          "age": 42
+        }
+      },
+      "inferred_type": "i32_json",
+      "type_annotation": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "User data (typed):",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "typedUser"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_string_array",
+        "type": "VariableExpression",
+        "name": "colors"
+      },
+      "expression": {
+        "inferred_type": "i32_string_array",
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "red",
+            "literal_type": "string"
+          },
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "green",
+            "literal_type": "string"
+          },
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "blue",
+            "literal_type": "string"
+          }
+        ]
+      },
+      "inferred_type": "i32_string_array"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "Colors array (inferred):",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_string_array",
+          "type": "VariableExpression",
+          "name": "colors"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_string_array",
+        "type": "VariableExpression",
+        "name": "typedColors"
+      },
+      "expression": {
+        "inferred_type": "i32_string_array",
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "red",
+            "literal_type": "string"
+          },
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "green",
+            "literal_type": "string"
+          },
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "blue",
+            "literal_type": "string"
+          }
+        ]
+      },
+      "inferred_type": "i32_string_array",
+      "type_annotation": "i32_string_array"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "Colors array (typed):",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_string_array",
+          "type": "VariableExpression",
+          "name": "typedColors"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32",
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "inferred_type": "i32",
+        "type": "LiteralExpression",
+        "value": 123,
+        "literal_type": "i32"
+      },
+      "inferred_type": "i32"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "VariableExpression",
+          "name": "x"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32",
+        "type": "VariableExpression",
+        "name": "typedX"
+      },
+      "expression": {
+        "inferred_type": "i32",
+        "type": "LiteralExpression",
+        "value": 123,
+        "literal_type": "i32"
+      },
+      "inferred_type": "i32",
+      "type_annotation": "i32"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "VariableExpression",
+          "name": "typedX"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i64",
+        "type": "VariableExpression",
+        "name": "bigNum"
+      },
+      "expression": {
+        "inferred_type": "i64",
+        "type": "LiteralExpression",
+        "value": 4294967298,
+        "literal_type": "i64"
+      },
+      "inferred_type": "i64"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i64",
+          "type": "VariableExpression",
+          "name": "bigNum"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i64",
+        "type": "VariableExpression",
+        "name": "typedBigNum"
+      },
+      "expression": {
+        "inferred_type": "i64",
+        "type": "LiteralExpression",
+        "value": 4294967298,
+        "literal_type": "i64"
+      },
+      "inferred_type": "i64",
+      "type_annotation": "i64"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i64",
+          "type": "VariableExpression",
+          "name": "typedBigNum"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "f64",
+        "type": "VariableExpression",
+        "name": "decVal"
+      },
+      "expression": {
+        "inferred_type": "f64",
+        "type": "LiteralExpression",
+        "value": 3.14,
+        "literal_type": "f64"
+      },
+      "inferred_type": "f64"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "f64",
+          "type": "VariableExpression",
+          "name": "decVal"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "f32",
+        "type": "VariableExpression",
+        "name": "typedDecVal"
+      },
+      "expression": {
+        "inferred_type": "f32",
+        "type": "LiteralExpression",
+        "value": 3.14,
+        "literal_type": "f64"
+      },
+      "inferred_type": "f32",
+      "type_annotation": "f32"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "f32",
+          "type": "VariableExpression",
+          "name": "typedDecVal"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "jsonData"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      },
+      "inferred_type": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "jsonData (inferred):",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "jsonData"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "typedJsonData"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "JsonLiteralExpression",
+        "value": {
+          "foo": "bar",
+          "nums": [
+            10,
+            20,
+            30
+          ],
+          "active": true
+        }
+      },
+      "inferred_type": "i32_json",
+      "type_annotation": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "LiteralExpression",
+          "value": "jsonData (typed):",
+          "literal_type": "i32_string"
+        },
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "typedJsonData"
         }
       ],
       "inferred_type": "i32"

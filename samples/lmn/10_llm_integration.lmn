@@ -2,16 +2,19 @@
 function main()
     # Call the LLM with a simple prompt
     let poem = llm(
-        prompt = "Write me a short poem about the sunrise.",
-        model  = "gpt-4"
+        prompt = "Write me a short limerick about the sunrise.",
+        model  = "llama3.2"
     )
-    print "=== Poem about Sunrise ===" poem
+    print "=== Poem about Sunrise (llama) ===" 
+    print poem
+    print ""
 
     # Another example: ask for a quick story
     let story = llm(
-        prompt       = "Tell me a short, funny story involving a cat and a mailbox.",
-        model        = "gpt-4",
-        temperature  = 0.8
+        prompt       = "Write me a short limerick about the sunrise.",
+        model        = "granite3.1-dense:latest"
     )
-    print "=== Funny Story ===" story
+
+    print "=== Poem about Sunrise (granite) ===" 
+    print story
 end
