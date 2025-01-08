@@ -1,89 +1,20 @@
-# file: samples/lmn/test_features.lmn
-# -----------------------------------------------------
-# 1) A simple string literal
-# -----------------------------------------------------
-# -- Inferred version:
-let greeting = "Hello\nWorld!"
-print greeting
+# A simple Fibonacci function
+function fib(n)
+    # 0, 1
+    if n < 2
+        # return n
+        return n
+    else
+        # Otherwise, return fib(n - 1) + fib(n - 2)
+        return fib(n - 1) + fib(n - 2)
+    end
+end
 
-# -- Typed version:
-let typedGreeting:string = "Hello typed world"
-print typedGreeting
+# The main entry point
+function main()
+    # assign x to be 10
+    let x = 10
 
-
-# -----------------------------------------------------
-# 2) A JSON object literal
-# -----------------------------------------------------
-# -- Inferred version:
-let user = {
-    "name": "Alice",
-    "age": 42
-}
-print "User data:" user
-
-# -- Typed version (assumes 'json' keyword is recognized):
-let typedUser:json = {
-    "name": "Alice",
-    "age": 42
-}
-print "User data (typed):" typedUser
-
-
-# -----------------------------------------------------
-# 3) A bracket-literal array of strings (string[])
-# -----------------------------------------------------
-# -- Inferred version:
-let colors = [ "red", "green", "blue" ]
-print "Colors array (inferred):" colors
-
-# -- Typed version:
-let typedColors:string[] = [ "red", "green", "blue" ]
-print "Colors array (typed):" typedColors
-
-
-# -----------------------------------------------------
-# 4) Some numeric prints
-# -----------------------------------------------------
-# -- Inferred int:
-let x = 123
-print x
-
-# -- Typed int:
-let typedX:int = 123
-print typedX
-
-# Large integer => might unify to i64 (inferred):
-let bigNum = 4294967298
-print bigNum
-
-# Typed long:
-let typedBigNum:long = 4294967298
-print typedBigNum
-
-# Decimal => by default might become f64 (inferred):
-let decVal = 3.14
-print decVal
-
-# Typed float (f32):
-let typedDecVal:float = 3.14
-print typedDecVal
-
-
-# -----------------------------------------------------
-# 5) Another JSON object, just to show printing
-# -----------------------------------------------------
-# -- Inferred version:
-let jsonData = {
-    "foo": "bar",
-    "nums": [10, 20, 30],
-    "active": true
-}
-print "jsonData (inferred):" jsonData
-
-# -- Typed version:
-let typedJsonData:json = {
-    "foo": "bar",
-    "nums": [10, 20, 30],
-    "active": true
-}
-print "jsonData (typed):" typedJsonData
+    # Print a message and the fib(x) value
+    print "Fibonacci of" x "is" fib(x)
+end

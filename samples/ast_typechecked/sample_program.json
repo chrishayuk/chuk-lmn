@@ -2,465 +2,168 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string",
-        "type": "VariableExpression",
-        "name": "greeting"
-      },
-      "expression": {
-        "inferred_type": "string",
-        "type": "LiteralExpression",
-        "value": "Hello\\nWorld!",
-        "literal_type": "string"
-      },
-      "inferred_type": "string"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+      "type": "FunctionDefinition",
+      "name": "fib",
+      "params": [
         {
-          "inferred_type": "string",
-          "type": "VariableExpression",
-          "name": "greeting"
+          "type": "FunctionParameter",
+          "name": "n"
         }
       ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string",
-        "type": "VariableExpression",
-        "name": "typedGreeting"
-      },
-      "expression": {
-        "inferred_type": "string",
-        "type": "LiteralExpression",
-        "value": "Hello typed world",
-        "literal_type": "string"
-      },
-      "inferred_type": "string",
-      "type_annotation": "string"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+      "body": [
         {
-          "inferred_type": "string",
-          "type": "VariableExpression",
-          "name": "typedGreeting"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "json",
-        "type": "VariableExpression",
-        "name": "user"
-      },
-      "expression": {
-        "inferred_type": "json",
-        "type": "JsonLiteralExpression",
-        "value": {
-          "name": "Alice",
-          "age": 42
-        }
-      },
-      "inferred_type": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "User data:",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "json",
-          "type": "VariableExpression",
-          "name": "user"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "json",
-        "type": "VariableExpression",
-        "name": "typedUser"
-      },
-      "expression": {
-        "inferred_type": "json",
-        "type": "JsonLiteralExpression",
-        "value": {
-          "name": "Alice",
-          "age": 42
-        }
-      },
-      "inferred_type": "json",
-      "type_annotation": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "User data (typed):",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "json",
-          "type": "VariableExpression",
-          "name": "typedUser"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string[]",
-        "type": "VariableExpression",
-        "name": "colors"
-      },
-      "expression": {
-        "inferred_type": "string[]",
-        "type": "ArrayLiteralExpression",
-        "elements": [
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "red",
-            "literal_type": "string"
+          "type": "IfStatement",
+          "condition": {
+            "inferred_type": "int",
+            "type": "BinaryExpression",
+            "operator": "<",
+            "left": {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            "right": {
+              "inferred_type": "int",
+              "type": "LiteralExpression",
+              "value": 2,
+              "literal_type": "int"
+            }
           },
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "green",
-            "literal_type": "string"
-          },
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "blue",
-            "literal_type": "string"
-          }
-        ]
-      },
-      "inferred_type": "string[]"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "Colors array (inferred):",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "string[]",
-          "type": "VariableExpression",
-          "name": "colors"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string[]",
-        "type": "VariableExpression",
-        "name": "typedColors"
-      },
-      "expression": {
-        "inferred_type": "string[]",
-        "type": "ArrayLiteralExpression",
-        "elements": [
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "red",
-            "literal_type": "string"
-          },
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "green",
-            "literal_type": "string"
-          },
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "blue",
-            "literal_type": "string"
-          }
-        ]
-      },
-      "inferred_type": "string[]",
-      "type_annotation": "string[]"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "Colors array (typed):",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "string[]",
-          "type": "VariableExpression",
-          "name": "typedColors"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "int",
-        "type": "VariableExpression",
-        "name": "x"
-      },
-      "expression": {
-        "inferred_type": "int",
-        "type": "LiteralExpression",
-        "value": 123,
-        "literal_type": "int"
-      },
-      "inferred_type": "int"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "int",
-          "type": "VariableExpression",
-          "name": "x"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "int",
-        "type": "VariableExpression",
-        "name": "typedX"
-      },
-      "expression": {
-        "inferred_type": "int",
-        "type": "LiteralExpression",
-        "value": 123,
-        "literal_type": "int"
-      },
-      "inferred_type": "int",
-      "type_annotation": "int"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "int",
-          "type": "VariableExpression",
-          "name": "typedX"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "long",
-        "type": "VariableExpression",
-        "name": "bigNum"
-      },
-      "expression": {
-        "inferred_type": "long",
-        "type": "LiteralExpression",
-        "value": 4294967298,
-        "literal_type": "long"
-      },
-      "inferred_type": "long"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "long",
-          "type": "VariableExpression",
-          "name": "bigNum"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "long",
-        "type": "VariableExpression",
-        "name": "typedBigNum"
-      },
-      "expression": {
-        "inferred_type": "long",
-        "type": "LiteralExpression",
-        "value": 4294967298,
-        "literal_type": "long"
-      },
-      "inferred_type": "long",
-      "type_annotation": "long"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "long",
-          "type": "VariableExpression",
-          "name": "typedBigNum"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "double",
-        "type": "VariableExpression",
-        "name": "decVal"
-      },
-      "expression": {
-        "inferred_type": "double",
-        "type": "LiteralExpression",
-        "value": 3.14,
-        "literal_type": "double"
-      },
-      "inferred_type": "double"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "double",
-          "type": "VariableExpression",
-          "name": "decVal"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "float",
-        "type": "VariableExpression",
-        "name": "typedDecVal"
-      },
-      "expression": {
-        "inferred_type": "float",
-        "type": "LiteralExpression",
-        "value": 3.14,
-        "literal_type": "double"
-      },
-      "inferred_type": "float",
-      "type_annotation": "float"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "float",
-          "type": "VariableExpression",
-          "name": "typedDecVal"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "json",
-        "type": "VariableExpression",
-        "name": "jsonData"
-      },
-      "expression": {
-        "inferred_type": "json",
-        "type": "JsonLiteralExpression",
-        "value": {
-          "foo": "bar",
-          "nums": [
-            10,
-            20,
-            30
+          "thenBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "type": "VariableExpression",
+                "name": "n"
+              }
+            }
           ],
-          "active": true
-        }
-      },
-      "inferred_type": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "jsonData (inferred):",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "json",
-          "type": "VariableExpression",
-          "name": "jsonData"
-        }
-      ],
-      "inferred_type": "void"
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "json",
-        "type": "VariableExpression",
-        "name": "typedJsonData"
-      },
-      "expression": {
-        "inferred_type": "json",
-        "type": "JsonLiteralExpression",
-        "value": {
-          "foo": "bar",
-          "nums": [
-            10,
-            20,
-            30
+          "elseifClauses": [],
+          "elseBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "inferred_type": "void",
+                "type": "BinaryExpression",
+                "operator": "+",
+                "left": {
+                  "inferred_type": "void",
+                  "type": "FnExpression",
+                  "name": {
+                    "type": "VariableExpression",
+                    "name": "fib"
+                  },
+                  "arguments": [
+                    {
+                      "inferred_type": "int",
+                      "type": "BinaryExpression",
+                      "operator": "-",
+                      "left": {
+                        "type": "VariableExpression",
+                        "name": "n"
+                      },
+                      "right": {
+                        "inferred_type": "int",
+                        "type": "LiteralExpression",
+                        "value": 1,
+                        "literal_type": "int"
+                      }
+                    }
+                  ]
+                },
+                "right": {
+                  "inferred_type": "void",
+                  "type": "FnExpression",
+                  "name": {
+                    "type": "VariableExpression",
+                    "name": "fib"
+                  },
+                  "arguments": [
+                    {
+                      "inferred_type": "int",
+                      "type": "BinaryExpression",
+                      "operator": "-",
+                      "left": {
+                        "type": "VariableExpression",
+                        "name": "n"
+                      },
+                      "right": {
+                        "inferred_type": "int",
+                        "type": "LiteralExpression",
+                        "value": 2,
+                        "literal_type": "int"
+                      }
+                    }
+                  ]
+                }
+              },
+              "inferred_type": "void"
+            }
           ],
-          "active": true
-        }
-      },
-      "inferred_type": "json",
-      "type_annotation": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "inferred_type": "string",
-          "type": "LiteralExpression",
-          "value": "jsonData (typed):",
-          "literal_type": "string"
-        },
-        {
-          "inferred_type": "json",
-          "type": "VariableExpression",
-          "name": "typedJsonData"
+          "inferred_type": "void"
         }
       ],
-      "inferred_type": "void"
+      "return_type": "void"
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "int",
+            "type": "VariableExpression",
+            "name": "x"
+          },
+          "expression": {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 10,
+            "literal_type": "int"
+          },
+          "inferred_type": "int"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "Fibonacci of",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "is",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "void",
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "fib"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "x"
+                }
+              ]
+            }
+          ],
+          "inferred_type": "void"
+        }
+      ],
+      "return_type": "void"
     }
   ]
 }
