@@ -3,161 +3,131 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "factorial",
+      "name": "hello_llm",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "n",
-          "type_annotation": "i32"
+          "name": "message",
+          "type_annotation": null
         }
       ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "inferred_type": "i32",
-            "type": "BinaryExpression",
-            "operator": "<=",
-            "left": {
-              "inferred_type": "i32",
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "inferred_type": "i32",
-              "type": "LiteralExpression",
-              "value": 1,
-              "literal_type": "i32"
-            }
-          },
-          "then_body": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "inferred_type": "i32",
-                "type": "LiteralExpression",
-                "value": 1,
-                "literal_type": "i32"
-              },
-              "inferred_type": "i32"
-            }
-          ],
-          "elseif_clauses": [],
-          "else_body": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "inferred_type": "i32",
-                "type": "BinaryExpression",
-                "operator": "*",
-                "left": {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "n"
-                },
-                "right": {
-                  "inferred_type": "i32",
-                  "type": "ConversionExpression",
-                  "from_type": "i32",
-                  "to_type": "i32",
-                  "source_expr": {
-                    "inferred_type": "i32",
-                    "type": "FnExpression",
-                    "name": {
-                      "inferred_type": null,
-                      "type": "VariableExpression",
-                      "name": "factorial"
-                    },
-                    "arguments": [
-                      {
-                        "inferred_type": "i32",
-                        "type": "BinaryExpression",
-                        "operator": "-",
-                        "left": {
-                          "inferred_type": "i32",
-                          "type": "VariableExpression",
-                          "name": "n"
-                        },
-                        "right": {
-                          "inferred_type": "i32",
-                          "type": "LiteralExpression",
-                          "value": 1,
-                          "literal_type": "i32"
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              "inferred_type": "i32"
-            }
-          ],
-          "inferred_type": "i32"
-        }
-      ],
-      "return_type": "i32"
-    },
-    {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
       "body": [
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "i32",
+            "inferred_type": "i32_string",
             "type": "VariableExpression",
-            "name": "x"
+            "name": "result"
           },
           "expression": {
-            "inferred_type": "i32",
-            "type": "LiteralExpression",
-            "value": 5,
-            "literal_type": "i32"
-          },
-          "inferred_type": "i32"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "i32_string",
-              "type": "LiteralExpression",
-              "value": "Factorial of ",
-              "literal_type": "i32_string"
-            },
-            {
-              "inferred_type": "i32",
+            "inferred_type": "i32_string",
+            "type": "FnExpression",
+            "name": {
+              "inferred_type": null,
               "type": "VariableExpression",
-              "name": "x"
+              "name": "llm"
             },
-            {
-              "inferred_type": "i32_string",
-              "type": "LiteralExpression",
-              "value": " is ",
-              "literal_type": "i32_string"
-            },
-            {
-              "inferred_type": "i32",
-              "type": "FnExpression",
-              "name": {
+            "arguments": [
+              {
                 "inferred_type": null,
                 "type": "VariableExpression",
-                "name": "factorial"
+                "name": "message"
               },
-              "arguments": [
-                {
-                  "inferred_type": "i32",
-                  "type": "VariableExpression",
-                  "name": "x"
-                }
-              ]
-            }
-          ],
-          "inferred_type": "i32"
+              {
+                "inferred_type": "i32_string",
+                "type": "LiteralExpression",
+                "value": "llama3.2",
+                "literal_type": "i32_string"
+              }
+            ]
+          },
+          "inferred_type": "i32_string"
+        },
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "inferred_type": "i32_string",
+            "type": "VariableExpression",
+            "name": "result"
+          },
+          "inferred_type": "i32_string"
         }
       ],
-      "return_type": "i32"
+      "return_type": "i32_string"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_string",
+        "type": "VariableExpression",
+        "name": "y"
+      },
+      "expression": {
+        "inferred_type": "i32_string",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "hello_llm"
+        },
+        "arguments": [
+          {
+            "inferred_type": "i32_string",
+            "type": "LiteralExpression",
+            "value": "write a limerick about cheese",
+            "literal_type": "i32_string"
+          }
+        ]
+      },
+      "inferred_type": "i32_string"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "VariableExpression",
+          "name": "y"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_string",
+        "type": "VariableExpression",
+        "name": "z"
+      },
+      "expression": {
+        "inferred_type": "i32_string",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "hello_llm"
+        },
+        "arguments": [
+          {
+            "inferred_type": "i32_string",
+            "type": "LiteralExpression",
+            "value": "hello",
+            "literal_type": "i32_string"
+          }
+        ]
+      },
+      "inferred_type": "i32_string"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_string",
+          "type": "VariableExpression",
+          "name": "z"
+        }
+      ],
+      "inferred_type": "i32"
     }
   ]
 }

@@ -1,7 +1,7 @@
 # file: lmn/compiler/typechecker/function_call_type_unifier.py
-import logging
-from typing import Dict, Any, Union, List
 
+import logging
+from typing import Dict, Any
 from lmn.compiler.ast.program import Program
 from lmn.compiler.ast.mega_union import Node
 from lmn.compiler.typechecker.utils import unify_types
@@ -16,9 +16,10 @@ def unify_params_from_calls(
 ) -> None:
     """
     Recursively find FnExpression calls in the AST,
-    unify param types if unknown.
+    unify param types if unknown or None.
     """
-    for node in program_node.body:
+    logger.debug("=== unify_params_from_calls: scanning top-level program body ===")
+    for node in getattr(program_node, "body", []):
         _unify_calls_in_node(node, symbol_table, dispatcher)
 
 def _unify_calls_in_node(
@@ -29,34 +30,38 @@ def _unify_calls_in_node(
     """
     Recursively walks the AST to find FnExpressions and unify param types.
     Skips statement nodes (which often don't have `node.type`) but recurses
-    into their expression children (if any) so we don't miss function calls
-    that appear within statements.
+    into their expression children (if any).
     """
-
-    # 1) If node is None, just return
     if node is None:
         return
 
-    # 2) If node has no 'type' attribute (likely a statement), skip direct checks
-    #    but still recurse into possible expression-containing attributes.
     if not hasattr(node, "type"):
-        # For example, many statements have .expression, .expressions, or .body
+        # Possibly a statement node; let's still check subnodes (body, expressions, etc.)
         _recurse_subnodes(node, symbol_table, dispatcher)
         return
 
-    # 3) Safely read the node type now
     node_type = node.type
 
-    # 4) Check if it's a FnExpression => unify param types
+    # If it's a FnExpression => unify param types
     if node_type == "FnExpression":
-        fn_name = node.name.name  # e.g. "add" or "subtract"
+        fn_name = getattr(node.name, "name", None)
+        logger.debug(f"[FnExpression] Found call to '{fn_name}'")
         fn_info = symbol_table.get(fn_name)
+
         if fn_info and "param_types" in fn_info:
+            logger.debug(
+                f"[FnExpression] Unifying call param_types for fn='{fn_name}' "
+                f"with existing {fn_info['param_types']}"
+            )
             _unify_fn_call_types(node, fn_info, symbol_table, dispatcher)
+        else:
+            logger.debug(
+                f"[FnExpression] No param_types in symbol_table for fn='{fn_name}', "
+                f"or fn not found in symbol_table => skipping unify."
+            )
 
-    # 5) Recurse into subnodes
+    # Always recurse into subnodes
     _recurse_subnodes(node, symbol_table, dispatcher)
-
 
 def _recurse_subnodes(
     node: Node,
@@ -73,16 +78,13 @@ def _recurse_subnodes(
             for sn in subnodes:
                 _unify_calls_in_node(sn, symbol_table, dispatcher)
         elif subnodes is not None:
-            # Single node
             _unify_calls_in_node(subnodes, symbol_table, dispatcher)
 
-    # Some nodes also have a single 'expression' attribute
-    # (e.g. ReturnStatement might have `node.expression`).
+    # Some statements or nodes have a single 'expression' field
     if hasattr(node, "expression"):
         subnode = node.expression
         if subnode is not None:
             _unify_calls_in_node(subnode, symbol_table, dispatcher)
-
 
 def _unify_fn_call_types(
     node: Node,
@@ -91,26 +93,48 @@ def _unify_fn_call_types(
     dispatcher: ExpressionDispatcher
 ) -> None:
     """
-    Unify the argument types in a FnExpression call with the known parameter types
-    from the symbol table.
+    Unify the argument types in a FnExpression call with the known param types
+    from the symbol table. If param_types[i] is None => adopt arg_type.
     """
-    param_types = fn_info["param_types"]
+    param_types = fn_info.get("param_types", [])
+    param_names = fn_info.get("param_names", [])
 
-    # Check if the arguments are purely positional
-    purely_positional = all(a.type != "AssignmentExpression" for a in node.arguments)
+    arguments = getattr(node, "arguments", [])
+    purely_positional = all(a.type != "AssignmentExpression" for a in arguments)
 
-    # If purely positional and length matches param_types, unify them
-    if purely_positional and len(node.arguments) == len(param_types):
-        for i, arg_expr in enumerate(node.arguments):
+    logger.debug(f"[FnCall] {node.name.name} => param_types(before)={param_types}")
+
+    # If the function has N parameters, unify each in order
+    if purely_positional and len(arguments) == len(param_types):
+        for i, arg_expr in enumerate(arguments):
             arg_type = _partial_check_expression(arg_expr, symbol_table, dispatcher)
+
+            logger.debug(
+                f"[FnCall unify] Param '{param_names[i] if i < len(param_names) else i}' "
+                f"before unify: {param_types[i]}, arg={arg_type}"
+            )
+
             if param_types[i] is None:
                 param_types[i] = arg_type
+                logger.debug(
+                    f"[FnCall unify] param_types[{i}] was None => adopting '{arg_type}'"
+                )
             else:
-                param_types[i] = unify_types(param_types[i], arg_type, for_assignment=True)
+                # unify existing type with arg_type
+                new_type = unify_types(param_types[i], arg_type, for_assignment=True)
+                logger.debug(
+                    f"[FnCall unify] param_types[{i}] unified => old='{param_types[i]}', "
+                    f"arg='{arg_type}' => new='{new_type}'"
+                )
+                param_types[i] = new_type
 
         fn_info["param_types"] = param_types
-        logger.debug(f"Unified param types for function '{node.name.name}': {param_types}")
-
+        logger.debug(f"[FnCall unify] final param_types for fn='{node.name.name}': {param_types}")
+    else:
+        logger.debug(
+            f"[FnCall unify] Skipping unify: purely_positional={purely_positional}, "
+            f"len(arguments)={len(arguments)}, len(param_types)={len(param_types)}"
+        )
 
 def _partial_check_expression(
     expr: Node,
@@ -118,14 +142,54 @@ def _partial_check_expression(
     dispatcher: ExpressionDispatcher
 ) -> str:
     """
-    Minimal pass-1 expression check to infer arguments for param unification.
+    Minimal pass-1 expression check to infer the type of arguments for param unification.
+    *No forced 'int' defaults.* If we can't figure it out => return None.
     """
-    if expr.type == "LiteralExpression":
-        # e.g. string/int/float. For simplicity, default to `int` if not known
-        return getattr(expr, "literal_type", "int") or "int"
-    elif expr.type == "VariableExpression":
-        return symbol_table.get(expr.name, "int")
-    elif expr.type == "FnExpression":
-        # We can’t fully know until we see the function body, treat as "void"
-        return "void"
-    return "int"
+    expr_type = getattr(expr, "type", None)
+    if expr_type == "LiteralExpression":
+        lit_type = getattr(expr, "literal_type", None)
+        # If no literal_type => None
+        if lit_type:
+            return lit_type
+        else:
+            logger.debug("[_partial_check_expression] Literal with no literal_type => returning None")
+            return None
+
+    elif expr_type == "VariableExpression":
+        var_name = getattr(expr, "name", None)
+        # If the symbol_table has a known type for var_name
+        var_type = symbol_table.get(var_name, None)
+        if isinstance(var_type, dict):
+            # Possibly a closure or function => treat as "function" or "string"? 
+            # We'll do "function" or just None if we want to unify later.
+            if var_type.get("is_function") or var_type.get("is_closure"):
+                logger.debug(f"[_partial_check_expression] Var '{var_name}' => function alias => returning 'function'")
+                return "function"
+            # else => unknown dict => None
+            return None
+        elif isinstance(var_type, str):
+            logger.debug(f"[_partial_check_expression] Var '{var_name}' => type='{var_type}' from symbol_table")
+            return var_type
+        else:
+            logger.debug(f"[_partial_check_expression] Var '{var_name}' => no known type => returning None")
+            return None
+
+    elif expr_type == "FnExpression":
+        # Usually unknown until we see the function body => let's do "function" or None
+        logger.debug("[_partial_check_expression] FnExpression => returning 'function'")
+        return "function"
+
+    elif expr_type == "BinaryExpression":
+        # Minimal approach: unify left & right => adopt that if consistent
+        left_type = _partial_check_expression(expr.left, symbol_table, dispatcher)
+        right_type = _partial_check_expression(expr.right, symbol_table, dispatcher)
+        logger.debug(f"[_partial_check_expression] Binary => left={left_type}, right={right_type}")
+        # If both match => adopt that, else None
+        if left_type and right_type == left_type:
+            return left_type
+        else:
+            return None
+
+    # fallback => None
+    logger.debug(f"[_partial_check_expression] Expression type '{expr_type}' => returning None")
+    return None

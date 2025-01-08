@@ -1,9 +1,10 @@
 function hello_llm(message)
-  let x = llm(message)
-  return x
+  let result = llm(message)
+  return result
 end
 
 let y = hello_llm("write a limerick about cheese")
-let z = hello_llm("hello")
-print x
 print y
+
+let z = hello_llm("hello")
+print z

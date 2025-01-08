@@ -3,158 +3,118 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "factorial",
+      "name": "hello_llm",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "n",
-          "type_annotation": "int"
+          "name": "message"
         }
       ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "inferred_type": "int",
-            "type": "BinaryExpression",
-            "operator": "<=",
-            "left": {
-              "inferred_type": "int",
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "inferred_type": "int",
-              "type": "LiteralExpression",
-              "value": 1,
-              "literal_type": "int"
-            }
-          },
-          "thenBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 1,
-                "literal_type": "int"
-              },
-              "inferred_type": "int"
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "inferred_type": "int",
-                "type": "BinaryExpression",
-                "operator": "*",
-                "left": {
-                  "inferred_type": "int",
-                  "type": "VariableExpression",
-                  "name": "n"
-                },
-                "right": {
-                  "type": "ConversionExpression",
-                  "from_type": "void",
-                  "to_type": "int",
-                  "source_expr": {
-                    "inferred_type": "void",
-                    "type": "FnExpression",
-                    "name": {
-                      "type": "VariableExpression",
-                      "name": "factorial"
-                    },
-                    "arguments": [
-                      {
-                        "inferred_type": "int",
-                        "type": "BinaryExpression",
-                        "operator": "-",
-                        "left": {
-                          "inferred_type": "int",
-                          "type": "VariableExpression",
-                          "name": "n"
-                        },
-                        "right": {
-                          "inferred_type": "int",
-                          "type": "LiteralExpression",
-                          "value": 1,
-                          "literal_type": "int"
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              "inferred_type": "int"
-            }
-          ],
-          "inferred_type": "int"
-        }
-      ],
-      "return_type": "int"
-    },
-    {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
       "body": [
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "int",
+            "inferred_type": "string",
             "type": "VariableExpression",
-            "name": "x"
+            "name": "result"
           },
           "expression": {
-            "inferred_type": "int",
-            "type": "LiteralExpression",
-            "value": 5,
-            "literal_type": "int"
+            "inferred_type": "string",
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "type": "VariableExpression",
+                "name": "message"
+              },
+              {
+                "inferred_type": "string",
+                "type": "LiteralExpression",
+                "value": "llama3.2",
+                "literal_type": "string"
+              }
+            ]
           },
-          "inferred_type": "int"
+          "inferred_type": "string"
         },
         {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "Factorial of ",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "int",
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": " is ",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "int",
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "factorial"
-              },
-              "arguments": [
-                {
-                  "inferred_type": "int",
-                  "type": "VariableExpression",
-                  "name": "x"
-                }
-              ]
-            }
-          ],
-          "inferred_type": "void"
+          "type": "ReturnStatement",
+          "expression": {
+            "inferred_type": "string",
+            "type": "VariableExpression",
+            "name": "result"
+          },
+          "inferred_type": "string"
         }
       ],
-      "return_type": "void"
+      "return_type": "string"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "y"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "hello_llm"
+        },
+        "arguments": [
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "write a limerick about cheese",
+            "literal_type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "y"
+        }
+      ],
+      "inferred_type": "void"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "z"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "hello_llm"
+        },
+        "arguments": [
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "hello",
+            "literal_type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "z"
+        }
+      ],
+      "inferred_type": "void"
     }
   ]
 }

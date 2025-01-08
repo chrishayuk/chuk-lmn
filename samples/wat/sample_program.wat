@@ -12,46 +12,37 @@
   (import "env" "print_f64_array" (func $print_f64_array (param i32)))
   (import "env" "llm" (func $llm (param i32 i32) (result i32)))
   (memory (export "memory") 1)
-  (func $factorial (param $n i32) (result i32)
-    local.get $n
-    i32.const 1
-    i32.le_s
-    if
-    i32.const 1
-    return
-    else
-    local.get $n
-    local.get $n
-    i32.const 1
-    i32.sub
-    call $factorial
-    i32.mul
-    return
-    end
-    i32.const 0
-    return
-  )
-  (func $main (result i32)
-    (local $x i32)
-    i32.const 5
-    local.set $x
+  (func $hello_llm (param $message i32) (result i32)
+    (local $result i32)
+    local.get $message
     i32.const 1024
-    call $print_string
-    local.get $x
-    call $print_i32
-    i32.const 1038
-    call $print_string
-    local.get $x
-    call $factorial
-    call $print_i32
-    i32.const 1043
-    call $print_string
-    i32.const 0
+    call $llm
+    local.set $result
+    local.get $result
     return
   )
-  (export "factorial" (func $factorial))
-  (export "main" (func $main))
-  (data (i32.const 1024) "\46\61\63\74\6f\72\69\61\6c\20\6f\66\20\00")
-  (data (i32.const 1038) "\20\69\73\20\00")
-  (data (i32.const 1043) "\0a\00")
+  (func $__top_level__
+    (local $y i32)
+    (local $z i32)
+    i32.const 1033
+    call $hello_llm
+    local.set $y
+    local.get $y
+    call $print_string
+    i32.const 1063
+    call $print_string
+    i32.const 1065
+    call $hello_llm
+    local.set $z
+    local.get $z
+    call $print_string
+    i32.const 1063
+    call $print_string
+  )
+  (export "hello_llm" (func $hello_llm))
+  (export "__top_level__" (func $__top_level__))
+  (data (i32.const 1024) "\6c\6c\61\6d\61\33\2e\32\00")
+  (data (i32.const 1033) "\77\72\69\74\65\20\61\20\6c\69\6d\65\72\69\63\6b\20\61\62\6f\75\74\20\63\68\65\65\73\65\00")
+  (data (i32.const 1063) "\0a\00")
+  (data (i32.const 1065) "\68\65\6c\6c\6f\00")
 )

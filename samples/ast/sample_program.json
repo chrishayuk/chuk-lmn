@@ -15,7 +15,7 @@
           "type": "LetStatement",
           "variable": {
             "type": "VariableExpression",
-            "name": "x"
+            "name": "result"
           },
           "expression": {
             "type": "FnExpression",
@@ -35,7 +35,7 @@
           "type": "ReturnStatement",
           "expression": {
             "type": "VariableExpression",
-            "name": "x"
+            "name": "result"
           }
         }
       ]
@@ -60,6 +60,15 @@
           }
         ]
       }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "y"
+        }
+      ]
     },
     {
       "type": "LetStatement",
@@ -87,16 +96,7 @@
       "expressions": [
         {
           "type": "VariableExpression",
-          "name": "x"
-        }
-      ]
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "VariableExpression",
-          "name": "y"
+          "name": "z"
         }
       ]
     }

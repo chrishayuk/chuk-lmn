@@ -1,5 +1,8 @@
+# file: lmn/compiler/typechecker/statements/function_definition_checker.py
+
 import logging
 
+# lmn imports
 from lmn.compiler.typechecker.statements.base_statement_checker import BaseStatementChecker
 from lmn.compiler.typechecker.utils import normalize_type
 
@@ -26,15 +29,28 @@ class FunctionDefinitionChecker(BaseStatementChecker):
 
         for param in func_def.params:
             param_names.append(param.name)
-            declared_type = getattr(param, "type_annotation", None) or "int"
-            declared_type = normalize_type(declared_type)
+
+            # --- Here's the fix: do NOT force "int" if no annotation. ---
+            maybe_annotation = getattr(param, "type_annotation", None)
+            if maybe_annotation:
+                declared_type = normalize_type(maybe_annotation)
+                logger.debug(
+                    f"[{func_name}] Param '{param.name}' declared_type='{declared_type}'"
+                )
+            else:
+                declared_type = None
+                logger.debug(
+                    f"[{func_name}] Param '{param.name}' has no annotation => defaulting to None (will unify)."
+                )
+
             param_types.append(declared_type)
 
             has_default = hasattr(param, "default_value")
             param_defaults.append(param.default_value if has_default else None)
 
         logger.debug(
-            f"[{func_name}] Gathered {len(param_names)} params => {list(zip(param_names, param_types))}"
+            f"[{func_name}] Gathered {len(param_names)} params => "
+            f"{list(zip(param_names, param_types))}"
         )
 
         # ------------------------------------------------------------
@@ -51,14 +67,12 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         # ------------------------------------------------------------
         # 3) Store an initial function signature in the symbol table
         # ------------------------------------------------------------
-        # We'll store "void" if there's no declared type,
-        # but local_scope can override with None if we’re inferring.
         initial_table_return_type = declared_return_type if declared_return_type else "void"
         self.symbol_table[func_name] = {
-            "param_names": param_names[:],
-            "param_types": param_types[:],
+            "param_names":    param_names[:],
+            "param_types":    param_types[:],
             "param_defaults": param_defaults[:],
-            "return_type": initial_table_return_type
+            "return_type":    initial_table_return_type
         }
 
         logger.debug(
@@ -66,14 +80,15 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         )
 
         # ------------------------------------------------------------
-        # 4) Create local scope
+        # 4) Create local scope, add parameters, track assigned vars
         # ------------------------------------------------------------
         local_scope = dict(self.symbol_table)
         local_scope["__current_function_return_type__"] = declared_return_type
+
         assigned_vars = local_scope.get("__assigned_vars__", set())
 
         for i, p_name in enumerate(param_names):
-            local_scope[p_name] = param_types[i]
+            local_scope[p_name] = param_types[i]  # can be None if we have no declared type
             assigned_vars.add(p_name)
 
         local_scope["__assigned_vars__"] = assigned_vars
@@ -106,7 +121,7 @@ class FunctionDefinitionChecker(BaseStatementChecker):
         # ------------------------------------------------------------
         final_return_type = local_scope.get("__current_function_return_type__")
         if final_return_type is None:
-            # Means no 'return' was ever set => void
+            # Means no 'return' was ever set => use "void"
             final_return_type = "void"
 
         logger.debug(
@@ -129,6 +144,5 @@ class FunctionDefinitionChecker(BaseStatementChecker):
 
         logger.debug(
             f"=== Finished type-checking function '{func_name}' => "
-            f"return_type={final_return_type}, param_types={param_types} ==="
+            f"return_type={final_return_type}, param_types={param_types} ===\n"
         )
-        logger.debug("")
