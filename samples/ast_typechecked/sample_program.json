@@ -3,71 +3,97 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "closure_adder",
+      "name": "factorial",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "x",
+          "name": "n",
           "type_annotation": "int"
         }
       ],
       "body": [
         {
-          "type": "ReturnStatement",
-          "expression": {
-            "inferred_type": {
-              "is_closure": true,
-              "param_names": [
-                "y"
-              ],
-              "param_types": [
-                "int"
-              ],
-              "return_type": "int"
+          "type": "IfStatement",
+          "condition": {
+            "inferred_type": "int",
+            "type": "BinaryExpression",
+            "operator": "<=",
+            "left": {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "n"
             },
-            "type": "AnonymousFunction",
-            "parameters": [
-              [
-                "y",
-                "int"
-              ]
-            ],
-            "return_type": "int",
-            "body": [
-              {
-                "type": "ReturnStatement",
-                "expression": {
-                  "inferred_type": "int",
-                  "type": "BinaryExpression",
-                  "operator": "+",
-                  "left": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "x"
-                  },
-                  "right": {
-                    "inferred_type": "int",
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
-                },
-                "inferred_type": "int"
-              }
-            ]
+            "right": {
+              "inferred_type": "int",
+              "type": "LiteralExpression",
+              "value": 1,
+              "literal_type": "int"
+            }
           },
-          "inferred_type": {
-            "is_closure": true,
-            "param_names": [
-              "y"
-            ],
-            "param_types": [
-              "int"
-            ],
-            "return_type": "int"
-          }
+          "thenBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 1,
+                "literal_type": "int"
+              },
+              "inferred_type": "int"
+            }
+          ],
+          "elseifClauses": [],
+          "elseBody": [
+            {
+              "type": "ReturnStatement",
+              "expression": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "*",
+                "left": {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "n"
+                },
+                "right": {
+                  "type": "ConversionExpression",
+                  "from_type": "void",
+                  "to_type": "int",
+                  "source_expr": {
+                    "inferred_type": "void",
+                    "type": "FnExpression",
+                    "name": {
+                      "type": "VariableExpression",
+                      "name": "factorial"
+                    },
+                    "arguments": [
+                      {
+                        "inferred_type": "int",
+                        "type": "BinaryExpression",
+                        "operator": "-",
+                        "left": {
+                          "inferred_type": "int",
+                          "type": "VariableExpression",
+                          "name": "n"
+                        },
+                        "right": {
+                          "inferred_type": "int",
+                          "type": "LiteralExpression",
+                          "value": 1,
+                          "literal_type": "int"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "inferred_type": "int"
+            }
+          ],
+          "inferred_type": "int"
         }
       ],
-      "return_type": "function"
+      "return_type": "int"
     },
     {
       "type": "FunctionDefinition",
@@ -77,149 +103,58 @@
         {
           "type": "LetStatement",
           "variable": {
-            "inferred_type": "function",
+            "inferred_type": "int",
             "type": "VariableExpression",
-            "name": "add5"
+            "name": "x"
           },
-          "expression": {
-            "inferred_type": "function",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "closure_adder"
-            },
-            "arguments": [
-              {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 5,
-                "literal_type": "int"
-              }
-            ]
-          },
-          "inferred_type": "function"
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "void",
-            "type": "VariableExpression",
-            "name": "result1"
-          },
-          "expression": {
-            "inferred_type": "void",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "add5"
-            },
-            "arguments": [
-              {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 10,
-                "literal_type": "int"
-              }
-            ]
-          },
-          "inferred_type": "void"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "add5(10) => ",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "void",
-              "type": "VariableExpression",
-              "name": "result1"
-            }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "function",
-            "type": "VariableExpression",
-            "name": "add100"
-          },
-          "expression": {
-            "inferred_type": "function",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "closure_adder"
-            },
-            "arguments": [
-              {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 100,
-                "literal_type": "int"
-              }
-            ]
-          },
-          "inferred_type": "function"
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "void",
-            "type": "VariableExpression",
-            "name": "result2"
-          },
-          "expression": {
-            "inferred_type": "void",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "add100"
-            },
-            "arguments": [
-              {
-                "inferred_type": "int",
-                "type": "LiteralExpression",
-                "value": 42,
-                "literal_type": "int"
-              }
-            ]
-          },
-          "inferred_type": "void"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "add100(42) => ",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "void",
-              "type": "VariableExpression",
-              "name": "result2"
-            }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "ReturnStatement",
           "expression": {
             "inferred_type": "int",
             "type": "LiteralExpression",
-            "value": 0,
+            "value": 5,
             "literal_type": "int"
           },
           "inferred_type": "int"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "Factorial of ",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "x"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": " is ",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "int",
+              "type": "FnExpression",
+              "name": {
+                "type": "VariableExpression",
+                "name": "factorial"
+              },
+              "arguments": [
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "x"
+                }
+              ]
+            }
+          ],
+          "inferred_type": "void"
         }
       ],
-      "return_type": "int"
+      "return_type": "void"
     }
   ]
 }

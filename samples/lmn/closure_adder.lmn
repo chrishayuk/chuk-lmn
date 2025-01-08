@@ -1,0 +1,31 @@
+# file: closure_adder.lmn
+
+# 1) closure_adder(x: int) -> function
+#    Returns an anonymous function that, when called with y,
+#    returns x + y. This is a classic "adder" closure.
+function closure_adder(x: int) : function
+    # Return an inline/anonymous function
+    return function (y: int) : int
+        # The function body can reference 'x' from the outer scope
+        return x + y
+    end
+end
+
+# 2) Our main function
+function main() : int
+    # We'll create an "add5" function by calling closure_adder(5)
+    let add5 = closure_adder(5)
+    # Now add5 is effectively function(y) => 5 + y
+
+    # Let's see add5 in action:
+    let result1 = add5(10)      # 5 + 10 => 15
+    print "add5(10) => " result1
+
+    # We can create multiple closures
+    let add100 = closure_adder(100)
+    let result2 = add100(42)    # 100 + 42 => 142
+    print "add100(42) => " result2
+
+    # Return 0 from main
+    return 0
+end

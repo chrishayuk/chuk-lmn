@@ -1,8 +1,10 @@
 from typing import Optional, Dict
 from lmn.compiler.ast import Expression
+from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 from lmn.compiler.typechecker.expressions.array_literal_checker import ArrayLiteralChecker
 from lmn.compiler.typechecker.expressions.assignment_checker import AssignmentChecker
 from lmn.compiler.typechecker.expressions.binary_checker import BinaryChecker
+from lmn.compiler.typechecker.expressions.conversion_expression_checker import ConversionExpressionChecker
 from lmn.compiler.typechecker.expressions.fn_checker import FnChecker
 from lmn.compiler.typechecker.expressions.json_literal_checker import JsonLiteralChecker
 from lmn.compiler.typechecker.expressions.literal_checker import LiteralChecker
@@ -63,6 +65,8 @@ class ExpressionDispatcher:
             return FnChecker(self, self.symbol_table).check(expr, target_type, local_scope)
         elif isinstance(expr, AnonymousFunctionExpression):
             return AnonymousFunctionChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+        elif isinstance(expr, ConversionExpression):
+            return ConversionExpressionChecker(self, self.symbol_table).check(expr, target_type, local_scope)
 
         else:
             raise NotImplementedError(f"No checker available for {type(expr).__name__}.")

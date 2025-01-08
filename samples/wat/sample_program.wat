@@ -12,45 +12,46 @@
   (import "env" "print_f64_array" (func $print_f64_array (param i32)))
   (import "env" "llm" (func $llm (param i32 i32) (result i32)))
   (memory (export "memory") 1)
-  (func $closure_adder (param $x i32) (result i32)
+  (func $factorial (param $n i32) (result i32)
+    local.get $n
+    i32.const 1
+    i32.le_s
+    if
+    i32.const 1
+    return
+    else
+    local.get $n
+    local.get $n
+    i32.const 1
+    i32.sub
+    call $factorial
+    i32.mul
+    return
+    end
     i32.const 0
     return
   )
   (func $main (result i32)
-    (local $add100 i32)
-    (local $add5 i32)
-    (local $result1 i32)
-    (local $result2 i32)
+    (local $x i32)
     i32.const 5
-    call $closure_adder
-    local.set $add5
-    i32.const 10
-    call $add5
-    local.set $result1
+    local.set $x
     i32.const 1024
     call $print_string
-    local.get $result1
+    local.get $x
     call $print_i32
-    i32.const 1037
+    i32.const 1038
     call $print_string
-    i32.const 100
-    call $closure_adder
-    local.set $add100
-    i32.const 42
-    call $add100
-    local.set $result2
-    i32.const 1039
-    call $print_string
-    local.get $result2
+    local.get $x
+    call $factorial
     call $print_i32
-    i32.const 1037
+    i32.const 1043
     call $print_string
     i32.const 0
     return
   )
-  (export "closure_adder" (func $closure_adder))
+  (export "factorial" (func $factorial))
   (export "main" (func $main))
-  (data (i32.const 1024) "\61\64\64\35\28\31\30\29\20\3d\3e\20\00")
-  (data (i32.const 1037) "\0a\00")
-  (data (i32.const 1039) "\61\64\64\31\30\30\28\34\32\29\20\3d\3e\20\00")
+  (data (i32.const 1024) "\46\61\63\74\6f\72\69\61\6c\20\6f\66\20\00")
+  (data (i32.const 1038) "\20\69\73\20\00")
+  (data (i32.const 1043) "\0a\00")
 )

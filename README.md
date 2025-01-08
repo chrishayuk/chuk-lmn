@@ -60,7 +60,7 @@ wat2wasm ./samples/wat/sample_program.wat -o ./samples/wasm/sample_program.wasm
 ### Step 7: Running the generated WASM program
 
 ```bash
-./run_wasm.py ./samples/wasm/sample_program.wasm
+uv run run-wasm ./samples/wasm/sample_program.wasm
 ```
 
 

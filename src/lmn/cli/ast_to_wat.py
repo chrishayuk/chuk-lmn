@@ -9,7 +9,7 @@ from lmn.compiler.emitter.wasm.wasm_emitter import WasmEmitter
 
 # Basic config for logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.CRITICAL,
     format="%(levelname)s - %(name)s - %(message)s")
 
 def main():

@@ -3,175 +3,102 @@
   "body": [
     {
       "type": "FunctionDefinition",
-      "name": "closure_adder",
+      "name": "hello_llm",
       "params": [
         {
           "type": "FunctionParameter",
-          "name": "x",
-          "type_annotation": "int"
+          "name": "message"
         }
       ],
       "body": [
         {
-          "type": "ReturnStatement",
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "x"
+          },
           "expression": {
-            "type": "AnonymousFunction",
-            "parameters": [
-              [
-                "y",
-                "int"
-              ]
-            ],
-            "return_type": "int",
-            "body": [
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
               {
-                "type": "ReturnStatement",
-                "expression": {
-                  "type": "BinaryExpression",
-                  "operator": "+",
-                  "left": {
-                    "type": "VariableExpression",
-                    "name": "x"
-                  },
-                  "right": {
-                    "type": "VariableExpression",
-                    "name": "y"
-                  }
-                }
+                "type": "VariableExpression",
+                "name": "message"
               }
             ]
           }
+        },
+        {
+          "type": "ReturnStatement",
+          "expression": {
+            "type": "VariableExpression",
+            "name": "x"
+          }
         }
-      ],
-      "return_type": "function"
+      ]
     },
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "add5"
-          },
-          "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "closure_adder"
-            },
-            "arguments": [
-              {
-                "type": "LiteralExpression",
-                "value": 5,
-                "literal_type": "int"
-              }
-            ]
-          }
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "y"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "hello_llm"
         },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "result1"
-          },
-          "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "add5"
-            },
-            "arguments": [
-              {
-                "type": "LiteralExpression",
-                "value": 10,
-                "literal_type": "int"
-              }
-            ]
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "add5(10) => ",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "result1"
-            }
-          ]
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "add100"
-          },
-          "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "closure_adder"
-            },
-            "arguments": [
-              {
-                "type": "LiteralExpression",
-                "value": 100,
-                "literal_type": "int"
-              }
-            ]
-          }
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "result2"
-          },
-          "expression": {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "add100"
-            },
-            "arguments": [
-              {
-                "type": "LiteralExpression",
-                "value": 42,
-                "literal_type": "int"
-              }
-            ]
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "add100(42) => ",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "result2"
-            }
-          ]
-        },
-        {
-          "type": "ReturnStatement",
-          "expression": {
+        "arguments": [
+          {
             "type": "LiteralExpression",
-            "value": 0,
-            "literal_type": "int"
+            "value": "write a limerick about cheese",
+            "literal_type": "string"
           }
+        ]
+      }
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "z"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "hello_llm"
+        },
+        "arguments": [
+          {
+            "type": "LiteralExpression",
+            "value": "hello",
+            "literal_type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "x"
         }
-      ],
-      "return_type": "int"
+      ]
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "y"
+        }
+      ]
     }
   ]
 }
