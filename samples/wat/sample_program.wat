@@ -15,8 +15,8 @@
   (memory (export "memory") 1)
   (func $__top_level__
     (local $arr i32)
-    (local $x i32)
     (local $tmpVal i32)
+    (local $x i32)
     i32.const 20
     call $malloc     ;; allocate dynamic array of that size
     local.set $arr   ;; store base pointer in $arr

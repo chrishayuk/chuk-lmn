@@ -2,61 +2,313 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "type": "VariableExpression",
-        "name": "x"
-      },
-      "expression": {
-        "type": "ArrayLiteralExpression",
-        "elements": [
-          {
-            "type": "LiteralExpression",
-            "value": "a",
-            "literal_type": "string"
+      "type": "FunctionDefinition",
+      "name": "demonstrateBreakContinue",
+      "params": [
+        {
+          "type": "FunctionParameter",
+          "name": "n"
+        },
+        {
+          "type": "FunctionParameter",
+          "name": "arr"
+        }
+      ],
+      "body": [
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "=== Range-based for loop (1..n) demonstration ===",
+              "literal_type": "string"
+            }
+          ]
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "i"
           },
-          {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
+          "start_expr": {
+            "type": "LiteralExpression",
+            "value": 1,
+            "literal_type": "int"
+          },
+          "end_expr": {
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "i"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 3,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "type": "LiteralExpression",
+                      "value": "Breaking at i = 3",
+                      "literal_type": "string"
+                    }
+                  ]
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": []
             },
-            "arguments": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "type": "BinaryExpression",
+                  "operator": "%",
+                  "left": {
+                    "type": "VariableExpression",
+                    "name": "i"
+                  },
+                  "right": {
+                    "type": "LiteralExpression",
+                    "value": 2,
+                    "literal_type": "int"
+                  }
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "type": "LiteralExpression",
+                      "value": "Skipping even i = ",
+                      "literal_type": "string"
+                    },
+                    {
+                      "type": "VariableExpression",
+                      "name": "i"
+                    }
+                  ]
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": []
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "type": "LiteralExpression",
+                  "value": "Current i = ",
+                  "literal_type": "string"
+                },
+                {
+                  "type": "VariableExpression",
+                  "name": "i"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "=== 'for-in' loop over array demonstration ===",
+              "literal_type": "string"
+            }
+          ]
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "item"
+          },
+          "start_expr": {
+            "type": "VariableExpression",
+            "name": "arr"
+          },
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "type": "BinaryExpression",
+                "operator": "<",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "item"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "type": "LiteralExpression",
+                      "value": "Breaking at negative item: ",
+                      "literal_type": "string"
+                    },
+                    {
+                      "type": "VariableExpression",
+                      "name": "item"
+                    }
+                  ]
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": []
+            },
+            {
+              "type": "IfStatement",
+              "condition": {
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "item"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "type": "LiteralExpression",
+                      "value": "Skipping zero item",
+                      "literal_type": "string"
+                    }
+                  ]
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": []
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "type": "LiteralExpression",
+                  "value": "Current item = ",
+                  "literal_type": "string"
+                },
+                {
+                  "type": "VariableExpression",
+                  "name": "item"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "expression": {
+            "type": "LiteralExpression",
+            "value": 5,
+            "literal_type": "int"
+          }
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "nums"
+          },
+          "expression": {
+            "type": "ArrayLiteralExpression",
+            "elements": [
               {
                 "type": "LiteralExpression",
-                "value": "hi",
-                "literal_type": "string"
-              }
-            ]
-          },
-          {
-            "type": "LiteralExpression",
-            "value": "c",
-            "literal_type": "string"
-          },
-          {
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
+                "value": 1,
+                "literal_type": "int"
+              },
               {
                 "type": "LiteralExpression",
-                "value": "bye",
-                "literal_type": "string"
+                "value": 2,
+                "literal_type": "int"
+              },
+              {
+                "type": "LiteralExpression",
+                "value": 0,
+                "literal_type": "int"
+              },
+              {
+                "type": "LiteralExpression",
+                "value": 4,
+                "literal_type": "int"
+              },
+              {
+                "type": "UnaryExpression",
+                "operator": "-",
+                "operand": {
+                  "type": "LiteralExpression",
+                  "value": 1,
+                  "literal_type": "int"
+                }
+              },
+              {
+                "type": "LiteralExpression",
+                "value": 5,
+                "literal_type": "int"
               }
             ]
           }
-        ]
-      }
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+        },
         {
-          "type": "VariableExpression",
-          "name": "x"
+          "type": "CallStatement",
+          "tool_name": "demonstrateBreakContinue",
+          "arguments": [
+            {
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "type": "VariableExpression",
+              "name": "nums"
+            }
+          ]
         }
       ]
     }

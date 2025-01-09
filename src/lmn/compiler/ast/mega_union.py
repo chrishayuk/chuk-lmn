@@ -21,6 +21,8 @@ from lmn.compiler.ast.expressions.anonymous_function_expression import Anonymous
 # 2) Import all statement submodels (do not rebuild yet)
 #
 from lmn.compiler.ast.statements.block_statement import BlockStatement
+from lmn.compiler.ast.statements.break_statement import BreakStatement
+from lmn.compiler.ast.statements.continue_statement import ContinueStatement
 from lmn.compiler.ast.statements.function_parameter import FunctionParameter
 from lmn.compiler.ast.statements.if_statement import IfStatement
 from lmn.compiler.ast.statements.else_if_clause import ElseIfClause
@@ -65,6 +67,8 @@ Statement = Annotated[
         IfStatement,
         ElseIfClause,
         ForStatement,
+        ContinueStatement,
+        BreakStatement,
         AssignmentStatement,
         LetStatement,
         FunctionParameter,
@@ -111,6 +115,8 @@ AnonymousFunctionExpression.model_rebuild(force=True)
 IfStatement.model_rebuild(force=True)
 ElseIfClause.model_rebuild(force=True)
 ForStatement.model_rebuild(force=True)
+BreakStatement.model_rebuild(force=True)
+ContinueStatement.model_rebuild(force=True)
 AssignmentStatement.model_rebuild(force=True)
 LetStatement.model_rebuild(force=True)
 FunctionParameter.model_rebuild(force=True)

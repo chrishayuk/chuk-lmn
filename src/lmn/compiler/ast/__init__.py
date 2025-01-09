@@ -1,8 +1,6 @@
 # file: lmn/compiler/ast/__init__.py
 from __future__ import annotations
 
-from lmn.compiler.ast.statements.function_parameter import FunctionParameter
-
 # Common
 from .ast_node import ASTNode
 from .node_kind import NodeKind
@@ -28,12 +26,16 @@ from .expressions.anonymous_function_expression import AnonymousFunctionExpressi
 from .statements.call_statement import CallStatement
 from .statements.for_statement import ForStatement
 from .statements.function_definition import FunctionDefinition
+from .statements.function_parameter import FunctionParameter
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
 from .statements.let_statement import LetStatement
 from .statements.assignment_statement import AssignmentStatement
 from .statements.block_statement import BlockStatement
+from .statements.break_statement import BreakStatement
+from .statements.continue_statement import ContinueStatement
+
 
 # Program
 from lmn.compiler.ast.program import Program
@@ -58,6 +60,8 @@ AnonymousFunctionExpression.model_rebuild(force=True)
 # Statements
 CallStatement.model_rebuild(force=True)
 ForStatement.model_rebuild(force=True)
+BreakStatement.model_rebuild(force=True)
+ContinueStatement.model_rebuild(force=True)
 FunctionDefinition.model_rebuild(force=True)
 FunctionParameter.model_rebuild(force=True)
 ReturnStatement.model_rebuild(force=True)

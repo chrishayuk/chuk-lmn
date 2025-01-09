@@ -40,6 +40,7 @@ class ExpressionParser:
         """
         while (self.parser.current_token
                and self.parser.current_token.token_type == LmnTokenType.COMMENT):
+            logger.debug("ExpressionParser: Skipping comment: %r", self.parser.current_token.value)
             self.parser.advance()
 
     def _is_statement_boundary(self):
@@ -50,10 +51,12 @@ class ExpressionParser:
         """
         token = self.parser.current_token
         if not token:
+            logger.debug("ExpressionParser: No current token => statement boundary.")
             return True
 
-        # Use in_expression=True => 'function' won't terminate expression parsing
-        return is_statement_boundary(token.token_type, in_expression=True)
+        boundary = is_statement_boundary(token.token_type, in_expression=True)
+        logger.debug("ExpressionParser: Checking boundary for token %r => %s", token, boundary)
+        return boundary
 
     # -------------------------------------------------------------------------
     # (1) parse_expression: top-level entry point for expressions
@@ -65,9 +68,13 @@ class ExpressionParser:
         """
         self._skip_comments()
         if self._is_statement_boundary():
+            logger.debug("ExpressionParser.parse_expression: Statement boundary reached. Returning None.")
             return None
 
-        return self.parse_assignment_expr()
+        logger.debug("ExpressionParser.parse_expression: Starting parse_assignment_expr.")
+        expr = self.parse_assignment_expr()
+        logger.debug("ExpressionParser.parse_expression: Finished => %r", expr)
+        return expr
 
     # -------------------------------------------------------------------------
     # (2) parse_assignment_expr: handles =, +=, -=, =+, =-, etc.
@@ -84,10 +91,9 @@ class ExpressionParser:
              return left_expr
         """
 
-        # First parse the left side as a normal binary expression
+        logger.debug("ExpressionParser.parse_assignment_expr: Parsing left side (binary_expr).")
         left_expr = self.parse_binary_expr()
 
-        # Check if the current token is an assignment operator
         current = self.parser.current_token
         if current and current.token_type in (
             LmnTokenType.EQ,
@@ -96,15 +102,18 @@ class ExpressionParser:
             LmnTokenType.EQ_PLUS,
             LmnTokenType.EQ_MINUS,
         ):
+            logger.debug("ExpressionParser.parse_assignment_expr: Detected assignment operator %r", current.value)
             op_token = current
             self.parser.advance()  # consume the operator
 
-            # parse the right side as assignment_expr (allowing chaining, e.g. a = b = c)
+            logger.debug("ExpressionParser.parse_assignment_expr: Parsing right side (assignment_expr).")
             right_expr = self.parse_assignment_expr()
 
-            return self._build_assignment_expr(left_expr, op_token, right_expr)
+            assignment_expr = self._build_assignment_expr(left_expr, op_token, right_expr)
+            logger.debug("ExpressionParser.parse_assignment_expr: Built assignment => %r", assignment_expr)
+            return assignment_expr
 
-        # If no assignment operator, just return the binary expression
+        logger.debug("ExpressionParser.parse_assignment_expr: No assignment operator. Returning => %r", left_expr)
         return left_expr
 
     def _build_assignment_expr(self, left_expr, op_token, right_expr):
@@ -115,10 +124,12 @@ class ExpressionParser:
           a =+ b => a = a + b
           ...
         """
+        logger.debug("ExpressionParser._build_assignment_expr: left=%r, operator=%r, right=%r",
+                     left_expr, op_token.value, right_expr)
+
         if op_token.token_type == LmnTokenType.EQ:
             # a = b
             return self._build_assignment_node(left_expr, right_expr)
-
         elif op_token.token_type == LmnTokenType.PLUS_EQ:
             # a += b => a = a + b
             plus_expr = self._build_binary_node(
@@ -127,7 +138,6 @@ class ExpressionParser:
                 right_expr=right_expr
             )
             return self._build_assignment_node(left_expr, plus_expr)
-
         elif op_token.token_type == LmnTokenType.MINUS_EQ:
             # a -= b => a = a - b
             minus_expr = self._build_binary_node(
@@ -136,7 +146,6 @@ class ExpressionParser:
                 right_expr=right_expr
             )
             return self._build_assignment_node(left_expr, minus_expr)
-
         elif op_token.token_type == LmnTokenType.EQ_PLUS:
             # a =+ b => a = a + b
             plus_expr = self._build_binary_node(
@@ -145,7 +154,6 @@ class ExpressionParser:
                 right_expr=right_expr
             )
             return self._build_assignment_node(left_expr, plus_expr)
-
         elif op_token.token_type == LmnTokenType.EQ_MINUS:
             # a =- b => a = a - b
             minus_expr = self._build_binary_node(
@@ -162,6 +170,7 @@ class ExpressionParser:
         Build an AssignmentExpression node (Pydantic-based) with keyword args.
         """
         from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
+        logger.debug("ExpressionParser._build_assignment_node: Creating AssignmentExpression node.")
         return AssignmentExpression(left=left_expr, right=right_expr)
 
     def _build_binary_node(self, operator, left_expr, right_expr):
@@ -169,6 +178,7 @@ class ExpressionParser:
         Build a BinaryExpression node with keyword arguments.
         """
         from lmn.compiler.ast.expressions.binary_expression import BinaryExpression
+        logger.debug("ExpressionParser._build_binary_node: Creating BinaryExpression with operator=%r", operator)
         return BinaryExpression(operator=operator, left=left_expr, right=right_expr)
 
     # -------------------------------------------------------------------------
@@ -179,55 +189,52 @@ class ExpressionParser:
         Defer to the BinaryParser for precedence among +, -, *, /, //, %, etc.
         We pass min_prec=0 by default, but you can adjust if needed.
         """
-        # skip comments
         self._skip_comments()
 
-        # check if there is a statement boundary
         if self._is_statement_boundary():
+            logger.debug("ExpressionParser.parse_binary_expr: Statement boundary => returning None")
             return None
 
-        # parse binary expression
-        return self.binary_parser.parse_binary_expr(min_prec=prec)
+        logger.debug("ExpressionParser.parse_binary_expr: Delegating to BinaryParser with min_prec=%d", prec)
+        expr = self.binary_parser.parse_binary_expr(min_prec=prec)
+        logger.debug("ExpressionParser.parse_binary_expr: Received binary expr => %r", expr)
+        return expr
 
     # -------------------------------------------------------------------------
     # (4) parse_unary_expr: defers to UnaryParser for prefix ops
     # -------------------------------------------------------------------------
     def parse_unary_expr(self):
-        # skip comments
         self._skip_comments()
 
-        # check if there is a statement boundary
         if self._is_statement_boundary():
+            logger.debug("ExpressionParser.parse_unary_expr: Statement boundary => returning None")
             return None
         
-        # Check if it's an inline function
-        logger.debug("parse_unary_expr sees token: %s", self.parser.current_token)
+        logger.debug("ExpressionParser.parse_unary_expr: Current token => %r", self.parser.current_token)
         if (self.parser.current_token 
             and self.parser.current_token.token_type == LmnTokenType.FUNCTION):
-
             # Delegate parsing to your existing FunctionExpressionParser
-            logger.debug("parse_unary_expr calling parse_function_expression()")
+            logger.debug("ExpressionParser.parse_unary_expr: Detected 'function'. Delegating to FunctionExpressionParser.")
             func_exp = self.function_expression_parser.parse_function_expression()
-            logger.info(f"parse_unary_expr received from parse_function_expression(): {func_exp}")
-            # to dict
-            logger.info(func_exp.to_dict())
-
-            # return the expression
+            logger.info("ExpressionParser.parse_unary_expr: Received from parse_function_expression => %r", func_exp)
+            logger.info(func_exp.to_dict())  # optional: logs a dict representation
             return func_exp
         
-        # parse unary expression
-        return self.unary_parser.parse_unary_expr()
+        unary = self.unary_parser.parse_unary_expr()
+        logger.debug("ExpressionParser.parse_unary_expr: unary_parser returned => %r", unary)
+        return unary
 
     # -------------------------------------------------------------------------
     # (5) parse_primary: defers to PrimaryParser for literals, variables, etc.
     # -------------------------------------------------------------------------
     def parse_primary(self):
-        # skip comments
         self._skip_comments()
 
-        # check if there is a statement boundary
         if self._is_statement_boundary():
+            logger.debug("ExpressionParser.parse_primary: Statement boundary => returning None")
             return None
         
-        # parse primary
-        return self.primary_parser.parse_primary()
+        logger.debug("ExpressionParser.parse_primary: Delegating to PrimaryParser.")
+        primary_expr = self.primary_parser.parse_primary()
+        logger.debug("ExpressionParser.parse_primary: PrimaryParser returned => %r", primary_expr)
+        return primary_expr

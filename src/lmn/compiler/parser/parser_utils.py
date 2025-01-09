@@ -3,96 +3,114 @@
 import logging
 from lmn.compiler.lexer.token_type import LmnTokenType
 
+# logger
 logger = logging.getLogger(__name__)
 
 def expect_token(parser, token_types, message):
     """
-    Utility to confirm parser.current_token has one of the expected types
-    (or exactly the expected type if `token_types` is a single LmnTokenType).
+    Confirms the parser's current token matches one of the expected types.
     Raises SyntaxError otherwise.
-    Returns the current token on success.
 
     :param parser: the parser with .current_token, .advance(), etc.
-    :param token_types: either a single LmnTokenType or an iterable (tuple/list)
-                       of LmnTokenType items
-    :param message: an error message to raise if it fails
+    :param token_types: a single LmnTokenType or an iterable of LmnTokenType items
+    :param message: error message raised on failure
+    :return: the current token on success
     """
-
-    # 1) If we got no current token => can't match anything
+    # 1) Handle case where no token is present
     if not parser.current_token:
-        logger.debug("expect_token: found NO token, but expected: %r", token_types)
+        logger.error("expect_token: No token found, expected one of: %r", token_types)
         raise SyntaxError(message)
 
     current_ttype = parser.current_token.token_type
     current_value = parser.current_token.value
 
-    # 2) Convert single token_type to a tuple for uniform check
+    # 2) Normalize token_types for consistent checks
     if not isinstance(token_types, (list, tuple, set)):
         token_types = (token_types,)
 
-    # 3) Debug logging => show exactly what we see vs. what we expect
     logger.debug(
-        "expect_token: current_token='%s'(type=%s), expecting one of %r",
-        current_value, current_ttype.name, [t.name for t in token_types]
+        "expect_token: Checking token '%s' (type=%s) against expected: %r",
+        current_value,
+        current_ttype.name,
+        [t.name for t in token_types]
     )
 
-    # 4) Check membership
+    # 3) Perform the check
     if current_ttype not in token_types:
-        logger.debug(
-            "expect_token: mismatch => got '%s'(type=%s), not in %r; raising SyntaxError",
-            current_value, current_ttype.name, [t.name for t in token_types]
+        logger.error(
+            "expect_token: Token mismatch. Got '%s' (type=%s), expected one of: %r",
+            current_value,
+            current_ttype.name,
+            [t.name for t in token_types]
         )
         raise SyntaxError(message)
 
-    logger.debug(
-        "expect_token: matched token '%s'(type=%s) successfully.",
-        current_value, current_ttype.name
-    )
+    # 4) Successful match
+    logger.debug("expect_token: Matched token '%s' (type=%s)", current_value, current_ttype.name)
     return parser.current_token
 
 
 def parse_block(parser, until_tokens):
     """
-    Utility to parse a block of statements until we reach one of `until_tokens`.
-    We skip comments along the way.
-    Returns a list of statement AST nodes.
+    Parses a block of statements until one of `until_tokens` is encountered.
+    Skips comments. Returns a list of parsed statement nodes.
+
+    :param parser: the main parser instance
+    :param until_tokens: tokens marking the end of the block (e.g., END)
+    :return: list of parsed statements
     """
     statements = []
+
     while parser.current_token and parser.current_token.token_type not in until_tokens:
-        # skip comments
-        if parser.current_token.token_type == LmnTokenType.COMMENT:
-            logger.debug("parse_block: skipping comment: %r", parser.current_token.value)
+        token = parser.current_token
+
+        # Skip comments
+        if token.token_type == LmnTokenType.COMMENT:
+            logger.debug("parse_block: Skipping comment: %r", token.value)
             parser.advance()
             continue
 
-        stmt = parser.statement_parser.parse_statement()
-        if stmt:
-            statements.append(stmt)
-        else:
-            # parse_statement returned None or we're stuck
-            logger.debug(
-                "parse_block: parse_statement() returned None; current_token=%s",
-                parser.current_token
-            )
-            break
+        logger.debug("parse_block: Parsing statement. Current token: %r", token)
+
+        try:
+            stmt = parser.statement_parser.parse_statement()
+            if stmt:
+                statements.append(stmt)
+                logger.debug("parse_block: Parsed statement: %r", stmt)
+            else:
+                # If parse_statement returns None, we likely encountered an unexpected token
+                logger.warning("parse_block: parse_statement returned None for token: %r", token)
+                break
+        except SyntaxError as e:
+            logger.error("parse_block: SyntaxError encountered: %s", e)
+            raise
+
+    logger.debug("parse_block: Completed block with %d statements", len(statements))
     return statements
 
 
 def current_token_is(parser, token_type):
     """
-    Returns True if parser.current_token is not None
-    and matches the given token_type.
+    Checks if the current token matches the given token_type.
+
+    :param parser: the main parser instance
+    :param token_type: the token type to check against
+    :return: True if current_token matches token_type, False otherwise
     """
     if parser.current_token is None:
-        logger.debug("current_token_is: No current token, so can't match %s", token_type)
+        logger.debug("current_token_is: No current token to match against %s", token_type)
+        return False
+
+    if not isinstance(token_type, LmnTokenType):
+        logger.error("current_token_is: Invalid token_type provided: %r", token_type)
         return False
 
     match = (parser.current_token.token_type == token_type)
     logger.debug(
-        "current_token_is: token=%r(type=%s), checking=%s => %s",
+        "current_token_is: Current token '%s' (type=%s) matches %s: %s",
         parser.current_token.value,
         parser.current_token.token_type.name,
-        token_type.name if isinstance(token_type, LmnTokenType) else token_type,
+        token_type.name,
         match
     )
     return match
