@@ -14,16 +14,16 @@
   (import "env" "malloc" (func $malloc (param i32) (result i32)))
   (memory (export "memory") 1)
   (func $__top_level__
+    (local $arr i32)
     (local $x i32)
     (local $tmpVal i32)
-    (local $arr i32)
-    i32.const 16
+    i32.const 20
     call $malloc     ;; allocate dynamic array of that size
     local.set $arr   ;; store base pointer in $arr
     local.get $arr
     i32.const 0
     i32.add
-    i32.const 3
+    i32.const 4
     i32.store
     i32.const 1024
     local.set $tmpVal
@@ -48,11 +48,20 @@
     i32.add
     local.get $tmpVal
     i32.store
+    i32.const 1040
+    i32.const 1044
+    call $llm
+    local.set $tmpVal
+    local.get $arr
+    i32.const 16
+    i32.add
+    local.get $tmpVal
+    i32.store
     local.get $arr
     local.set $x
     local.get $x
     call $print_string_array
-    i32.const 1040
+    i32.const 1053
     call $print_string
   )
   (export "__top_level__" (func $__top_level__))
@@ -60,5 +69,7 @@
   (data (i32.const 1026) "\68\69\00")
   (data (i32.const 1029) "\6c\6c\61\6d\61\33\2e\32\00")
   (data (i32.const 1038) "\63\00")
-  (data (i32.const 1040) "\0a\00")
+  (data (i32.const 1040) "\62\79\65\00")
+  (data (i32.const 1044) "\6c\6c\61\6d\61\33\2e\32\00")
+  (data (i32.const 1053) "\0a\00")
 )

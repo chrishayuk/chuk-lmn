@@ -45,6 +45,28 @@
             "type": "LiteralExpression",
             "value": "c",
             "literal_type": "string"
+          },
+          {
+            "inferred_type": "string",
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "inferred_type": "string",
+                "type": "LiteralExpression",
+                "value": "bye",
+                "literal_type": "string"
+              },
+              {
+                "inferred_type": "string",
+                "type": "LiteralExpression",
+                "value": "llama3.2",
+                "literal_type": "string"
+              }
+            ]
           }
         ]
       },

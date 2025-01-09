@@ -33,6 +33,20 @@
             "type": "LiteralExpression",
             "value": "c",
             "literal_type": "string"
+          },
+          {
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "type": "LiteralExpression",
+                "value": "bye",
+                "literal_type": "string"
+              }
+            ]
           }
         ]
       }
