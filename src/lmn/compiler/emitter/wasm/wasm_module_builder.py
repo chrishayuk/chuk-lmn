@@ -26,6 +26,9 @@ def build_module(wasm_emitter):
     lines.append('  (import "env" "print_f64_array" (func $print_f64_array (param i32)))')
     lines.append('  (import "env" "llm" (func $llm (param i32 i32) (result i32)))')
 
+    # New import for $malloc:
+    lines.append('  (import "env" "malloc" (func $malloc (param i32) (result i32)))')
+
     # Memory
     if wasm_emitter.import_memory:
         lines.append('  (import "env" "memory" (memory 1))')

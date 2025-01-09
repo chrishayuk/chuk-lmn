@@ -15,115 +15,152 @@ def finalize_function_calls(node, symbol_table: dict):
         return
 
     node_type = getattr(node, "type", None)
-    logger.debug(f"Visiting node: {node_type}")
+    logger.debug("finalize_function_calls: Visiting node => %r", node_type)
 
-    # 1) Recurse into child lists (body, expressions, etc.)
+    # -------------------------------------------------------------------------
+    # 1) Recurse into typical sub-fields: body, expressions, expression, arguments
+    # -------------------------------------------------------------------------
     if hasattr(node, "body") and isinstance(node.body, list):
-        logger.debug(f"Node {node_type} has a 'body' with {len(node.body)} children")
-        for child in node.body:
+        logger.debug("Node %r => has a 'body' with %d children", node_type, len(node.body))
+        for i, child in enumerate(node.body):
+            logger.debug("Visiting body[%d] => type=%r", i, getattr(child, "type", None))
             finalize_function_calls(child, symbol_table)
 
     if hasattr(node, "expressions") and isinstance(node.expressions, list):
-        logger.debug(f"Node {node_type} has 'expressions' with {len(node.expressions)} children")
-        for expr in node.expressions:
+        logger.debug("Node %r => has 'expressions' with %d children", node_type, len(node.expressions))
+        for i, expr in enumerate(node.expressions):
+            logger.debug("Visiting expressions[%d] => type=%r", i, getattr(expr, "type", None))
             finalize_function_calls(expr, symbol_table)
 
     if hasattr(node, "expression") and node.expression is not None:
-        logger.debug(f"Node {node_type} has a single 'expression' child")
+        logger.debug("Node %r => has single 'expression' => type=%r", node_type, getattr(node.expression, "type", None))
         finalize_function_calls(node.expression, symbol_table)
 
+    # -------------------------------------------------------------------------
+    # 1a) If it's an ArrayLiteralExpression, explicitly recurse into .elements
+    # -------------------------------------------------------------------------
+    if node_type == "ArrayLiteralExpression":
+        # This is commonly missing from finalize calls. If you skip it,
+        # you won't see logs for nested FnExpressions inside the array.
+        elements = getattr(node, "elements", [])
+        logger.debug("ArrayLiteralExpression => has %d elements", len(elements))
+        for i, elem in enumerate(elements):
+            logger.debug("Visiting array-literal element[%d] => type=%r", i, getattr(elem, "type", None))
+            finalize_function_calls(elem, symbol_table)
+
+    # If the node has .arguments => finalize them
     if hasattr(node, "arguments") and isinstance(node.arguments, list):
-        logger.debug(f"Node {node_type} has 'arguments' with {len(node.arguments)} children")
-        for arg in node.arguments:
+        logger.debug("Node %r => has 'arguments' with %d children", node_type, len(node.arguments))
+        for i, arg in enumerate(node.arguments):
+            logger.debug("Visiting arguments[%d] => type=%r", i, getattr(arg, "type", None))
             finalize_function_calls(arg, symbol_table)
 
-    # 2) If it's a FunctionDefinition => handle params
+    # -------------------------------------------------------------------------
+    # 2) If it's a FunctionDefinition => finalize its params as well
+    # -------------------------------------------------------------------------
     if node_type == "FunctionDefinition":
+        func_name = getattr(node, "name", "unknown")
+        logger.debug("FunctionDefinition '%s' => finalizing its params (no reordering).", func_name)
+
         if hasattr(node, "params"):
-            func_name = getattr(node, "name", "unknown")
-            logger.debug(f"FunctionDefinition '{func_name}' has {len(node.params)} params")
-            for p in node.params:
+            logger.debug("FunctionDefinition '%s' => has %d params => finalizing them", func_name, len(node.params))
+            for i, p in enumerate(node.params):
+                logger.debug("Visiting param[%d] => type=%r", i, getattr(p, "type", None))
                 finalize_function_calls(p, symbol_table)
-        logger.debug(f"Done finalizing FunctionDefinition '{getattr(node, 'name', 'unknown')}'")
+
+        logger.debug("Done with FunctionDefinition '%s'", func_name)
         return
 
-    # 3) If it's an FnExpression => reorder arguments
+    # -------------------------------------------------------------------------
+    # 3) If it's an FnExpression => reorder arguments, fill defaults
+    # -------------------------------------------------------------------------
     if node_type == "FnExpression":
-        fn_name_node = getattr(node, "name", None)
-        if not fn_name_node:
-            logger.debug("FnExpression has no name node; skipping reordering.")
+        name_node = getattr(node, "name", None)
+        if not name_node:
+            logger.debug("FnExpression => no 'name' found => skipping reorder")
             return
 
-        # Check if 'name' is a typical VariableExpression node
-        if getattr(fn_name_node, "type", None) == "VariableExpression":
-            fn_name = getattr(fn_name_node, "name", None)
+        if getattr(name_node, "type", None) == "VariableExpression":
+            fn_name = getattr(name_node, "name", None)
         else:
-            logger.debug("FnExpression name is not a simple VariableExpression; skipping reordering.")
+            logger.debug("FnExpression => name is not a simple VariableExpression => skipping reorder")
             return
 
-        logger.debug(f"Reordering call to function '{fn_name}'...")
+        logger.debug("=== Reordering call to function '%s' ===", fn_name)
+
+        # 3a) Attempt to look up the function's metadata in symbol_table
         fn_info = symbol_table.get(fn_name)
         if not fn_info:
-            logger.debug(f"No fn_info found for '{fn_name}' in symbol_table. Possibly builtin/unknown. Skipping.")
+            logger.debug("No fn_info found for '%s' => possibly builtin => skipping reordering", fn_name)
             return
 
         param_names    = fn_info.get("param_names", [])
         param_defaults = fn_info.get("param_defaults", [])
         num_params     = len(param_names)
 
-        logger.debug(f"Function '{fn_name}' => param_names={param_names}, param_defaults={param_defaults}")
+        logger.debug("FnExpression '%s': param_names=%r, param_defaults=%r", fn_name, param_names, param_defaults)
+        logger.debug("Original node.arguments => %r", node.arguments)
 
+        # Build final_args
         final_args = [None] * num_params
         next_pos_index = 0
 
-        old_args = node.arguments
-        logger.debug(f"Original arguments: {len(old_args)} => {old_args}")
+        # from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
+        for i, arg_node in enumerate(node.arguments):
+            arg_type = getattr(arg_node, "type", None)
+            logger.debug("Examining node.arguments[%d] => type=%r", i, arg_type)
 
-        # Sort arguments
-        from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
-        for arg_node in old_args:
-            if getattr(arg_node, "type", None) == "AssignmentExpression":
-                # Named argument
+            if arg_type == "AssignmentExpression":
                 param_name = getattr(arg_node.left, "name", None)
+                logger.debug("Found named arg => param_name=%r", param_name)
+
                 if param_name not in param_names:
-                    logger.debug(f"Named argument '{param_name}' not in param_names of '{fn_name}'; skipping.")
+                    logger.debug("param_name=%r not found in param_names => ignoring", param_name)
                     continue
+
                 idx = param_names.index(param_name)
-                logger.debug(f"Placing named argument for param '{param_name}' at index {idx}")
+                logger.debug("Placing named argument for param '%s' at final_args[%d]", param_name, idx)
                 final_args[idx] = arg_node.right
             else:
-                # positional
+                # It's positional
                 if next_pos_index < num_params:
-                    logger.debug(f"Placing positional argument at index {next_pos_index}")
+                    logger.debug("Placing positional argument => final_args[%d] = arg_node", next_pos_index)
                     final_args[next_pos_index] = arg_node
                     next_pos_index += 1
                 else:
-                    logger.debug("Too many positional arguments? Skipping or ignoring...")
+                    logger.debug("Too many positional arguments => ignoring => %r", arg_node)
 
-        # Fill defaults if needed
+        # 3d) Fill defaults if needed
         for i, p_default in enumerate(param_defaults):
             if final_args[i] is None and p_default is not None:
-                logger.debug(f"Filling default for param '{param_names[i]}' at index {i}")
+                logger.debug(
+                    "Filling default for param[%d] => param_name=%r => p_default=%r",
+                    i, param_names[i], p_default
+                )
                 final_args[i] = p_default
             elif final_args[i] is None:
-                logger.debug(f"No argument provided for required param '{param_names[i]}' in '{fn_name}'")
+                logger.debug("No argument & no default => param_name=%r => mismatch possible", param_names[i])
 
+        logger.debug("=> final_args => %r", final_args)
         node.arguments = final_args
-        logger.debug(f"After reordering: {node.arguments}")
 
-        # Recursively finalize each new argument
+        # Recurse
         for i, arg in enumerate(node.arguments):
-            if arg:
-                logger.debug(f"Recursively finalizing argument {i} for function '{fn_name}'")
+            logger.debug("Now finalizing final_args[%d] => %r", i, getattr(arg, "type", None))
+            if arg is not None:
                 finalize_function_calls(arg, symbol_table)
 
-    # 4) If node has left/right/operand, finalize them as well
+    # -------------------------------------------------------------------------
+    # 4) If node has left/right/operand => finalize them as well
+    # -------------------------------------------------------------------------
     if hasattr(node, "left") and node.left:
-        logger.debug(f"Node {node_type} has 'left' child to finalize")
+        logger.debug("Node %r => finalize 'left'", node_type)
         finalize_function_calls(node.left, symbol_table)
+
     if hasattr(node, "right") and node.right:
-        logger.debug(f"Node {node_type} has 'right' child to finalize")
+        logger.debug("Node %r => finalize 'right'", node_type)
         finalize_function_calls(node.right, symbol_table)
+
     if hasattr(node, "operand") and node.operand:
-        logger.debug(f"Node {node_type} has 'operand' child to finalize")
+        logger.debug("Node %r => finalize 'operand'", node_type)
         finalize_function_calls(node.operand, symbol_table)

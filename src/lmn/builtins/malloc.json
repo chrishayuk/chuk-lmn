@@ -1,0 +1,37 @@
+{
+    "malloc": {
+        "description": "Minimal bump-pointer malloc",
+        "typechecker": {
+            "params": [
+                {
+                    "name": "size",
+                    "type": "int", 
+                    "required": true
+                }
+            ],
+            "return_type": "int" 
+        },
+        "wasm": {
+            "namespace": "env",
+            "functions": [
+                {
+                    "name": "malloc",
+                    "signature": {
+                        "parameters": [
+                            {
+                                "name": "size",
+                                "type": "i32"
+                            }
+                        ],
+                        "results": [
+                            {
+                                "type": "i32"
+                            }
+                        ]
+                    },
+                    "handler": "lmn.runtime.host.core.malloc.handler:malloc_handler"
+                }
+            ]
+        }
+    }
+}

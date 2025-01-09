@@ -2,144 +2,47 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "fib",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "n"
-        }
-      ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "type": "BinaryExpression",
-            "operator": "<",
-            "left": {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": 2,
-              "literal_type": "int"
-            }
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "type": "LiteralExpression",
+            "value": "a",
+            "literal_type": "string"
           },
-          "thenBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "VariableExpression",
-                "name": "n"
+          {
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "type": "LiteralExpression",
+                "value": "hi",
+                "literal_type": "string"
               }
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "BinaryExpression",
-                "operator": "+",
-                "left": {
-                  "type": "FnExpression",
-                  "name": {
-                    "type": "VariableExpression",
-                    "name": "fib"
-                  },
-                  "arguments": [
-                    {
-                      "type": "BinaryExpression",
-                      "operator": "-",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "n"
-                      },
-                      "right": {
-                        "type": "LiteralExpression",
-                        "value": 1,
-                        "literal_type": "int"
-                      }
-                    }
-                  ]
-                },
-                "right": {
-                  "type": "FnExpression",
-                  "name": {
-                    "type": "VariableExpression",
-                    "name": "fib"
-                  },
-                  "arguments": [
-                    {
-                      "type": "BinaryExpression",
-                      "operator": "-",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "n"
-                      },
-                      "right": {
-                        "type": "LiteralExpression",
-                        "value": 2,
-                        "literal_type": "int"
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ]
+            ]
+          },
+          {
+            "type": "LiteralExpression",
+            "value": "c",
+            "literal_type": "string"
+          }
+        ]
+      }
     },
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "LetStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "x"
-          },
-          "expression": {
-            "type": "LiteralExpression",
-            "value": 10,
-            "literal_type": "int"
-          }
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "Fibonacci of",
-              "literal_type": "string"
-            },
-            {
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            {
-              "type": "LiteralExpression",
-              "value": "is",
-              "literal_type": "string"
-            },
-            {
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "fib"
-              },
-              "arguments": [
-                {
-                  "type": "VariableExpression",
-                  "name": "x"
-                }
-              ]
-            }
-          ]
+          "type": "VariableExpression",
+          "name": "x"
         }
       ]
     }

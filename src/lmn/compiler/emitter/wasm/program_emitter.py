@@ -28,6 +28,15 @@ class ProgramEmitter:
         self.closure_emitter = ClosureFunctionEmitter(self.wasm_emitter)
 
     def emit_program(self, ast):
+        """
+        Main entry point for converting a top-level AST into WAT (module) lines.
+        1) Separate function defs from leftover statements
+        2) Rewrite 'let' statements in function bodies
+        3) Rewrite 'let' statements in top-level statements
+        4) Emit all function definitions
+        5) If leftover statements remain, build a '__top_level__' function
+        6) Build final (module ...) text
+        """
         if ast["type"] != "Program":
             raise ValueError("AST root must be 'Program'")
 
@@ -38,8 +47,7 @@ class ProgramEmitter:
         )
 
         # 1) Separate function defs vs. leftover statements
-        function_defs = []
-        top_level_stmts = []
+        function_defs, top_level_stmts = [], []
         for node in body_nodes:
             if node["type"] == "FunctionDefinition":
                 function_defs.append(node)
@@ -69,9 +77,17 @@ class ProgramEmitter:
 
         # 5) If leftover statements remain => put them in __top_level__
         if rewritten_top:
+            logger.debug(
+                "emit_program: leftover top-level statements => building '__top_level__'"
+            )
             self.emit_top_level_statements_function(rewritten_top)
+        else:
+            logger.debug(
+                "emit_program: no leftover statements => no '__top_level__' function needed"
+            )
 
         # 6) Build final (module ...) WAT
+        logger.debug("emit_program: building final module via wasm_emitter.build_module()")
         return self.wasm_emitter.build_module()
 
     def rewrite_lets_in_function_body(self, stmts):
@@ -81,6 +97,9 @@ class ProgramEmitter:
          - function calls
          - aliases
         and lifts them if needed.
+
+        Returns a new list of statements with modifications (e.g., replaced
+        inline lambdas or function aliases).
         """
         out = []
         for stmt in stmts:
@@ -94,6 +113,7 @@ class ProgramEmitter:
                 var_name = stmt["variable"]["name"]
                 expr = stmt.get("expression")
                 expr_type = expr.get("type") if expr else None
+
                 logger.debug(
                     "  LetStatement: var='%s', expr_type='%s'",
                     var_name, expr_type
@@ -103,10 +123,6 @@ class ProgramEmitter:
                     # Distinguish a *true* inline lambda vs. a *function call*
                     if expr_type == "AnonymousFunction" or not expr.get("name"):
                         # => Real inline lambda => produce a closure function
-                        # We'll do this in a style similar to 'emit_function_definition',
-                        # but using our 'ClosureFunctionEmitter'.
-
-                        # 1) Create a unique closure name
                         closure_id = self.wasm_emitter.function_counter
                         self.wasm_emitter.function_counter += 1
                         closure_name = f"closure_fn_{closure_id}"
@@ -116,23 +132,20 @@ class ProgramEmitter:
                             var_name, closure_name
                         )
 
-                        # 2) Create environment layout if needed
-                        # For a minimal example, let's assume we do no environment captures,
-                        # or we look up 'expr["captures"]' if your AST tracks them.
-                        environment_layout = {}  # or something if you track captures
+                        # If you track captures, gather them here; else empty
+                        environment_layout = {}
 
-                        # 3) Use our closure emitter to produce lines
                         closure_func_name = self.closure_emitter.emit_closure_function(
                             expr,  # the closure AST node
                             closure_id,
                             environment_layout
                         )
 
-                        # 4) In a more advanced scenario, we'd also store the function in a table,
-                        #    or if it's just a direct call, we can alias "var_name => closure_func_name"
+                        # In advanced scenarios, you might store closure_func_name in a table
+                        # or alias var_name => closure_func_name for direct calls.
                         self.wasm_emitter.func_alias_map[var_name] = closure_func_name
 
-                        # skip adding to out (we replaced it with the alias)
+                        # Don’t append this LetStatement => it’s replaced by the alias
                         continue
                     else:
                         # => It's a normal function call => do not lift
@@ -151,7 +164,6 @@ class ProgramEmitter:
                     )
                     self.wasm_emitter.func_alias_map[var_name] = aliased_name
                     continue
-
                 else:
                     # Normal let statement => keep
                     logger.debug(
@@ -161,6 +173,7 @@ class ProgramEmitter:
 
             elif stype in ("IfStatement", "ForStatement", "WhileStatement"):
                 # Recurse into sub-bodies
+                logger.debug("  Handling conditional/loop statement => recursing into sub-bodies")
                 if stype == "IfStatement":
                     if "thenBody" in stmt:
                         stmt["thenBody"] = self.rewrite_lets_in_function_body(stmt["thenBody"])
@@ -168,22 +181,22 @@ class ProgramEmitter:
                         eclause["body"] = self.rewrite_lets_in_function_body(eclause["body"])
                     if "elseBody" in stmt:
                         stmt["elseBody"] = self.rewrite_lets_in_function_body(stmt["elseBody"])
+                elif stype == "ForStatement" and "body" in stmt:
+                    stmt["body"] = self.rewrite_lets_in_function_body(stmt["body"])
+                elif stype == "WhileStatement" and "body" in stmt:
+                    stmt["body"] = self.rewrite_lets_in_function_body(stmt["body"])
 
-                elif stype == "ForStatement":
-                    if "body" in stmt:
-                        stmt["body"] = self.rewrite_lets_in_function_body(stmt["body"])
-                elif stype == "WhileStatement":
-                    if "body" in stmt:
-                        stmt["body"] = self.rewrite_lets_in_function_body(stmt["body"])
                 out.append(stmt)
 
             elif stype == "FunctionDefinition":
                 # Nested function definition => rewrite inside
+                logger.debug("  Found nested function definition => rewriting its body")
                 body_stmts = stmt.get("body", [])
                 stmt["body"] = self.rewrite_lets_in_function_body(body_stmts)
                 out.append(stmt)
             else:
                 # Keep statement as is
+                logger.debug("  Keeping statement type='%s' as is", stype)
                 out.append(stmt)
 
         return out
@@ -198,17 +211,21 @@ class ProgramEmitter:
 
         logger.debug("emit_function_definition: function '%s'", func_name)
 
-        # Normalize params
+        # Normalize params (helps unify param shape, e.g. param name + type)
         node["params"] = normalize_params(node["params"])
 
         func_lines = []
         self.wasm_emitter.function_emitter.emit_function(node, func_lines)
         self.wasm_emitter.functions.append(func_lines)
+        logger.debug(
+            "emit_function_definition: appended function '%s' => total lines=%d",
+            func_name, len(func_lines)
+        )
 
     def emit_top_level_statements_function(self, statements):
         """
         If leftover statements remain after function defs,
-        create a __top_level__ function.
+        create a __top_level__ function to hold them.
         """
         func_name = "__top_level__"
         logger.debug(
@@ -224,7 +241,11 @@ class ProgramEmitter:
         self.wasm_emitter.local_counter = 0
 
         func_lines = [f'(func ${func_name}']
-        for stmt in statements:
+        for i, stmt in enumerate(statements):
+            logger.debug(
+                "emit_top_level_statements_function: emitting statement[%d] => %s", 
+                i, stmt
+            )
             self.wasm_emitter.emit_statement(stmt, func_lines)
 
         # Insert local declarations
@@ -243,6 +264,18 @@ class ProgramEmitter:
             norm_name = self.wasm_emitter._normalize_local_name(var_name)
             local_decls.append(f'  (local {norm_name} {local_wasm_type})')
 
+        if local_decls:
+            logger.debug(
+                "emit_top_level_statements_function: inserting %d local declarations",
+                len(local_decls)
+            )
+
+        # Insert them right after the '(func $__top_level__'
         func_lines[1:1] = local_decls
         func_lines.append(')')
+
         self.wasm_emitter.functions.append(func_lines)
+        logger.debug(
+            "emit_top_level_statements_function: finished building '%s', total lines=%d",
+            func_name, len(func_lines)
+        )

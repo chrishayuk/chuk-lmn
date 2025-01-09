@@ -2,168 +2,64 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "fib",
-      "params": [
-        {
-          "type": "FunctionParameter",
-          "name": "n"
-        }
-      ],
-      "body": [
-        {
-          "type": "IfStatement",
-          "condition": {
-            "inferred_type": "int",
-            "type": "BinaryExpression",
-            "operator": "<",
-            "left": {
-              "type": "VariableExpression",
-              "name": "n"
-            },
-            "right": {
-              "inferred_type": "int",
-              "type": "LiteralExpression",
-              "value": 2,
-              "literal_type": "int"
-            }
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "string[]",
+        "type": "VariableExpression",
+        "name": "x"
+      },
+      "expression": {
+        "inferred_type": "string[]",
+        "type": "ArrayLiteralExpression",
+        "elements": [
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "a",
+            "literal_type": "string"
           },
-          "thenBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "type": "VariableExpression",
-                "name": "n"
-              }
-            }
-          ],
-          "elseifClauses": [],
-          "elseBody": [
-            {
-              "type": "ReturnStatement",
-              "expression": {
-                "inferred_type": "void",
-                "type": "BinaryExpression",
-                "operator": "+",
-                "left": {
-                  "inferred_type": "void",
-                  "type": "FnExpression",
-                  "name": {
-                    "type": "VariableExpression",
-                    "name": "fib"
-                  },
-                  "arguments": [
-                    {
-                      "inferred_type": "int",
-                      "type": "BinaryExpression",
-                      "operator": "-",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "n"
-                      },
-                      "right": {
-                        "inferred_type": "int",
-                        "type": "LiteralExpression",
-                        "value": 1,
-                        "literal_type": "int"
-                      }
-                    }
-                  ]
-                },
-                "right": {
-                  "inferred_type": "void",
-                  "type": "FnExpression",
-                  "name": {
-                    "type": "VariableExpression",
-                    "name": "fib"
-                  },
-                  "arguments": [
-                    {
-                      "inferred_type": "int",
-                      "type": "BinaryExpression",
-                      "operator": "-",
-                      "left": {
-                        "type": "VariableExpression",
-                        "name": "n"
-                      },
-                      "right": {
-                        "inferred_type": "int",
-                        "type": "LiteralExpression",
-                        "value": 2,
-                        "literal_type": "int"
-                      }
-                    }
-                  ]
-                }
+          {
+            "inferred_type": "string",
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "inferred_type": "string",
+                "type": "LiteralExpression",
+                "value": "hi",
+                "literal_type": "string"
               },
-              "inferred_type": "void"
-            }
-          ],
-          "inferred_type": "void"
-        }
-      ],
-      "return_type": "void"
+              {
+                "inferred_type": "string",
+                "type": "LiteralExpression",
+                "value": "llama3.2",
+                "literal_type": "string"
+              }
+            ]
+          },
+          {
+            "inferred_type": "string",
+            "type": "LiteralExpression",
+            "value": "c",
+            "literal_type": "string"
+          }
+        ]
+      },
+      "inferred_type": "string[]"
     },
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "int",
-            "type": "VariableExpression",
-            "name": "x"
-          },
-          "expression": {
-            "inferred_type": "int",
-            "type": "LiteralExpression",
-            "value": 10,
-            "literal_type": "int"
-          },
-          "inferred_type": "int"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "Fibonacci of",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "int",
-              "type": "VariableExpression",
-              "name": "x"
-            },
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "is",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "void",
-              "type": "FnExpression",
-              "name": {
-                "type": "VariableExpression",
-                "name": "fib"
-              },
-              "arguments": [
-                {
-                  "inferred_type": "int",
-                  "type": "VariableExpression",
-                  "name": "x"
-                }
-              ]
-            }
-          ],
-          "inferred_type": "void"
+          "inferred_type": "string[]",
+          "type": "VariableExpression",
+          "name": "x"
         }
       ],
-      "return_type": "void"
+      "inferred_type": "void"
     }
   ]
 }

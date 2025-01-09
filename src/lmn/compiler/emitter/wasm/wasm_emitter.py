@@ -111,7 +111,7 @@ class WasmEmitter:
         Delegates to the ProgramEmitter. 
         This is called from ast_to_wat.py.
         """
-        # emit program
+        logger.debug("WasmEmitter.emit_program: about to emit the top-level program.")
         return self.program_emitter.emit_program(ast)
     
     # -------------------------------------------------------------------------
@@ -122,7 +122,8 @@ class WasmEmitter:
         Dispatch a single statement node to the correct emitter.
         """
         stype = stmt["type"]
-        logger.debug("emit_statement: %s => %s", stype, stmt)
+        logger.debug("emit_statement: stype='%s' => AST=%s", stype, stmt)
+
         if stype == "IfStatement":
             self.if_emitter.emit_if(stmt, out_lines)
         elif stype == "LetStatement":
@@ -139,17 +140,19 @@ class WasmEmitter:
             self.assignment_emitter.emit_assignment(stmt, out_lines)
         elif stype == "FunctionDefinition":
             # Already handled in top-level rewriting => do nothing
+            logger.debug("emit_statement: 'FunctionDefinition' => skip (already handled)")
             pass
         else:
-            logger.debug("emit_statement: no special handler, ignoring or fallback")
-            pass
+            logger.debug("emit_statement: no special handler for stype='%s'; ignoring or fallback", stype)
+            # fallback => no instructions emitted
 
     def emit_expression(self, expr, out_lines):
         """
         Dispatch a single expression node to the correct expression emitter.
         """
         etype = expr["type"]
-        logger.debug("emit_expression: %s => %s", etype, expr)
+        logger.debug("emit_expression: etype='%s' => AST=%s", etype, expr)
+
         if etype == "BinaryExpression":
             self.binary_expr_emitter.emit(expr, out_lines)
         elif etype == "FnExpression":
@@ -171,30 +174,37 @@ class WasmEmitter:
         elif etype == "ArrayLiteralExpression":
             self._emit_array_literal(expr, out_lines)
         else:
-            # fallback => i32.const 0
-            logger.debug("emit_expression: fallback => i32.const 0")
+            logger.debug("emit_expression: no emitter found for etype='%s' => fallback i32.const 0", etype)
             out_lines.append('  i32.const 0')
 
     def _emit_array_literal(self, expr, out_lines):
         """
         Distinguish different array-literal types by `expr.get("inferred_type")`.
+        If none matches, fallback to array_literal_expression_emitter (text-based).
         """
         inferred_type = expr.get("inferred_type", "")
-        logger.debug("_emit_array_literal: inferred_type='%s'", inferred_type)
+        logger.debug("_emit_array_literal: inferred_type='%s', AST=%s", inferred_type, expr)
+
         if inferred_type == "i32_string_array":
+            logger.debug("_emit_array_literal: using string_array_literal_emitter")
             self.string_array_literal_emitter.emit_string_array(expr, out_lines)
         elif inferred_type == "i32_json_array":
+            logger.debug("_emit_array_literal: using array_literal_expression_emitter for JSON array")
             self.array_literal_expression_emitter.emit(expr, out_lines)
         elif inferred_type in ("i32_ptr",):
+            logger.debug("_emit_array_literal: using IntArrayLiteralEmitter => i32_ptr")
             self.int_array_literal_emitter.emit_int_array(expr, out_lines)
         elif inferred_type in ("i64_ptr",):
+            logger.debug("_emit_array_literal: using LongArrayLiteralEmitter => i64_ptr")
             self.long_array_literal_emitter.emit_long_array(expr, out_lines)
         elif inferred_type in ("f32_ptr",):
+            logger.debug("_emit_array_literal: using FloatArrayLiteralEmitter => f32_ptr")
             self.float_array_literal_emitter.emit_float_array(expr, out_lines)
         elif inferred_type in ("f64_ptr",):
+            logger.debug("_emit_array_literal: using DoubleArrayLiteralEmitter => f64_ptr")
             self.double_array_literal_emitter.emit_double_array(expr, out_lines)
         else:
-            # fallback => generic array literal
+            logger.debug("_emit_array_literal: fallback => array_literal_expression_emitter")
             self.array_literal_expression_emitter.emit(expr, out_lines)
 
     # -------------------------------------------------------------------------
@@ -204,9 +214,7 @@ class WasmEmitter:
         """
         Calls the external wasm_module_builder to produce the final (module ...) text.
         """
-        logger.debug("build_module: generating final WAT module")
-
-        # build the module
+        logger.debug("build_module: about to build final (module ...) from collected functions & data segments")
         return build_module(self)
 
     # -------------------------------------------------------------------------
@@ -215,13 +223,25 @@ class WasmEmitter:
     def _add_data_segment(self, text: str) -> int:
         """
         Store text in a data segment, returning the linear-memory offset.
+        The text is UTF-8 encoded + a null terminator, so 'hello' => b'hello\0'.
         """
         data_bytes = text.encode('utf-8', errors='replace') + b'\0'
         offset = self.current_data_offset
+
+        logger.debug(
+            "_add_data_segment: Storing text=%r at offset=%d, current_data_offset=%d", 
+            text, offset, self.current_data_offset
+        )
+
         self.data_segments.append((offset, data_bytes))
-        logger.debug(f"_add_data_segment: Stored '{text}' at offset {offset}, bytes={data_bytes}")
+        logger.debug("_add_data_segment: data_bytes=%r", data_bytes)
+
         self.current_data_offset += len(data_bytes)
-        logger.debug(f"_add_data_segment: Updated current_data_offset to {self.current_data_offset}")
+        logger.debug(
+            "_add_data_segment: updated current_data_offset to %d after storing %d bytes", 
+            self.current_data_offset, len(data_bytes)
+        )
+
         return offset
 
     # -------------------------------------------------------------------------
@@ -249,7 +269,10 @@ class WasmEmitter:
             "double": "f64",
             "f64":    "f64",
         }
-        return basic_type_map.get(t, "i32")
+        resolved = basic_type_map.get(t, "i32")
+
+        logger.debug("_wasm_basetype: converting type=%r => wasm_base=%r", t, resolved)
+        return resolved
 
     # -------------------------------------------------------------------------
     # (F) Utility
@@ -260,10 +283,15 @@ class WasmEmitter:
         so we can reference them properly in WAT.
         """
         if name.startswith('$$'):
-            return '$' + name[2:]
+            normalized = '$' + name[2:]
+            logger.debug("_normalize_local_name: '%s' => '%s' (double-$ => single-$)", name, normalized)
+            return normalized
         elif not name.startswith('$'):
-            return f'${name}'
+            normalized = f'${name}'
+            logger.debug("_normalize_local_name: '%s' => '%s' (prepend $)", name, normalized)
+            return normalized
         else:
+            logger.debug("_normalize_local_name: '%s' => '%s' (unchanged, already starts with $)", name, name)
             return name
 
     def get_emitted_function_name(self, raw_name: str) -> str:
@@ -271,4 +299,28 @@ class WasmEmitter:
         If 'raw_name' was mapped to an inline-lifted function (e.g. 'anon_0'),
         return that new name. Else keep the same.
         """
-        return self.func_alias_map.get(raw_name, raw_name)
+        resolved = self.func_alias_map.get(raw_name, raw_name)
+        if resolved != raw_name:
+            logger.debug("get_emitted_function_name: alias found => '%s' => '%s'", raw_name, resolved)
+        else:
+            logger.debug("get_emitted_function_name: no alias => keeping '%s'", raw_name)
+        return resolved
+    
+    def request_local(self, local_name: str, local_type: str):
+        """
+        Ensure a local variable named 'local_name' with type 'local_type'
+        is declared in the current function. If it's already declared, do nothing.
+        """
+        logger.debug("request_local: requesting local=%r type=%r", local_name, local_type)
+
+        # If we haven't tracked this local yet...
+        if local_name not in self.func_local_map:
+            self.func_local_map[local_name] = {
+                "index": self.local_counter,
+                "type": local_type
+            }
+            self.local_counter += 1
+
+        # Also add to new_locals so we generate '(local $arr i32)' lines
+        self.new_locals.add(local_name)
+
