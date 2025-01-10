@@ -2,21 +2,113 @@
   "type": "Program",
   "body": [
     {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "cur_time"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "get_internet_time"
+        },
+        "arguments": []
+      },
+      "type_annotation": "json"
+    },
+    {
       "type": "PrintStatement",
       "expressions": [
         {
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "llm"
+          "type": "VariableExpression",
+          "name": "cur_time"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "local_time"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "get_system_time"
+        },
+        "arguments": []
+      },
+      "type_annotation": "int"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "local_time"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "weather"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "get_weather"
+        },
+        "arguments": [
+          {
+            "type": "LiteralExpression",
+            "value": 35.0,
+            "literal_type": "double"
           },
-          "arguments": [
-            {
-              "type": "LiteralExpression",
-              "value": "write me a limerick about cheese",
-              "literal_type": "string"
-            }
-          ]
+          {
+            "type": "LiteralExpression",
+            "value": 139.0,
+            "literal_type": "double"
+          }
+        ]
+      },
+      "type_annotation": "json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "weather"
+        }
+      ]
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "type": "VariableExpression",
+        "name": "a_joke"
+      },
+      "expression": {
+        "type": "FnExpression",
+        "name": {
+          "type": "VariableExpression",
+          "name": "get_joke"
+        },
+        "arguments": []
+      },
+      "type_annotation": "string"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "type": "VariableExpression",
+          "name": "a_joke"
         }
       ]
     }

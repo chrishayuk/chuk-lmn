@@ -21,15 +21,37 @@
   (import "env" "call_tools" (func $call_tools (param i32) (result i32)))
   (memory (export "memory") 1)
   (func $__top_level__
+    (local $local_time i32)
+    (local $cur_time i32)
+    (local $weather i32)
+    (local $a_joke i32)
+    call $get_internet_time
+    local.set $cur_time
+    local.get $cur_time
+    call $print_json
     i32.const 1024
-    i32.const 1057
-    call $llm
     call $print_string
-    i32.const 1066
+    call $get_system_time
+    local.set $local_time
+    local.get $local_time
+    call $print_i32
+    i32.const 1024
+    call $print_string
+    f64.const 35.0
+    f64.const 139.0
+    call $get_weather
+    local.set $weather
+    local.get $weather
+    call $print_json
+    i32.const 1024
+    call $print_string
+    call $get_joke
+    local.set $a_joke
+    local.get $a_joke
+    call $print_string
+    i32.const 1024
     call $print_string
   )
   (export "__top_level__" (func $__top_level__))
-  (data (i32.const 1024) "\77\72\69\74\65\20\6d\65\20\61\20\6c\69\6d\65\72\69\63\6b\20\61\62\6f\75\74\20\63\68\65\65\73\65\00")
-  (data (i32.const 1057) "\6c\6c\61\6d\61\33\2e\32\00")
-  (data (i32.const 1066) "\0a\00")
+  (data (i32.const 1024) "\0a\00")
 )

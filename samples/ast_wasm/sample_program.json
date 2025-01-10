@@ -2,30 +2,138 @@
   "type": "Program",
   "body": [
     {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "cur_time"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "get_internet_time"
+        },
+        "arguments": []
+      },
+      "inferred_type": "i32_json",
+      "type_annotation": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "cur_time"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32",
+        "type": "VariableExpression",
+        "name": "local_time"
+      },
+      "expression": {
+        "inferred_type": "i32",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "get_system_time"
+        },
+        "arguments": []
+      },
+      "inferred_type": "i32",
+      "type_annotation": "i32"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32",
+          "type": "VariableExpression",
+          "name": "local_time"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_json",
+        "type": "VariableExpression",
+        "name": "weather"
+      },
+      "expression": {
+        "inferred_type": "i32_json",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "get_weather"
+        },
+        "arguments": [
+          {
+            "inferred_type": "f64",
+            "type": "LiteralExpression",
+            "value": 35.0,
+            "literal_type": "f64"
+          },
+          {
+            "inferred_type": "f64",
+            "type": "LiteralExpression",
+            "value": 139.0,
+            "literal_type": "f64"
+          }
+        ]
+      },
+      "inferred_type": "i32_json",
+      "type_annotation": "i32_json"
+    },
+    {
+      "type": "PrintStatement",
+      "expressions": [
+        {
+          "inferred_type": "i32_json",
+          "type": "VariableExpression",
+          "name": "weather"
+        }
+      ],
+      "inferred_type": "i32"
+    },
+    {
+      "type": "LetStatement",
+      "variable": {
+        "inferred_type": "i32_string",
+        "type": "VariableExpression",
+        "name": "a_joke"
+      },
+      "expression": {
+        "inferred_type": "i32_string",
+        "type": "FnExpression",
+        "name": {
+          "inferred_type": null,
+          "type": "VariableExpression",
+          "name": "get_joke"
+        },
+        "arguments": []
+      },
+      "inferred_type": "i32_string",
+      "type_annotation": "i32_string"
+    },
+    {
       "type": "PrintStatement",
       "expressions": [
         {
           "inferred_type": "i32_string",
-          "type": "FnExpression",
-          "name": {
-            "inferred_type": null,
-            "type": "VariableExpression",
-            "name": "llm"
-          },
-          "arguments": [
-            {
-              "inferred_type": "i32_string",
-              "type": "LiteralExpression",
-              "value": "write me a limerick about cheese",
-              "literal_type": "i32_string"
-            },
-            {
-              "inferred_type": "i32_string",
-              "type": "LiteralExpression",
-              "value": "llama3.2",
-              "literal_type": "i32_string"
-            }
-          ]
+          "type": "VariableExpression",
+          "name": "a_joke"
         }
       ],
       "inferred_type": "i32"

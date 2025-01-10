@@ -1,9 +1,9 @@
 {
   "get_internet_time": {
-    "description": "Fetch the current time from an internet time API (returns an int).",
+    "description": "Fetch the current time from an internet time API (returns json).",
     "typechecker": {
       "params": [],
-      "return_type": "int"
+      "return_type": "json"
     },
     "wasm": {
       "namespace": "env",
