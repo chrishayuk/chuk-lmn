@@ -5,7 +5,7 @@
       "type": "LetStatement",
       "variable": {
         "type": "VariableExpression",
-        "name": "a_joke"
+        "name": "x"
       },
       "expression": {
         "type": "FnExpression",
@@ -21,7 +21,7 @@
       "expressions": [
         {
           "type": "VariableExpression",
-          "name": "a_joke"
+          "name": "x"
         }
       ]
     }

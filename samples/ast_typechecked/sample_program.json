@@ -6,7 +6,7 @@
       "variable": {
         "inferred_type": "string",
         "type": "VariableExpression",
-        "name": "a_joke"
+        "name": "x"
       },
       "expression": {
         "inferred_type": "string",
@@ -25,7 +25,7 @@
         {
           "inferred_type": "string",
           "type": "VariableExpression",
-          "name": "a_joke"
+          "name": "x"
         }
       ],
       "inferred_type": "void"

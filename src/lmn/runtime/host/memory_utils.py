@@ -1,11 +1,16 @@
-# src/lmn/runtime/memory_utils.py
+# file: src/lmn/runtime/memory_utils.py
+
 import struct
 
-def read_utf8_string(store, memory, offset, max_len=200):
+def read_utf8_string(store, memory, offset, max_len=65535):
     """
     Reads a UTF-8 string from 'memory' starting at 'offset',
-    stopping at a null byte or after max_len bytes.
+    stopping at a null byte or after max_len bytes, whichever comes first.
     Returns the decoded Python string.
+
+    Increase 'max_len' if you need to read very large strings.
+    If you remove it, be sure there's a null terminator or you might scan
+    all of memory.
     """
     mem_data = memory.data_ptr(store)
     mem_size = memory.data_len(store)
@@ -18,10 +23,12 @@ def read_utf8_string(store, memory, offset, max_len=200):
     for i in range(offset, end):
         b = mem_data[i]
         if b == 0:
+            # Stop at null terminator
             break
         raw_bytes.append(b)
 
     return raw_bytes.decode("utf-8", errors="replace")
+
 
 def parse_i32_array(store, memory, offset):
     """
@@ -50,6 +57,7 @@ def parse_i32_array(store, memory, offset):
 
     return elements
 
+
 def parse_i64_array(store, memory, offset):
     """
     Parses an i64 array from memory starting at 'offset'.
@@ -76,6 +84,7 @@ def parse_i64_array(store, memory, offset):
         offset += 8
 
     return elements
+
 
 def parse_f32_array(store, memory, offset):
     """
@@ -104,6 +113,7 @@ def parse_f32_array(store, memory, offset):
 
     return elements
 
+
 def parse_f64_array(store, memory, offset):
     """
     Parses an f64 array from memory starting at 'offset'.
@@ -130,6 +140,7 @@ def parse_f64_array(store, memory, offset):
         offset += 8
 
     return elements
+
 
 def parse_i32_string_array(store, memory, offset):
     """
@@ -159,7 +170,7 @@ def parse_i32_string_array(store, memory, offset):
         ptr_val = struct.unpack("<i", ptr_bytes)[0]
         offset += 4
 
-        text = read_utf8_string(store, memory, ptr_val)
+        text = read_utf8_string(store, memory, ptr_val)  # uses the updated function
         strings.append(text)
 
     return strings

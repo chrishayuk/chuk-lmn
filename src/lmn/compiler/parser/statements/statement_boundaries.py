@@ -12,7 +12,6 @@ STATEMENT_BOUNDARY_TOKENS = {
     LmnTokenType.END,
     LmnTokenType.ELSE,
     LmnTokenType.FUNCTION,  # We'll exclude this only when in expression context
-    LmnTokenType.CALL,
     LmnTokenType.BEGIN,
 }
 

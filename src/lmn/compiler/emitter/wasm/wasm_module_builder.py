@@ -44,6 +44,12 @@ def build_module(wasm_emitter):
     # 4) get_joke => returns i32 pointer to joke text
     lines.append('  (import "env" "get_joke" (func $get_joke (result i32)))')
 
+    # 5) ask_tools => takes a single i32 pointer to a string, returns i32 pointer
+    lines.append('  (import "env" "ask_tools" (func $ask_tools (param i32) (result i32)))')
+
+    # 6) call_tools => takes a single i32 pointer, returns i32 pointer
+    lines.append('  (import "env" "call_tools" (func $call_tools (param i32) (result i32)))')
+
 
     # Memory
     if wasm_emitter.import_memory:

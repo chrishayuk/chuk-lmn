@@ -1,2 +1,2 @@
-let a_joke = get_joke()
-print a_joke
+let x = get_joke()
+print x

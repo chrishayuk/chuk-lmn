@@ -1,6 +1,6 @@
 {
   "get_internet_time": {
-    "description": "Fetch the current time from an internet time API",
+    "description": "Fetch the current time from an internet time API (returns an int).",
     "typechecker": {
       "params": [],
       "return_type": "int"
@@ -13,7 +13,9 @@
           "signature": {
             "parameters": [],
             "results": [
-              { "type": "i32" }
+              {
+                "type": "i32"
+              }
             ]
           },
           "handler": "lmn.runtime.host.core.tools.handler:get_internet_time"
@@ -23,7 +25,7 @@
   },
 
   "get_system_time": {
-    "description": "Get the local system time in seconds",
+    "description": "Get the local system time in seconds (returns an int).",
     "typechecker": {
       "params": [],
       "return_type": "int"
@@ -36,7 +38,9 @@
           "signature": {
             "parameters": [],
             "results": [
-              { "type": "i32" }
+              {
+                "type": "i32"
+              }
             ]
           },
           "handler": "lmn.runtime.host.core.tools.handler:get_system_time"
@@ -46,11 +50,19 @@
   },
 
   "get_weather": {
-    "description": "...",
+    "description": "Fetch weather data for the given latitude/longitude (returns JSON).",
     "typechecker": {
       "params": [
-        { "name": "lat", "type": "double", "required": true },
-        { "name": "lon", "type": "double", "required": true }
+        {
+          "name": "lat",
+          "type": "double",
+          "required": true
+        },
+        {
+          "name": "lon",
+          "type": "double",
+          "required": true
+        }
       ],
       "return_type": "json"
     },
@@ -61,11 +73,19 @@
           "name": "get_weather",
           "signature": {
             "parameters": [
-              { "name": "lat", "type": "f64" },
-              { "name": "lon", "type": "f64" }
+              {
+                "name": "lat",
+                "type": "f64"
+              },
+              {
+                "name": "lon",
+                "type": "f64"
+              }
             ],
             "results": [
-              { "type": "i32" }
+              {
+                "type": "i32"
+              }
             ]
           },
           "handler": "lmn.runtime.host.core.tools.handler:get_weather"
@@ -75,7 +95,7 @@
   },
 
   "get_joke": {
-    "description": "Fetch a joke from a public jokes API, returning a string pointer",
+    "description": "Fetch a random joke as a string.",
     "typechecker": {
       "params": [],
       "return_type": "string"
@@ -88,10 +108,84 @@
           "signature": {
             "parameters": [],
             "results": [
-              { "type": "i32" }
+              {
+                "type": "i32"
+              }
             ]
           },
           "handler": "lmn.runtime.host.core.tools.handler:get_joke"
+        }
+      ]
+    }
+  },
+
+  "ask_tools": {
+    "description": "Ask the AI which tools exist or how to call them (returns a string).",
+    "typechecker": {
+      "params": [
+        {
+          "name": "question",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "return_type": "string"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "ask_tools",
+          "signature": {
+            "parameters": [
+              {
+                "name": "question_ptr",
+                "type": "i32"
+              }
+            ],
+            "results": [
+              {
+                "type": "i32"
+              }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.ask_tools_handler:ask_or_call_tools_handler"
+        }
+      ]
+    }
+  },
+
+  "call_tools": {
+    "description": "Parse the user command and automatically pick an appropriate tool usage (returns a string).",
+    "typechecker": {
+      "params": [
+        {
+          "name": "command",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "return_type": "string"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "call_tools",
+          "signature": {
+            "parameters": [
+              {
+                "name": "command_ptr",
+                "type": "i32"
+              }
+            ],
+            "results": [
+              {
+                "type": "i32"
+              }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.ask_tools_handler:ask_or_call_tools_handler"
         }
       ]
     }

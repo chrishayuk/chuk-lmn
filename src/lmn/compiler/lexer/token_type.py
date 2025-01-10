@@ -88,7 +88,6 @@ class LmnTokenType(Enum):
     # Statements
     LET   = 'let'
     PRINT = 'print'
-    CALL  = 'call'
     AND   = 'and'
     OR    = 'or'
     NOT   = 'not'
@@ -135,7 +134,6 @@ class LmnTokenType(Enum):
             # statements
             'let':   LmnTokenType.LET,
             'print': LmnTokenType.PRINT,
-            'call':  LmnTokenType.CALL,
             'and':   LmnTokenType.AND,
             'or':    LmnTokenType.OR,
             'not':   LmnTokenType.NOT,

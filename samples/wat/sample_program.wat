@@ -17,12 +17,14 @@
   (import "env" "get_system_time" (func $get_system_time (result i32)))
   (import "env" "get_weather" (func $get_weather (param f64 f64) (result i32)))
   (import "env" "get_joke" (func $get_joke (result i32)))
+  (import "env" "ask_tools" (func $ask_tools (param i32) (result i32)))
+  (import "env" "call_tools" (func $call_tools (param i32) (result i32)))
   (memory (export "memory") 1)
   (func $__top_level__
-    (local $a_joke i32)
+    (local $x i32)
     call $get_joke
-    local.set $a_joke
-    local.get $a_joke
+    local.set $x
+    local.get $x
     call $print_string
     i32.const 1024
     call $print_string

@@ -5,7 +5,7 @@ import logging
 import requests
 import time
 
-from lmn.runtime.host.core.malloc.call_malloc import store_string_with_malloc
+from lmn.runtime.host.memory_utils_extra import store_string_with_malloc
 
 # logger
 logger = logging.getLogger(__name__)

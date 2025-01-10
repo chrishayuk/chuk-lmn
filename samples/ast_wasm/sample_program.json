@@ -6,7 +6,7 @@
       "variable": {
         "inferred_type": "i32_string",
         "type": "VariableExpression",
-        "name": "a_joke"
+        "name": "x"
       },
       "expression": {
         "inferred_type": "i32_string",
@@ -26,7 +26,7 @@
         {
           "inferred_type": "i32_string",
           "type": "VariableExpression",
-          "name": "a_joke"
+          "name": "x"
         }
       ],
       "inferred_type": "i32"

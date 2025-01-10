@@ -39,7 +39,6 @@ def test_keywords():
         LmnTokenType.FOR,
         LmnTokenType.IN,
         LmnTokenType.TO,
-        LmnTokenType.CALL,
         LmnTokenType.PRINT,
         LmnTokenType.LET,
     ]
