@@ -1,0 +1,32 @@
+{
+  "parse_string_to_i32": {
+    "description": "Parse a zero-terminated string in memory into a 32-bit integer.",
+    "typechecker": {
+      "params": [
+        {
+          "name": "ptr",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "return_type": "int"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "parse_string_to_i32",
+          "signature": {
+            "parameters": [
+              { "name": "ptr", "type": "i32" }
+            ],
+            "results": [
+              { "type": "i32" }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.string.parse_string.handler:parse_string_to_i32"
+        }
+      ]
+    }
+  }
+}

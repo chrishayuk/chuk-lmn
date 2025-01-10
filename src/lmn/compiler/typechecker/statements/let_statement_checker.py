@@ -269,11 +269,12 @@ class LetStatementChecker(BaseStatementChecker):
                     self._debug_symbol_tables(var_name, f"after unify JSON -> declared_type '{declared_type}'")
                     return
 
-                # Non-array expression unifying with array type
+                # Non-array expression unifying with array type => code for arrays
                 unified = unify_types(declared_type, expr_type, for_assignment=True)
                 if unified != declared_type:
-                    raise TypeError(f"Cannot unify assignment: {expr_type} -> {declared_type}")
+                    raise TypeError(f"Cannot assign '{expr_type}' to var of type '{declared_type}'")
 
+                # We handle array scenario, then return
                 logger.debug(f"Storing array type '{declared_type}' for '{var_name}'.")
                 scope[var_name] = declared_type
                 stmt.inferred_type = declared_type
@@ -283,10 +284,25 @@ class LetStatementChecker(BaseStatementChecker):
                 self._debug_symbol_tables(var_name, f"after unify declared array type '{declared_type}'")
                 return
 
-            # declared_type is not an array => unify
+            # ---------------------------------------------------
+            # declared_type is NOT an array => unify
             unified = unify_types(declared_type, expr_type, for_assignment=True)
             if unified != declared_type:
                 raise TypeError(f"Cannot assign '{expr_type}' to var of type '{declared_type}'")
+
+            # === NEW CODE: Insert a ConversionExpression for string->numeric ===
+            if declared_type in ("int", "long", "float", "double") and expr_type == "string":
+                from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
+
+                conversion_expr = ConversionExpression(
+                    from_type="string",
+                    to_type=declared_type,
+                    source_expr=stmt.expression,
+                    inferred_type=declared_type
+                )
+                stmt.expression = conversion_expr
+                logger.debug(f"Inserted ConversionExpression for string->'{declared_type}'")
+            # === END NEW CODE
 
             logger.debug(f"Storing declared type '{declared_type}' for '{var_name}'.")
             scope[var_name] = declared_type

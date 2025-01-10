@@ -1,6 +1,7 @@
 # file: lmn/compiler/parser/statements/print_parser.py
 
 import logging
+from lmn.compiler.ast.statements.block_statement import BlockStatement
 from lmn.compiler.lexer.token_type import LmnTokenType
 from lmn.compiler.ast import PrintStatement
 from lmn.compiler.parser.statements.statement_boundaries import is_statement_boundary
@@ -75,7 +76,10 @@ class PrintParser:
         # 4) Return a *list* of statements
         #    - If we never saw a 'break'/'continue', this list has just the print_stmt
         #    - If we did parse a 'break'/'continue', we also append that statement
+        # If there's a secondary statement, put both in a BlockStatement
         if secondary_stmt:
-            return [print_stmt, secondary_stmt]
+            block = BlockStatement(body=[print_stmt, secondary_stmt])
+            return block
         else:
-            return [print_stmt]
+            # Just one statement to return
+            return print_stmt

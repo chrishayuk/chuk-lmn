@@ -70,19 +70,11 @@ def infer_literal_type(value, target_type: Optional[str] = None) -> str:
 
 
 def can_assign_to(source: str, target: str) -> bool:
-    """
-    Check if 'source' can be assigned to 'target'.
-    
-      - int -> long, float, double
-      - long -> float, double
-      - float -> double
-      - double -> double
-
-    Then we handle special types 'json' and 'array' in a simplistic way:
-      - 'json' -> 'json' (only)
-      - 'array' -> 'array' (only)
-    """
     if source == target:
+        return True
+
+    # Allow string -> numeric (WARNING: This can lead to runtime parse errors!)
+    if source == "string" and target in ("int", "long", "float", "double"):
         return True
 
     # Handle 'json' => it only can assign to 'json'
@@ -98,13 +90,12 @@ def can_assign_to(source: str, target: str) -> bool:
         "int":    {"long", "float", "double"},
         "long":   {"float", "double"},
         "float":  {"double"},
-        # Now we explicitly allow narrowing from double -> float
         "double": {"float"},
     }
 
-
-    # If not found in table => no conversions
     return target in allowed_conversions.get(source, set())
+
+
 
 # file: lmn/compiler/typechecker/utils.py
 

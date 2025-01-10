@@ -321,7 +321,6 @@ class WasmEmitter:
         """
         logger.debug("request_local: requesting local=%r type=%r", local_name, local_type)
 
-        # If we haven't tracked this local yet...
         if local_name not in self.func_local_map:
             self.func_local_map[local_name] = {
                 "index": self.local_counter,
@@ -329,6 +328,29 @@ class WasmEmitter:
             }
             self.local_counter += 1
 
-        # Also add to new_locals so we generate '(local $arr i32)' lines
         self.new_locals.add(local_name)
 
+    # -------------------------------------------------------------------------
+    # (G) WASM Type Unifier
+    # -------------------------------------------------------------------------
+    def _unify_wasm_types(self, lhs_type: str, rhs_type: str) -> str:
+        """
+        Minimal unify for WASM-level types. If they differ, decide whether
+        to allow it or raise error.
+
+        Example: 
+          - int => i32
+          - long => i64
+          - i32_string => i32
+        """
+        # If identical, keep it
+        if lhs_type == rhs_type:
+            return lhs_type
+
+        # If you allow i32->i64 or i64->i32, handle that here:
+        if lhs_type == "i64" and rhs_type == "i32":
+            logger.debug("_unify_wasm_types: allowing i32 -> i64 promotion")
+            return "i64"
+
+        # else raise
+        raise TypeError(f"Cannot unify WASM types: {lhs_type} vs {rhs_type}")

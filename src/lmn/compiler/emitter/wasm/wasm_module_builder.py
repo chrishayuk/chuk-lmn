@@ -29,6 +29,9 @@ def build_module(wasm_emitter):
     # New import for $malloc:
     lines.append('  (import "env" "malloc" (func $malloc (param i32) (result i32)))')
 
+    # add parse_string_to_i32 import ===
+    lines.append('  (import "env" "parse_string_to_i32" (func $parse_string_to_i32 (param i32) (result i32)))')
+
     # Memory
     if wasm_emitter.import_memory:
         lines.append('  (import "env" "memory" (memory 1))')
