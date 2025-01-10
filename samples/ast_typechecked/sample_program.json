@@ -2,86 +2,384 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string[]",
-        "type": "VariableExpression",
-        "name": "x"
-      },
-      "expression": {
-        "inferred_type": "string[]",
-        "type": "ArrayLiteralExpression",
-        "elements": [
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "a",
-            "literal_type": "string"
-          },
-          {
-            "inferred_type": "string",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "hi",
-                "literal_type": "string"
-              },
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "string"
-              }
-            ]
-          },
-          {
-            "inferred_type": "string",
-            "type": "LiteralExpression",
-            "value": "c",
-            "literal_type": "string"
-          },
-          {
-            "inferred_type": "string",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "bye",
-                "literal_type": "string"
-              },
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "string"
-              }
-            ]
-          }
-        ]
-      },
-      "inferred_type": "string[]"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+      "type": "FunctionDefinition",
+      "name": "demonstrateBreakContinue",
+      "params": [
         {
-          "inferred_type": "string[]",
-          "type": "VariableExpression",
-          "name": "x"
+          "type": "FunctionParameter",
+          "name": "n"
+        },
+        {
+          "type": "FunctionParameter",
+          "name": "arr"
         }
       ],
-      "inferred_type": "void"
+      "body": [
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "=== Range-based for loop (1..n) demonstration ===",
+              "literal_type": "string"
+            }
+          ],
+          "inferred_type": "void"
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "i"
+          },
+          "start_expr": {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 1,
+            "literal_type": "int"
+          },
+          "end_expr": {
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "i"
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 3,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "string",
+                      "type": "LiteralExpression",
+                      "value": "Breaking at i = 3",
+                      "literal_type": "string"
+                    }
+                  ],
+                  "inferred_type": "void"
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": [],
+              "inferred_type": "void"
+            },
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "inferred_type": "int",
+                  "type": "BinaryExpression",
+                  "operator": "%",
+                  "left": {
+                    "inferred_type": "int",
+                    "type": "VariableExpression",
+                    "name": "i"
+                  },
+                  "right": {
+                    "inferred_type": "int",
+                    "type": "LiteralExpression",
+                    "value": 2,
+                    "literal_type": "int"
+                  }
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "string",
+                      "type": "LiteralExpression",
+                      "value": "Skipping even i = ",
+                      "literal_type": "string"
+                    },
+                    {
+                      "inferred_type": "int",
+                      "type": "VariableExpression",
+                      "name": "i"
+                    }
+                  ],
+                  "inferred_type": "void"
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": [],
+              "inferred_type": "void"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "string",
+                  "type": "LiteralExpression",
+                  "value": "Current i = ",
+                  "literal_type": "string"
+                },
+                {
+                  "inferred_type": "int",
+                  "type": "VariableExpression",
+                  "name": "i"
+                }
+              ],
+              "inferred_type": "void"
+            }
+          ],
+          "inferred_type": "void"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "=== 'for-in' loop over array demonstration ===",
+              "literal_type": "string"
+            }
+          ],
+          "inferred_type": "void"
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "item"
+          },
+          "start_expr": {
+            "type": "VariableExpression",
+            "name": "arr"
+          },
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "<",
+                "left": {
+                  "type": "ConversionExpression",
+                  "from_type": "any",
+                  "to_type": "int",
+                  "source_expr": {
+                    "inferred_type": "any",
+                    "type": "VariableExpression",
+                    "name": "item"
+                  }
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "string",
+                      "type": "LiteralExpression",
+                      "value": "Breaking at negative item: ",
+                      "literal_type": "string"
+                    },
+                    {
+                      "inferred_type": "any",
+                      "type": "VariableExpression",
+                      "name": "item"
+                    }
+                  ],
+                  "inferred_type": "void"
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": [],
+              "inferred_type": "void"
+            },
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "int",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "type": "ConversionExpression",
+                  "from_type": "any",
+                  "to_type": "int",
+                  "source_expr": {
+                    "inferred_type": "any",
+                    "type": "VariableExpression",
+                    "name": "item"
+                  }
+                },
+                "right": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "int"
+                }
+              },
+              "thenBody": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "string",
+                      "type": "LiteralExpression",
+                      "value": "Skipping zero item",
+                      "literal_type": "string"
+                    }
+                  ],
+                  "inferred_type": "void"
+                }
+              ],
+              "elseifClauses": [],
+              "elseBody": [],
+              "inferred_type": "void"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "string",
+                  "type": "LiteralExpression",
+                  "value": "Current item = ",
+                  "literal_type": "string"
+                },
+                {
+                  "inferred_type": "any",
+                  "type": "VariableExpression",
+                  "name": "item"
+                }
+              ],
+              "inferred_type": "void"
+            }
+          ],
+          "inferred_type": "void"
+        }
+      ],
+      "return_type": "void"
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "int",
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "expression": {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 5,
+            "literal_type": "int"
+          },
+          "inferred_type": "int"
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "int[]",
+            "type": "VariableExpression",
+            "name": "nums"
+          },
+          "expression": {
+            "inferred_type": "int[]",
+            "type": "ArrayLiteralExpression",
+            "elements": [
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 1,
+                "literal_type": "int"
+              },
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 2,
+                "literal_type": "int"
+              },
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 0,
+                "literal_type": "int"
+              },
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 4,
+                "literal_type": "int"
+              },
+              {
+                "inferred_type": "int",
+                "type": "UnaryExpression",
+                "operator": "-",
+                "operand": {
+                  "inferred_type": "int",
+                  "type": "LiteralExpression",
+                  "value": 1,
+                  "literal_type": "int"
+                }
+              },
+              {
+                "inferred_type": "int",
+                "type": "LiteralExpression",
+                "value": 5,
+                "literal_type": "int"
+              }
+            ]
+          },
+          "inferred_type": "int[]"
+        },
+        {
+          "type": "CallStatement",
+          "tool_name": "demonstrateBreakContinue",
+          "arguments": [
+            {
+              "inferred_type": "int",
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "inferred_type": "int[]",
+              "type": "VariableExpression",
+              "name": "nums"
+            }
+          ],
+          "inferred_type": "void"
+        }
+      ],
+      "return_type": "void"
     }
   ]
 }

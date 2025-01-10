@@ -2,88 +2,395 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "i32_string_array",
-        "type": "VariableExpression",
-        "name": "x"
-      },
-      "expression": {
-        "inferred_type": "i32_string_array",
-        "type": "ArrayLiteralExpression",
-        "elements": [
-          {
-            "inferred_type": "i32_string",
-            "type": "LiteralExpression",
-            "value": "a",
-            "literal_type": "i32_string"
-          },
-          {
-            "inferred_type": "i32_string",
-            "type": "FnExpression",
-            "name": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "i32_string",
-                "type": "LiteralExpression",
-                "value": "hi",
-                "literal_type": "i32_string"
-              },
-              {
-                "inferred_type": "i32_string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "i32_string"
-              }
-            ]
-          },
-          {
-            "inferred_type": "i32_string",
-            "type": "LiteralExpression",
-            "value": "c",
-            "literal_type": "i32_string"
-          },
-          {
-            "inferred_type": "i32_string",
-            "type": "FnExpression",
-            "name": {
-              "inferred_type": null,
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "i32_string",
-                "type": "LiteralExpression",
-                "value": "bye",
-                "literal_type": "i32_string"
-              },
-              {
-                "inferred_type": "i32_string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "i32_string"
-              }
-            ]
-          }
-        ]
-      },
-      "inferred_type": "i32_string_array"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+      "type": "FunctionDefinition",
+      "name": "demonstrateBreakContinue",
+      "params": [
         {
-          "inferred_type": "i32_string_array",
-          "type": "VariableExpression",
-          "name": "x"
+          "type": "FunctionParameter",
+          "name": "n",
+          "type_annotation": null
+        },
+        {
+          "type": "FunctionParameter",
+          "name": "arr",
+          "type_annotation": null
         }
       ],
-      "inferred_type": "i32"
+      "body": [
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": "=== Range-based for loop (1..n) demonstration ===",
+              "literal_type": "i32_string"
+            }
+          ],
+          "inferred_type": "i32"
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "i"
+          },
+          "start_expr": {
+            "inferred_type": "int",
+            "type": "LiteralExpression",
+            "value": 1,
+            "literal_type": "int"
+          },
+          "end_expr": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "step_expr": null,
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "i"
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 3,
+                  "literal_type": "i32"
+                }
+              },
+              "then_body": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "i32_string",
+                      "type": "LiteralExpression",
+                      "value": "Breaking at i = 3",
+                      "literal_type": "i32_string"
+                    }
+                  ],
+                  "inferred_type": "i32"
+                }
+              ],
+              "elseif_clauses": [],
+              "else_body": [],
+              "inferred_type": "i32"
+            },
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "BinaryExpression",
+                  "operator": "%",
+                  "left": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "i"
+                  },
+                  "right": {
+                    "inferred_type": "i32",
+                    "type": "LiteralExpression",
+                    "value": 2,
+                    "literal_type": "i32"
+                  }
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "i32"
+                }
+              },
+              "then_body": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "i32_string",
+                      "type": "LiteralExpression",
+                      "value": "Skipping even i = ",
+                      "literal_type": "i32_string"
+                    },
+                    {
+                      "inferred_type": "i32",
+                      "type": "VariableExpression",
+                      "name": "i"
+                    }
+                  ],
+                  "inferred_type": "i32"
+                }
+              ],
+              "elseif_clauses": [],
+              "else_body": [],
+              "inferred_type": "i32"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32_string",
+                  "type": "LiteralExpression",
+                  "value": "Current i = ",
+                  "literal_type": "i32_string"
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "i"
+                }
+              ],
+              "inferred_type": "i32"
+            }
+          ],
+          "inferred_type": "i32"
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "inferred_type": "i32_string",
+              "type": "LiteralExpression",
+              "value": "=== 'for-in' loop over array demonstration ===",
+              "literal_type": "i32_string"
+            }
+          ],
+          "inferred_type": "i32"
+        },
+        {
+          "type": "ForStatement",
+          "variable": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "item"
+          },
+          "start_expr": {
+            "inferred_type": null,
+            "type": "VariableExpression",
+            "name": "arr"
+          },
+          "end_expr": null,
+          "step_expr": null,
+          "body": [
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "<",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "ConversionExpression",
+                  "from_type": "i32",
+                  "to_type": "i32",
+                  "source_expr": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "item"
+                  }
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "i32"
+                }
+              },
+              "then_body": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "i32_string",
+                      "type": "LiteralExpression",
+                      "value": "Breaking at negative item: ",
+                      "literal_type": "i32_string"
+                    },
+                    {
+                      "inferred_type": "i32",
+                      "type": "VariableExpression",
+                      "name": "item"
+                    }
+                  ],
+                  "inferred_type": "i32"
+                }
+              ],
+              "elseif_clauses": [],
+              "else_body": [],
+              "inferred_type": "i32"
+            },
+            {
+              "type": "IfStatement",
+              "condition": {
+                "inferred_type": "i32",
+                "type": "BinaryExpression",
+                "operator": "==",
+                "left": {
+                  "inferred_type": "i32",
+                  "type": "ConversionExpression",
+                  "from_type": "i32",
+                  "to_type": "i32",
+                  "source_expr": {
+                    "inferred_type": "i32",
+                    "type": "VariableExpression",
+                    "name": "item"
+                  }
+                },
+                "right": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 0,
+                  "literal_type": "i32"
+                }
+              },
+              "then_body": [
+                {
+                  "type": "PrintStatement",
+                  "expressions": [
+                    {
+                      "inferred_type": "i32_string",
+                      "type": "LiteralExpression",
+                      "value": "Skipping zero item",
+                      "literal_type": "i32_string"
+                    }
+                  ],
+                  "inferred_type": "i32"
+                }
+              ],
+              "elseif_clauses": [],
+              "else_body": [],
+              "inferred_type": "i32"
+            },
+            {
+              "type": "PrintStatement",
+              "expressions": [
+                {
+                  "inferred_type": "i32_string",
+                  "type": "LiteralExpression",
+                  "value": "Current item = ",
+                  "literal_type": "i32_string"
+                },
+                {
+                  "inferred_type": "i32",
+                  "type": "VariableExpression",
+                  "name": "item"
+                }
+              ],
+              "inferred_type": "i32"
+            }
+          ],
+          "inferred_type": "i32"
+        }
+      ],
+      "return_type": "i32"
+    },
+    {
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "i32",
+            "type": "VariableExpression",
+            "name": "n"
+          },
+          "expression": {
+            "inferred_type": "i32",
+            "type": "LiteralExpression",
+            "value": 5,
+            "literal_type": "i32"
+          },
+          "inferred_type": "i32"
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "inferred_type": "i32_ptr",
+            "type": "VariableExpression",
+            "name": "nums"
+          },
+          "expression": {
+            "inferred_type": "i32",
+            "type": "ArrayLiteralExpression",
+            "elements": [
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 1,
+                "literal_type": "i32"
+              },
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 2,
+                "literal_type": "i32"
+              },
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 0,
+                "literal_type": "i32"
+              },
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 4,
+                "literal_type": "i32"
+              },
+              {
+                "inferred_type": "i32",
+                "type": "UnaryExpression",
+                "operator": "-",
+                "operand": {
+                  "inferred_type": "i32",
+                  "type": "LiteralExpression",
+                  "value": 1,
+                  "literal_type": "i32"
+                }
+              },
+              {
+                "inferred_type": "i32",
+                "type": "LiteralExpression",
+                "value": 5,
+                "literal_type": "i32"
+              }
+            ]
+          },
+          "inferred_type": "i32_ptr"
+        },
+        {
+          "type": "CallStatement",
+          "tool_name": "demonstrateBreakContinue",
+          "arguments": [
+            {
+              "inferred_type": "i32",
+              "type": "VariableExpression",
+              "name": "n"
+            },
+            {
+              "inferred_type": "i32_ptr",
+              "type": "VariableExpression",
+              "name": "nums"
+            }
+          ],
+          "inferred_type": "i32"
+        }
+      ],
+      "return_type": "i32"
     }
   ]
 }

@@ -1,4 +1,7 @@
+import logging
 from typing import Optional, Dict
+
+# lmn imports
 from lmn.compiler.ast import Expression
 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 from lmn.compiler.typechecker.expressions.array_literal_checker import ArrayLiteralChecker
@@ -25,9 +28,9 @@ from lmn.compiler.ast.expressions.unary_expression import UnaryExpression
 from lmn.compiler.ast.expressions.assignment_expression import AssignmentExpression
 from lmn.compiler.ast.expressions.postfix_expression import PostfixExpression
 from lmn.compiler.ast.expressions.fn_expression import FnExpression
-
-# If your anonymous function node is called AnonymousFunctionExpression:
 from lmn.compiler.ast.expressions.anonymous_function_expression import AnonymousFunctionExpression
+
+logger = logging.getLogger(__name__)
 
 class ExpressionDispatcher:
     def __init__(self, symbol_table: Dict[str, str]):
@@ -41,32 +44,69 @@ class ExpressionDispatcher:
         local_scope: Optional[Dict[str, str]] = None
     ) -> str:
         """
-        Dispatch the expression to the appropriate checker. 
-        If local_scope is provided, pass it down to the checker 
-        so variables/assignments are resolved in that scope.
+        Dispatch the given 'expr' node to the appropriate checker.
+        If 'local_scope' is provided, it overrides the global symbol_table
+        for this expression check. This helps with function or block-scoped variables.
         """
+        # 1) Determine which scope we are using
+        effective_scope = local_scope if local_scope is not None else self.symbol_table
+
+        # 2) Debug logging
+        expr_type_name = type(expr).__name__
+        logger.debug(
+            f"[ExpressionDispatcher] Checking expression of type='{expr_type_name}', "
+            f"target_type='{target_type}'"
+        )
+        logger.debug(
+            f"[ExpressionDispatcher] effective_scope keys = {list(effective_scope.keys())}"
+        )
+
+        # 3) Dispatch based on expression class
         if isinstance(expr, LiteralExpression):
-            return LiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using LiteralChecker")
+            return LiteralChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, BinaryExpression):
-            return BinaryChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using BinaryChecker")
+            return BinaryChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, JsonLiteralExpression):
-            return JsonLiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using JsonLiteralChecker")
+            return JsonLiteralChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, ArrayLiteralExpression):
-            return ArrayLiteralChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using ArrayLiteralChecker")
+            return ArrayLiteralChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, VariableExpression):
-            return VariableChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using VariableChecker")
+            # Notice we pass 'effective_scope' to the constructor => ensures local variables are recognized
+            return VariableChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, UnaryExpression):
-            return UnaryChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using UnaryChecker")
+            return UnaryChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, AssignmentExpression):
-            return AssignmentChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using AssignmentChecker")
+            return AssignmentChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, PostfixExpression):
-            return PostfixChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using PostfixChecker")
+            return PostfixChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, FnExpression):
-            return FnChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using FnChecker")
+            return FnChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, AnonymousFunctionExpression):
-            return AnonymousFunctionChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using AnonymousFunctionChecker")
+            return AnonymousFunctionChecker(self, effective_scope).check(expr, target_type, local_scope)
+
         elif isinstance(expr, ConversionExpression):
-            return ConversionExpressionChecker(self, self.symbol_table).check(expr, target_type, local_scope)
+            logger.debug("[ExpressionDispatcher] -> Using ConversionExpressionChecker")
+            return ConversionExpressionChecker(self, effective_scope).check(expr, target_type, local_scope)
 
         else:
-            raise NotImplementedError(f"No checker available for {type(expr).__name__}.")
+            logger.error(f"[ExpressionDispatcher] No checker for expression type='{expr_type_name}'")
+            raise NotImplementedError(f"No checker available for {expr_type_name}.")
