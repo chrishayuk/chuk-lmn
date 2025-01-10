@@ -2,30 +2,29 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "inferred_type": "string",
-        "type": "VariableExpression",
-        "name": "x"
-      },
-      "expression": {
-        "inferred_type": "string",
-        "type": "FnExpression",
-        "name": {
-          "type": "VariableExpression",
-          "name": "get_joke"
-        },
-        "arguments": []
-      },
-      "inferred_type": "string"
-    },
-    {
       "type": "PrintStatement",
       "expressions": [
         {
           "inferred_type": "string",
-          "type": "VariableExpression",
-          "name": "x"
+          "type": "FnExpression",
+          "name": {
+            "type": "VariableExpression",
+            "name": "llm"
+          },
+          "arguments": [
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "write me a limerick about cheese",
+              "literal_type": "string"
+            },
+            {
+              "inferred_type": "string",
+              "type": "LiteralExpression",
+              "value": "llama3.2",
+              "literal_type": "string"
+            }
+          ]
         }
       ],
       "inferred_type": "void"

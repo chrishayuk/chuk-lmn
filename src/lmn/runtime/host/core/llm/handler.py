@@ -79,4 +79,3 @@ def llm_handler(def_info, store, memory_ref, output_list, *args) -> int:
         logger.debug(f"[LLM Handler] Unrecognized LLM function '{func_name}'")
         output_list.append("<unrecognized LLM function>")
         return 0
-a

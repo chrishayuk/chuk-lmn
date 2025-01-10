@@ -21,14 +21,15 @@
   (import "env" "call_tools" (func $call_tools (param i32) (result i32)))
   (memory (export "memory") 1)
   (func $__top_level__
-    (local $x i32)
-    call $get_joke
-    local.set $x
-    local.get $x
-    call $print_string
     i32.const 1024
+    i32.const 1057
+    call $llm
+    call $print_string
+    i32.const 1066
     call $print_string
   )
   (export "__top_level__" (func $__top_level__))
-  (data (i32.const 1024) "\0a\00")
+  (data (i32.const 1024) "\77\72\69\74\65\20\6d\65\20\61\20\6c\69\6d\65\72\69\63\6b\20\61\62\6f\75\74\20\63\68\65\65\73\65\00")
+  (data (i32.const 1057) "\6c\6c\61\6d\61\33\2e\32\00")
+  (data (i32.const 1066) "\0a\00")
 )

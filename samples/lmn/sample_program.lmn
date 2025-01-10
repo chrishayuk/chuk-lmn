@@ -1,2 +1,1 @@
-let x = get_joke()
-print x
+print llm("write me a limerick about cheese")
