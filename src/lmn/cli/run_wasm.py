@@ -8,7 +8,7 @@ from lmn.runtime.wasm_runner import create_environment
 def main():
     # Setup logging
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.CRITICAL,
         format="%(levelname)s - %(name)s - %(message)s"
     )
 
