@@ -2,7 +2,6 @@ import logging
 from lmn.compiler.ast.statements.block_statement import BlockStatement
 from lmn.compiler.lexer.token_type import LmnTokenType
 
-# Logger setup
 logger = logging.getLogger(__name__)
 
 class BlockParser:
@@ -24,15 +23,14 @@ class BlockParser:
 
         Note: Expects 'begin' token to already have been consumed by the statement parser.
         """
-        # 1) Indicate the start of block parsing
         logger.debug("BlockParser: Starting block parsing. Expecting 'end' to close block.")
 
-        # Consume 'begin' token (already confirmed by StatementParser)
+        # 1) Consume 'begin' token (already confirmed by StatementParser).
         self.parser.advance()
 
         statements = []
 
-        # Keep parsing until we see 'end' or run out of tokens
+        # 2) Keep parsing until we see 'end' or run out of tokens
         while self.parser.current_token is not None:
             token = self.parser.current_token
             logger.debug("BlockParser: Processing token %r", token)
@@ -50,21 +48,31 @@ class BlockParser:
                 self.parser.advance()
                 continue
 
-            # c) Attempt to parse a statement
+            # c) Attempt to parse a statement (or possibly multiple statements)
             try:
                 logger.debug("BlockParser: Attempting to parse a statement.")
-                stmt = self.parser.statement_parser.parse_statement()
-                if stmt:
-                    statements.append(stmt)
-                    logger.debug("BlockParser: Successfully parsed statement: %r", stmt)
+                stmt_or_stmts = self.parser.statement_parser.parse_statement()
+
+                if stmt_or_stmts:
+                    # If parse_statement() returned multiple statements, flatten them
+                    if isinstance(stmt_or_stmts, list):
+                        statements.extend(stmt_or_stmts)
+                        logger.debug(
+                            "BlockParser: Received multiple statements, now total: %d",
+                            len(statements)
+                        )
+                    else:
+                        statements.append(stmt_or_stmts)
+                        logger.debug("BlockParser: Parsed single statement: %r", stmt_or_stmts)
                 else:
-                    # If parse_statement returns None, we likely encountered an unexpected token
+                    # If parse_statement() returns None, we likely encountered an unexpected token
                     logger.error("BlockParser: Unexpected token in block => %r", token)
                     raise SyntaxError(f"Unexpected token in block: {token.value} ({token.token_type})")
+
             except SyntaxError as e:
                 logger.error("BlockParser: Syntax error encountered => %s", e)
                 raise
 
-        # If we get here, we've run out of tokens without encountering 'end'
+        # 3) If we exit loop, no 'end' was found
         logger.error("BlockParser: Missing 'end' to close block.")
         raise SyntaxError("Expected 'end' to close block.")

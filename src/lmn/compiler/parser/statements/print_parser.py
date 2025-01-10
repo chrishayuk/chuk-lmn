@@ -14,20 +14,21 @@ class PrintParser:
     def parse(self):
         """
         Parses a 'print' statement, collecting zero or more expressions
-        until hitting a statement boundary or a token that is not valid
-        in an expression context (e.g., break).
+        until hitting a statement boundary or a 'break'/ 'continue' token.
         
-        If 'break' is encountered, we route it to the statement parser
-        to handle via 'BreakParser'.
+        Returns a *list* of statements:
+          - 1st element: PrintStatement with any expressions parsed
+          - 2nd element (optional): BreakStatement or ContinueStatement if encountered
         """
         logger.debug("PrintParser: Starting parse of 'print' statement.")
         
-        # Consume the 'print' token
-        self.parser.advance()
+        # 1) Consume the 'print' token
+        self.parser.advance()  # consumes 'print'
 
         expressions = []
+        secondary_stmt = None  # if we parse a break/continue, store it here
         
-        # Keep parsing expressions until we hit a statement boundary
+        # 2) Keep parsing expressions until statement boundary or break/continue
         while (
             self.parser.current_token
             and not is_statement_boundary(self.parser.current_token.token_type)
@@ -41,34 +42,40 @@ class PrintParser:
                 current_token
             )
 
-            # (A) If next token is `break` or `continue`, optionally dispatch to statement parser
             if current_ttype in (LmnTokenType.BREAK, LmnTokenType.CONTINUE):
                 logger.debug(
                     "PrintParser: Token '%s' encountered in 'print' context. "
                     "Delegating to statement parser for handling.",
                     current_ttype.name
                 )
-                # Option 1: Call statement parser to handle `break` or `continue`
-                stmt = self.parser.statement_parser.parse_statement()
-                # If your language prohibits `print break;`, you might raise SyntaxError here instead:
-                # raise SyntaxError(f"'{current_token.value}' is not valid as an expression in 'print'")
+                # Let the statement parser parse the break/continue
+                secondary_stmt = self.parser.statement_parser.parse_statement()
                 
-                # We'll break out of the expression loop if we handled it as a statement
-                # so we only keep expressions parsed *before* break/continue in the PrintStatement
+                # Stop parsing more expressions; we only keep what's parsed so far
                 break
 
-            # (B) Otherwise, parse an expression via ExpressionParser
-            expr = self.parser.expression_parser.parse_expression()
-            if expr is None:
-                logger.debug("PrintParser: No expression parsed or boundary reached.")
-                break
+            else:
+                # Parse an expression via ExpressionParser
+                expr = self.parser.expression_parser.parse_expression()
+                if expr is None:
+                    logger.debug("PrintParser: No expression parsed or boundary reached.")
+                    break
 
-            # Add the parsed expression
-            expressions.append(expr)
-            logger.debug("PrintParser: Parsed and added expression => %r", expr)
+                expressions.append(expr)
+                logger.debug("PrintParser: Parsed and added expression => %r", expr)
 
         logger.debug(
             "PrintParser: Building PrintStatement with %d expression(s).",
             len(expressions)
         )
-        return PrintStatement(expressions=expressions)
+
+        # 3) Always build the PrintStatement for the expressions we found
+        print_stmt = PrintStatement(expressions=expressions)
+
+        # 4) Return a *list* of statements
+        #    - If we never saw a 'break'/'continue', this list has just the print_stmt
+        #    - If we did parse a 'break'/'continue', we also append that statement
+        if secondary_stmt:
+            return [print_stmt, secondary_stmt]
+        else:
+            return [print_stmt]

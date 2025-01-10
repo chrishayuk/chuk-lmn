@@ -66,6 +66,9 @@
                       "literal_type": "string"
                     }
                   ]
+                },
+                {
+                  "type": "BreakStatement"
                 }
               ],
               "elseifClauses": [],
@@ -109,6 +112,9 @@
                       "name": "i"
                     }
                   ]
+                },
+                {
+                  "type": "ContinueStatement"
                 }
               ],
               "elseifClauses": [],
@@ -125,107 +131,6 @@
                 {
                   "type": "VariableExpression",
                   "name": "i"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "type": "LiteralExpression",
-              "value": "=== 'for-in' loop over array demonstration ===",
-              "literal_type": "string"
-            }
-          ]
-        },
-        {
-          "type": "ForStatement",
-          "variable": {
-            "type": "VariableExpression",
-            "name": "item"
-          },
-          "start_expr": {
-            "type": "VariableExpression",
-            "name": "arr"
-          },
-          "body": [
-            {
-              "type": "IfStatement",
-              "condition": {
-                "type": "BinaryExpression",
-                "operator": "<",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "item"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 0,
-                  "literal_type": "int"
-                }
-              },
-              "thenBody": [
-                {
-                  "type": "PrintStatement",
-                  "expressions": [
-                    {
-                      "type": "LiteralExpression",
-                      "value": "Breaking at negative item: ",
-                      "literal_type": "string"
-                    },
-                    {
-                      "type": "VariableExpression",
-                      "name": "item"
-                    }
-                  ]
-                }
-              ],
-              "elseifClauses": [],
-              "elseBody": []
-            },
-            {
-              "type": "IfStatement",
-              "condition": {
-                "type": "BinaryExpression",
-                "operator": "==",
-                "left": {
-                  "type": "VariableExpression",
-                  "name": "item"
-                },
-                "right": {
-                  "type": "LiteralExpression",
-                  "value": 0,
-                  "literal_type": "int"
-                }
-              },
-              "thenBody": [
-                {
-                  "type": "PrintStatement",
-                  "expressions": [
-                    {
-                      "type": "LiteralExpression",
-                      "value": "Skipping zero item",
-                      "literal_type": "string"
-                    }
-                  ]
-                }
-              ],
-              "elseifClauses": [],
-              "elseBody": []
-            },
-            {
-              "type": "PrintStatement",
-              "expressions": [
-                {
-                  "type": "LiteralExpression",
-                  "value": "Current item = ",
-                  "literal_type": "string"
-                },
-                {
-                  "type": "VariableExpression",
-                  "name": "item"
                 }
               ]
             }

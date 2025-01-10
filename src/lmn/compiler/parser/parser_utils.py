@@ -3,7 +3,7 @@
 import logging
 from lmn.compiler.lexer.token_type import LmnTokenType
 
-# logger
+# logger
 logger = logging.getLogger(__name__)
 
 def expect_token(parser, token_types, message):
@@ -16,7 +16,6 @@ def expect_token(parser, token_types, message):
     :param message: error message raised on failure
     :return: the current token on success
     """
-    # 1) Handle case where no token is present
     if not parser.current_token:
         logger.error("expect_token: No token found, expected one of: %r", token_types)
         raise SyntaxError(message)
@@ -24,7 +23,6 @@ def expect_token(parser, token_types, message):
     current_ttype = parser.current_token.token_type
     current_value = parser.current_token.value
 
-    # 2) Normalize token_types for consistent checks
     if not isinstance(token_types, (list, tuple, set)):
         token_types = (token_types,)
 
@@ -35,7 +33,6 @@ def expect_token(parser, token_types, message):
         [t.name for t in token_types]
     )
 
-    # 3) Perform the check
     if current_ttype not in token_types:
         logger.error(
             "expect_token: Token mismatch. Got '%s' (type=%s), expected one of: %r",
@@ -45,7 +42,6 @@ def expect_token(parser, token_types, message):
         )
         raise SyntaxError(message)
 
-    # 4) Successful match
     logger.debug("expect_token: Matched token '%s' (type=%s)", current_value, current_ttype.name)
     return parser.current_token
 
@@ -55,9 +51,8 @@ def parse_block(parser, until_tokens):
     Parses a block of statements until one of `until_tokens` is encountered.
     Skips comments. Returns a list of parsed statement nodes.
 
-    :param parser: the main parser instance
-    :param until_tokens: tokens marking the end of the block (e.g., END)
-    :return: list of parsed statements
+    If parse_statement() returns multiple statements (a list), we flatten them
+    to avoid nested lists in the AST (e.g., [ [PrintStatement, BreakStatement] ]).
     """
     statements = []
 
@@ -73,12 +68,20 @@ def parse_block(parser, until_tokens):
         logger.debug("parse_block: Parsing statement. Current token: %r", token)
 
         try:
-            stmt = parser.statement_parser.parse_statement()
-            if stmt:
-                statements.append(stmt)
-                logger.debug("parse_block: Parsed statement: %r", stmt)
+            stmt_or_stmts = parser.statement_parser.parse_statement()
+            if stmt_or_stmts:
+                # If parse_statement() returned multiple statements, flatten them
+                if isinstance(stmt_or_stmts, list):
+                    statements.extend(stmt_or_stmts)
+                    logger.debug(
+                        "parse_block: Received multiple statements, total now: %d",
+                        len(statements)
+                    )
+                else:
+                    statements.append(stmt_or_stmts)
+                    logger.debug("parse_block: Parsed single statement: %r", stmt_or_stmts)
             else:
-                # If parse_statement returns None, we likely encountered an unexpected token
+                # parse_statement returned None => likely unexpected token
                 logger.warning("parse_block: parse_statement returned None for token: %r", token)
                 break
         except SyntaxError as e:

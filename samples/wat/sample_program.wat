@@ -13,63 +13,79 @@
   (import "env" "llm" (func $llm (param i32 i32) (result i32)))
   (import "env" "malloc" (func $malloc (param i32) (result i32)))
   (memory (export "memory") 1)
-  (func $__top_level__
-    (local $tmpVal i32)
-    (local $arr i32)
-    (local $x i32)
-    i32.const 20
-    call $malloc     ;; allocate dynamic array of that size
-    local.set $arr   ;; store base pointer in $arr
-    local.get $arr
-    i32.const 0
-    i32.add
-    i32.const 4
-    i32.store
+  (func $demonstrateBreakContinue (param $n i32) (param $arr i32) (result i32)
+    (local $i i32)
     i32.const 1024
-    local.set $tmpVal
-    local.get $arr
-    i32.const 4
-    i32.add
-    local.get $tmpVal
-    i32.store
-    i32.const 1026
-    i32.const 1029
-    call $llm
-    local.set $tmpVal
-    local.get $arr
-    i32.const 8
-    i32.add
-    local.get $tmpVal
-    i32.store
-    i32.const 1038
-    local.set $tmpVal
-    local.get $arr
-    i32.const 12
-    i32.add
-    local.get $tmpVal
-    i32.store
-    i32.const 1040
-    i32.const 1044
-    call $llm
-    local.set $tmpVal
-    local.get $arr
-    i32.const 16
-    i32.add
-    local.get $tmpVal
-    i32.store
-    local.get $arr
-    local.set $x
-    local.get $x
-    call $print_string_array
-    i32.const 1053
     call $print_string
+    i32.const 1074
+    call $print_string
+    i32.const 1
+    local.set $i
+    block $for_exit
+      loop $for_loop
+    local.get $i
+    local.get $n
+    i32.lt_s
+    if
+    local.get $i
+    i32.const 3
+    i32.eq
+    if
+    i32.const 1076
+    call $print_string
+    i32.const 1074
+    call $print_string
+    end
+    local.get $i
+    i32.const 2
+    i32.rem_s
+    i32.const 0
+    i32.eq
+    if
+    i32.const 1094
+    call $print_string
+    local.get $i
+    call $print_i32
+    i32.const 1074
+    call $print_string
+    end
+    i32.const 1113
+    call $print_string
+    local.get $i
+    call $print_i32
+    i32.const 1074
+    call $print_string
+    local.get $i
+    i32.const 1
+    i32.add
+    local.set $i
+    br $for_loop
+    else
+    end
+    end
+    end
+    i32.const 0
+    return
   )
-  (export "__top_level__" (func $__top_level__))
-  (data (i32.const 1024) "\61\00")
-  (data (i32.const 1026) "\68\69\00")
-  (data (i32.const 1029) "\6c\6c\61\6d\61\33\2e\32\00")
-  (data (i32.const 1038) "\63\00")
-  (data (i32.const 1040) "\62\79\65\00")
-  (data (i32.const 1044) "\6c\6c\61\6d\61\33\2e\32\00")
-  (data (i32.const 1053) "\0a\00")
+  (func $main (result i32)
+    (local $n i32)
+    (local $nums i32)
+    i32.const 5
+    local.set $n
+    i32.const 1126
+    local.set $nums
+    local.get $n
+    local.get $nums
+    call $demonstrateBreakContinue
+    i32.const 0
+    return
+  )
+  (export "demonstrateBreakContinue" (func $demonstrateBreakContinue))
+  (export "main" (func $main))
+  (data (i32.const 1024) "\3d\3d\3d\20\52\61\6e\67\65\2d\62\61\73\65\64\20\66\6f\72\20\6c\6f\6f\70\20\28\31\2e\2e\6e\29\20\64\65\6d\6f\6e\73\74\72\61\74\69\6f\6e\20\3d\3d\3d\00")
+  (data (i32.const 1074) "\0a\00")
+  (data (i32.const 1076) "\42\72\65\61\6b\69\6e\67\20\61\74\20\69\20\3d\20\33\00")
+  (data (i32.const 1094) "\53\6b\69\70\70\69\6e\67\20\65\76\65\6e\20\69\20\3d\20\00")
+  (data (i32.const 1113) "\43\75\72\72\65\6e\74\20\69\20\3d\20\00")
+  (data (i32.const 1126) "\5b\31\2c\20\32\2c\20\30\2c\20\34\2c\20\22\3c\65\78\70\72\3a\55\6e\61\72\79\45\78\70\72\65\73\73\69\6f\6e\3e\22\2c\20\35\5d\00")
 )

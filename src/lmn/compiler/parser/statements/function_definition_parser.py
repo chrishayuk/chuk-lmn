@@ -175,6 +175,7 @@ class FunctionDefinitionParser:
         """
         Reads statements until one of the tokens in `until_tokens`.
         Skips COMMENT/NEWLINE if needed.
+        FLATTENS multiple statements if parse_statement() returns a list.
         """
         statements = []
         while (
@@ -189,11 +190,16 @@ class FunctionDefinitionParser:
                 self.parser.advance()
                 continue
 
-            stmt = self.parser.statement_parser.parse_statement()
-            if stmt:
-                statements.append(stmt)
+            stmt_or_stmts = self.parser.statement_parser.parse_statement()
+            if stmt_or_stmts:
+                # If parse_statement() returned multiple statements, flatten them
+                if isinstance(stmt_or_stmts, list):
+                    statements.extend(stmt_or_stmts)
+                else:
+                    statements.append(stmt_or_stmts)
             else:
-                # If parse_statement returned None, consume or break
+                # If parse_statement returned None => likely invalid token
+                # We'll just advance to avoid an infinite loop
                 self.parser.advance()
 
         return statements

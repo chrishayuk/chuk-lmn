@@ -18,23 +18,23 @@ function demonstrateBreakContinue(n, arr)
     print "Current i = " i
   end
 
-  print "=== 'for-in' loop over array demonstration ==="
+  # print "=== 'for-in' loop over array demonstration ==="
 
-  for item in arr
-    # If the item is negative, break
-    if item < 0
-      print "Breaking at negative item: " item
-      break
-    end
+  # for item in arr
+  #   # If the item is negative, break
+  #   if item < 0
+  #     print "Breaking at negative item: " item
+  #     break
+  #   end
 
-    # Skip zeros
-    if item == 0
-      print "Skipping zero item"
-      continue
-    end
+  #   # Skip zeros
+  #   if item == 0
+  #     print "Skipping zero item"
+  #     continue
+  #   end
 
-    print "Current item = " item
-  end
+  #   print "Current item = " item
+  # end
 end
 
 function main()

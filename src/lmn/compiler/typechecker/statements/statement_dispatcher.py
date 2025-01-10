@@ -5,7 +5,9 @@ from typing import Dict, Optional
 
 # use mega unions
 from lmn.compiler.ast.mega_union import Node
+from lmn.compiler.typechecker.statements.break_statement_checker import BreakStatementChecker
 from lmn.compiler.typechecker.statements.call_statement_checker import CallStatementChecker
+from lmn.compiler.typechecker.statements.continue_statement_checker import ContinueStatementChecker
 from lmn.compiler.typechecker.statements.for_statement_checker import ForStatementChecker
 
 from .let_statement_checker import LetStatementChecker
@@ -68,6 +70,13 @@ class StatementDispatcher:
             
             elif stype == "ForStatement":
                 return ForStatementChecker(self.symbol_table, self).check(stmt, local_scope)
+            
+            elif stype == "BreakStatement":
+                return BreakStatementChecker(self.symbol_table, self).check(stmt, local_scope)
+
+            elif stype == "ContinueStatement":
+                return ContinueStatementChecker(self.symbol_table, self).check(stmt, local_scope)
+
             
             elif stype == "CallStatement":
                 return CallStatementChecker(self.symbol_table, self).check(stmt, local_scope)

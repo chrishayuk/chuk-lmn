@@ -16,7 +16,7 @@ class CallEmitter:
         Emitting a 'CallStatement' from the AST, which looks like:
             {
               "type": "CallStatement",
-              "name": "myFunction",         # the function name (string)
+              "tool_name": "myFunction",    # the function name (string)
               "arguments": [ expr1, expr2 ],
               "discardReturn": bool
             }
@@ -34,21 +34,23 @@ class CallEmitter:
         for arg in args:
             self.controller.emit_expression(arg, out_lines)
 
-        # 2) Map the raw function name to the real function name if there's an alias
-        raw_func_name = node["name"]
-        real_func_name = self.controller.get_emitted_function_name(raw_func_name)
+        # 2) Retrieve the raw function name from the AST (using 'tool_name')
+        #    If your AST used "name" for function calls, you can fallback:
+        #       raw_func_name = node.get("tool_name") or node["name"]
+        raw_func_name = node["tool_name"]
 
+        # 3) Map the raw function name to the real function name if there's an alias
+        real_func_name = self.controller.get_emitted_function_name(raw_func_name)
         logger.debug(
             f"CallEmitter: raw_func_name='{raw_func_name}' -> real_func_name='{real_func_name}'"
         )
 
-        # 3) Ensure valid WAT function labeling
+        # 4) Ensure valid WAT function labeling
         wat_func_name = self._normalize_function_name(real_func_name)
-
         logger.debug(f"CallEmitter: Emitting call -> call {wat_func_name}")
         out_lines.append(f"  call {wat_func_name}")
 
-        # 4) Optionally discard the return value
+        # 5) Optionally discard the return value
         if node.get("discardReturn", False):
             logger.debug("CallEmitter: 'discardReturn' is True, emitting 'drop'")
             out_lines.append("  drop")
