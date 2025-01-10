@@ -1,0 +1,99 @@
+{
+  "get_internet_time": {
+    "description": "Fetch the current time from an internet time API",
+    "typechecker": {
+      "params": [],
+      "return_type": "int"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "get_internet_time",
+          "signature": {
+            "parameters": [],
+            "results": [
+              { "type": "i32" }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.handler:get_internet_time"
+        }
+      ]
+    }
+  },
+
+  "get_system_time": {
+    "description": "Get the local system time in seconds",
+    "typechecker": {
+      "params": [],
+      "return_type": "int"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "get_system_time",
+          "signature": {
+            "parameters": [],
+            "results": [
+              { "type": "i32" }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.handler:get_system_time"
+        }
+      ]
+    }
+  },
+
+  "get_weather": {
+    "description": "...",
+    "typechecker": {
+      "params": [
+        { "name": "lat", "type": "double", "required": true },
+        { "name": "lon", "type": "double", "required": true }
+      ],
+      "return_type": "json"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "get_weather",
+          "signature": {
+            "parameters": [
+              { "name": "lat", "type": "f64" },
+              { "name": "lon", "type": "f64" }
+            ],
+            "results": [
+              { "type": "i32" }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.handler:get_weather_openmeteo"
+        }
+      ]
+    }
+  },
+
+  "get_joke_service": {
+    "description": "Fetch a joke from a public jokes API, returning a string pointer",
+    "typechecker": {
+      "params": [],
+      "return_type": "string"
+    },
+    "wasm": {
+      "namespace": "env",
+      "functions": [
+        {
+          "name": "get_joke",
+          "signature": {
+            "parameters": [],
+            "results": [
+              { "type": "i32" }
+            ]
+          },
+          "handler": "lmn.runtime.host.core.tools.handler:get_joke_service"
+        }
+      ]
+    }
+  }
+}

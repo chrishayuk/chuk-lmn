@@ -32,6 +32,19 @@ def build_module(wasm_emitter):
     # add parse_string_to_i32 import ===
     lines.append('  (import "env" "parse_string_to_i32" (func $parse_string_to_i32 (param i32) (result i32)))')
 
+    # -------------------------------------------------------------------------
+    # NEW: Tools library imports
+    # -------------------------------------------------------------------------
+    # 1) get_internet_time => returns an i32 pointer to JSON/time text
+    lines.append('  (import "env" "get_internet_time" (func $get_internet_time (result i32)))')
+    # 2) get_system_time => returns a plain int
+    lines.append('  (import "env" "get_system_time" (func $get_system_time (result i32)))')
+    # 3) get_weather => takes f32,f32 => returns i32 pointer
+    lines.append('  (import "env" "get_weather" (func $get_weather (param f64 f64) (result i32)))')
+    # 4) get_joke => returns i32 pointer to joke text
+    lines.append('  (import "env" "get_joke" (func $get_joke (result i32)))')
+
+
     # Memory
     if wasm_emitter.import_memory:
         lines.append('  (import "env" "memory" (memory 1))')

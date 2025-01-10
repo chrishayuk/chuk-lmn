@@ -1,0 +1,11 @@
+let cur_time:json = get_internet_time()
+print(cur_time)
+
+let local_time:int = get_system_time()
+print local_time
+
+let weather:json = get_weather(35.0, 139.0)
+print weather
+
+let a_joke:string = get_joke()
+print a_joke

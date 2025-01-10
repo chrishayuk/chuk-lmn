@@ -1,3 +1,2 @@
-let x:int = llm(prompt="what's 10+5?  answer only, no explanations")
-x = x + 1
-print(x)
+let a_joke = get_joke()
+print a_joke

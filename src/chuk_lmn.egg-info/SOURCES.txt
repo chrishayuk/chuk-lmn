@@ -46,7 +46,9 @@ src/lmn/compiler/ast/operators/binary_operator.py
 src/lmn/compiler/ast/statements/__init__.py
 src/lmn/compiler/ast/statements/assignment_statement.py
 src/lmn/compiler/ast/statements/block_statement.py
+src/lmn/compiler/ast/statements/break_statement.py
 src/lmn/compiler/ast/statements/call_statement.py
+src/lmn/compiler/ast/statements/continue_statement.py
 src/lmn/compiler/ast/statements/else_if_clause.py
 src/lmn/compiler/ast/statements/for_statement.py
 src/lmn/compiler/ast/statements/function_definition.py
@@ -84,7 +86,9 @@ src/lmn/compiler/emitter/wasm/expressions/unary_expression_emitter.py
 src/lmn/compiler/emitter/wasm/expressions/variable_expression_emitter.py
 src/lmn/compiler/emitter/wasm/statements/__init__.py
 src/lmn/compiler/emitter/wasm/statements/assignment_emitter.py
+src/lmn/compiler/emitter/wasm/statements/break_emitter.py
 src/lmn/compiler/emitter/wasm/statements/call_emitter.py
+src/lmn/compiler/emitter/wasm/statements/continue_emitter.py
 src/lmn/compiler/emitter/wasm/statements/for_emitter.py
 src/lmn/compiler/emitter/wasm/statements/function_emitter.py
 src/lmn/compiler/emitter/wasm/statements/if_emitter.py
@@ -110,7 +114,10 @@ src/lmn/compiler/parser/expressions/unary_parser.py
 src/lmn/compiler/parser/statements/__init__.py
 src/lmn/compiler/parser/statements/assignment_parser.py
 src/lmn/compiler/parser/statements/block_parser.py
+src/lmn/compiler/parser/statements/break_parser.py
+src/lmn/compiler/parser/statements/continue_parser.py
 src/lmn/compiler/parser/statements/for_parser.py
+src/lmn/compiler/parser/statements/function_call_parser.py
 src/lmn/compiler/parser/statements/function_definition_parser.py
 src/lmn/compiler/parser/statements/if_parser.py
 src/lmn/compiler/parser/statements/let_parser.py
@@ -131,6 +138,7 @@ src/lmn/compiler/typechecker/expressions/array_literal_checker.py
 src/lmn/compiler/typechecker/expressions/assignment_checker.py
 src/lmn/compiler/typechecker/expressions/base_expression_checker.py
 src/lmn/compiler/typechecker/expressions/binary_checker.py
+src/lmn/compiler/typechecker/expressions/conversion_expression_checker.py
 src/lmn/compiler/typechecker/expressions/expression_dispatcher.py
 src/lmn/compiler/typechecker/expressions/fn_checker.py
 src/lmn/compiler/typechecker/expressions/json_literal_checker.py
@@ -142,6 +150,10 @@ src/lmn/compiler/typechecker/statements/__init__.py
 src/lmn/compiler/typechecker/statements/assignment_statement_checker.py
 src/lmn/compiler/typechecker/statements/base_statement_checker.py
 src/lmn/compiler/typechecker/statements/block_statement_checker.py
+src/lmn/compiler/typechecker/statements/break_statement_checker.py
+src/lmn/compiler/typechecker/statements/call_statement_checker.py
+src/lmn/compiler/typechecker/statements/continue_statement_checker.py
+src/lmn/compiler/typechecker/statements/for_statement_checker.py
 src/lmn/compiler/typechecker/statements/function_definition_checker.py
 src/lmn/compiler/typechecker/statements/if_statement_checker.py
 src/lmn/compiler/typechecker/statements/let_statement_checker.py
@@ -166,8 +178,15 @@ src/lmn/runtime/host/core/llm/handler.py
 src/lmn/runtime/host/core/llm/adapters/__init__.py
 src/lmn/runtime/host/core/llm/adapters/llm_adapter.py
 src/lmn/runtime/host/core/llm/adapters/ollama_adapter.py
+src/lmn/runtime/host/core/malloc/__init__.py
+src/lmn/runtime/host/core/malloc/handler.py
 src/lmn/runtime/host/core/print/__init__.py
 src/lmn/runtime/host/core/print/handler.py
+src/lmn/runtime/host/core/string/__init__.py
+src/lmn/runtime/host/core/string/parse_string/__init__.py
+src/lmn/runtime/host/core/string/parse_string/handler.py
+src/lmn/runtime/host/core/tools/__init__.py
+src/lmn/runtime/host/core/tools/handler.py
 src/tests/__init__.py
 src/tests/compiler/__init__.py
 src/tests/compiler/ast/__init__.py

@@ -4,69 +4,28 @@
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": "int",
+        "inferred_type": "void",
         "type": "VariableExpression",
-        "name": "x"
+        "name": "a_joke"
       },
       "expression": {
-        "inferred_type": "int",
-        "type": "ConversionExpression",
-        "from_type": "string",
-        "to_type": "int",
-        "source_expr": {
-          "inferred_type": "int",
-          "type": "FnExpression",
-          "name": {
-            "type": "VariableExpression",
-            "name": "llm"
-          },
-          "arguments": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "what's 10+5?  answer only, no explanations",
-              "literal_type": "string"
-            },
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "llama3.2",
-              "literal_type": "string"
-            }
-          ]
-        }
-      },
-      "inferred_type": "int",
-      "type_annotation": "int"
-    },
-    {
-      "type": "AssignmentStatement",
-      "variable_name": "x",
-      "expression": {
-        "inferred_type": "int",
-        "type": "BinaryExpression",
-        "operator": "+",
-        "left": {
-          "inferred_type": "int",
+        "inferred_type": "void",
+        "type": "FnExpression",
+        "name": {
           "type": "VariableExpression",
-          "name": "x"
+          "name": "get_joke"
         },
-        "right": {
-          "inferred_type": "int",
-          "type": "LiteralExpression",
-          "value": 1,
-          "literal_type": "int"
-        }
+        "arguments": []
       },
-      "inferred_type": "int"
+      "inferred_type": "void"
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": "int",
+          "inferred_type": "void",
           "type": "VariableExpression",
-          "name": "x"
+          "name": "a_joke"
         }
       ],
       "inferred_type": "void"

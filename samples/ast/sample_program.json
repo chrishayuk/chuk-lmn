@@ -5,46 +5,15 @@
       "type": "LetStatement",
       "variable": {
         "type": "VariableExpression",
-        "name": "x"
+        "name": "a_joke"
       },
       "expression": {
         "type": "FnExpression",
         "name": {
           "type": "VariableExpression",
-          "name": "llm"
+          "name": "get_joke"
         },
-        "arguments": [
-          {
-            "type": "AssignmentExpression",
-            "left": {
-              "type": "VariableExpression",
-              "name": "prompt"
-            },
-            "right": {
-              "type": "LiteralExpression",
-              "value": "what's 10+5?  answer only, no explanations",
-              "literal_type": "string"
-            }
-          }
-        ]
-      },
-      "type_annotation": "int"
-    },
-    {
-      "type": "AssignmentStatement",
-      "variable_name": "x",
-      "expression": {
-        "type": "BinaryExpression",
-        "operator": "+",
-        "left": {
-          "type": "VariableExpression",
-          "name": "x"
-        },
-        "right": {
-          "type": "LiteralExpression",
-          "value": 1,
-          "literal_type": "int"
-        }
+        "arguments": []
       }
     },
     {
@@ -52,7 +21,7 @@
       "expressions": [
         {
           "type": "VariableExpression",
-          "name": "x"
+          "name": "a_joke"
         }
       ]
     }

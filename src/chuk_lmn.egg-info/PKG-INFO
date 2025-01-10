@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: chuk-lmn
 Version: 0.1.0
 Summary: Add your description here
@@ -7,6 +7,7 @@ Description-Content-Type: text/markdown
 Requires-Dist: colorama>=0.4.6
 Requires-Dist: ollama>=0.4.5
 Requires-Dist: pydantic>=2.10.4
+Requires-Dist: requests>=2.32.3
 Requires-Dist: wasmtime>=28.0.0
 
 # LMN Compiler Pipeline
@@ -71,7 +72,7 @@ wat2wasm ./samples/wat/sample_program.wat -o ./samples/wasm/sample_program.wasm
 ### Step 7: Running the generated WASM program
 
 ```bash
-./run_wasm.py ./samples/wasm/sample_program.wasm
+uv run run-wasm ./samples/wasm/sample_program.wasm
 ```
 
 
