@@ -1,11 +1,20 @@
-let cur_time:json = get_internet_time()
-print(cur_time)
+# file: 10_llm_integration.lmn
+function main()
+    # Call the LLM with a simple prompt
+    let poem = llm(
+        prompt = "Write me a short limerick about the sunrise.",
+        model  = "llama3.2"
+    )
+    print "=== Poem about Sunrise (llama) ===" 
+    print poem
+    print ""
 
-let local_time:int = get_system_time()
-print local_time
+    # Another example: ask for a quick story
+    let story = llm(
+        prompt       = "Write me a short limerick about the sunrise.",
+        model        = "granite3.1-dense:latest"
+    )
 
-let weather:json = get_weather(35.0, 139.0)
-print weather
-
-let a_joke:string = get_joke()
-print a_joke
+    print "=== Poem about Sunrise (granite) ===" 
+    print story
+end

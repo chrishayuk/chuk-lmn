@@ -2,113 +2,137 @@
   "type": "Program",
   "body": [
     {
-      "type": "LetStatement",
-      "variable": {
-        "type": "VariableExpression",
-        "name": "cur_time"
-      },
-      "expression": {
-        "type": "FnExpression",
-        "name": {
-          "type": "VariableExpression",
-          "name": "get_internet_time"
-        },
-        "arguments": []
-      },
-      "type_annotation": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
+      "type": "FunctionDefinition",
+      "name": "main",
+      "params": [],
+      "body": [
         {
-          "type": "VariableExpression",
-          "name": "cur_time"
-        }
-      ]
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "type": "VariableExpression",
-        "name": "local_time"
-      },
-      "expression": {
-        "type": "FnExpression",
-        "name": {
-          "type": "VariableExpression",
-          "name": "get_system_time"
-        },
-        "arguments": []
-      },
-      "type_annotation": "int"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "VariableExpression",
-          "name": "local_time"
-        }
-      ]
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "type": "VariableExpression",
-        "name": "weather"
-      },
-      "expression": {
-        "type": "FnExpression",
-        "name": {
-          "type": "VariableExpression",
-          "name": "get_weather"
-        },
-        "arguments": [
-          {
-            "type": "LiteralExpression",
-            "value": 35.0,
-            "literal_type": "double"
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "poem"
           },
-          {
-            "type": "LiteralExpression",
-            "value": 139.0,
-            "literal_type": "double"
+          "expression": {
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "type": "AssignmentExpression",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "prompt"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": "Write me a short limerick about the sunrise.",
+                  "literal_type": "string"
+                }
+              },
+              {
+                "type": "AssignmentExpression",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "model"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": "llama3.2",
+                  "literal_type": "string"
+                }
+              }
+            ]
           }
-        ]
-      },
-      "type_annotation": "json"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
-        {
-          "type": "VariableExpression",
-          "name": "weather"
-        }
-      ]
-    },
-    {
-      "type": "LetStatement",
-      "variable": {
-        "type": "VariableExpression",
-        "name": "a_joke"
-      },
-      "expression": {
-        "type": "FnExpression",
-        "name": {
-          "type": "VariableExpression",
-          "name": "get_joke"
         },
-        "arguments": []
-      },
-      "type_annotation": "string"
-    },
-    {
-      "type": "PrintStatement",
-      "expressions": [
         {
-          "type": "VariableExpression",
-          "name": "a_joke"
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "=== Poem about Sunrise (llama) ===",
+              "literal_type": "string"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "poem"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "",
+              "literal_type": "string"
+            }
+          ]
+        },
+        {
+          "type": "LetStatement",
+          "variable": {
+            "type": "VariableExpression",
+            "name": "story"
+          },
+          "expression": {
+            "type": "FnExpression",
+            "name": {
+              "type": "VariableExpression",
+              "name": "llm"
+            },
+            "arguments": [
+              {
+                "type": "AssignmentExpression",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "prompt"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": "Write me a short limerick about the sunrise.",
+                  "literal_type": "string"
+                }
+              },
+              {
+                "type": "AssignmentExpression",
+                "left": {
+                  "type": "VariableExpression",
+                  "name": "model"
+                },
+                "right": {
+                  "type": "LiteralExpression",
+                  "value": "granite3.1-dense:latest",
+                  "literal_type": "string"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "LiteralExpression",
+              "value": "=== Poem about Sunrise (granite) ===",
+              "literal_type": "string"
+            }
+          ]
+        },
+        {
+          "type": "PrintStatement",
+          "expressions": [
+            {
+              "type": "VariableExpression",
+              "name": "story"
+            }
+          ]
         }
       ]
     }

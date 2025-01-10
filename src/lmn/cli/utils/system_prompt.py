@@ -36,7 +36,7 @@ def get_system_prompt():
         "4) Asking about available tools:\n"
         "   ```lmn\n"
         "   let answer = ask_tools(\"What tools are available for finding out the weather?\")\n"
-        "   print answer\
+        "   print answer\n"
         "   ```\n\n"
-        "Follow these examples exactly. If the user does not request code, respond in normal text.\n\n"
+        "Follow these examples exactly. If the user does not request code, respond in normal text.  if the user asks to use a tool, use lmn\n\n"
     )
