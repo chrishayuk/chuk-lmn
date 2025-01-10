@@ -68,13 +68,13 @@
               { "type": "i32" }
             ]
           },
-          "handler": "lmn.runtime.host.core.tools.handler:get_weather_openmeteo"
+          "handler": "lmn.runtime.host.core.tools.handler:get_weather"
         }
       ]
     }
   },
 
-  "get_joke_service": {
+  "get_joke": {
     "description": "Fetch a joke from a public jokes API, returning a string pointer",
     "typechecker": {
       "params": [],
@@ -91,7 +91,7 @@
               { "type": "i32" }
             ]
           },
-          "handler": "lmn.runtime.host.core.tools.handler:get_joke_service"
+          "handler": "lmn.runtime.host.core.tools.handler:get_joke"
         }
       ]
     }

@@ -3,43 +3,45 @@ from lmn.builtins import BUILTINS
 
 def typecheck_call(func_name, user_params: dict):
     """
-    Example usage: typecheck_call("llm", {"prompt": "Hello!"})
+    Example usage:
+       validated_params, return_type = typecheck_call("llm", {"prompt": "Hello!"})
+    This function:
+      1) Looks up func_name in BUILTINS.
+      2) Validates user_params against the built-in's 'typechecker' info.
+      3) Returns (validated_params, return_type).
     """
 
-    # check if the function exists
+    # 1) Check if the function exists in built-ins
     if func_name not in BUILTINS:
-        # raise an error
         raise TypeError(f"Unknown built-in function: {func_name}")
 
-    # Grab the typechecker info
+    # 2) Grab the typechecker info: 'params' + 'return_type'
     tc_info = BUILTINS[func_name]["typechecker"]
-    params_def = tc_info["params"]
-    return_type = tc_info["return_type"]
+    params_def = tc_info["params"]          # e.g. [ { "name":"prompt", "type":"string", ...}, ... ]
+    return_type = tc_info["return_type"]    # e.g. "string"
 
-    # initialize the final dictionary of validated params
+    # 3) Prepare a dict for validated parameters
     validated_params = {}
 
-    # loop through the params definition
+    # 4) Loop through each param definition
     for param_def in params_def:
-        # Extract the param details
-        name = param_def["name"]
-        ptype = param_def["type"]
-        required = param_def.get("required", False)
-        default = param_def.get("default", None)
+        name = param_def["name"]                      # param name, e.g. "prompt"
+        ptype = param_def["type"]                     # param type, e.g. "string"
+        required = param_def.get("required", False)   # required?
+        default = param_def.get("default", None)      # default value if any
 
-        # Check if the param is missing
+        # Check if the param is missing in user_params
         if name not in user_params:
-            # Check if the param is required
             if required and default is None:
-                # Raise an error
+                # Missing required param => error
                 raise TypeError(f"Missing required param '{name}' for '{func_name}'")
             else:
-                # Use default if provided
+                # Use default if given, else None
                 validated_params[name] = default
         else:
-            # Optionally validate type (e.g., check if it's string/int)
+            # Optionally: we could validate user_params[name] is the correct type
+            # For now, we just store it
             validated_params[name] = user_params[name]
 
-    # Return the final dictionary of validated params and the return type
+    # 5) Return the final dictionary of validated params and the function’s return_type
     return validated_params, return_type
-

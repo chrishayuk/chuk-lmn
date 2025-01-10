@@ -4,12 +4,12 @@
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": "void",
+        "inferred_type": "string",
         "type": "VariableExpression",
         "name": "a_joke"
       },
       "expression": {
-        "inferred_type": "void",
+        "inferred_type": "string",
         "type": "FnExpression",
         "name": {
           "type": "VariableExpression",
@@ -17,13 +17,13 @@
         },
         "arguments": []
       },
-      "inferred_type": "void"
+      "inferred_type": "string"
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": "void",
+          "inferred_type": "string",
           "type": "VariableExpression",
           "name": "a_joke"
         }

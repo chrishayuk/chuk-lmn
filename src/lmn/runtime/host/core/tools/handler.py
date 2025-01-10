@@ -60,7 +60,7 @@ def get_system_time(def_info, store, memory_ref, output_list, *args) -> int:
     logger.debug(f"[{func_name}] system_time={now}")
     return now
 
-def get_weather_openmeteo(def_info, store, memory_ref, output_list, *args) -> int:
+def get_weather(def_info, store, memory_ref, output_list, *args) -> int:
     """
     Calls open-meteo => returns pointer to the JSON text in WASM memory.
     We'll parse the response as Python JSON, optionally tweak it,
@@ -111,7 +111,7 @@ def get_weather_openmeteo(def_info, store, memory_ref, output_list, *args) -> in
         output_list.append(f"<get_weather_openmeteo error: {e}>")
         return 0
 
-def get_joke_service(def_info, store, memory_ref, output_list, *args) -> int:
+def get_joke(def_info, store, memory_ref, output_list, *args) -> int:
     """
     Grab a joke from https://icanhazdadjoke.com => store in WASM memory => return pointer
     """

@@ -23,7 +23,7 @@
     call $get_joke
     local.set $a_joke
     local.get $a_joke
-    call $print_i32
+    call $print_string
     i32.const 1024
     call $print_string
   )

@@ -5,6 +5,7 @@ from typing import Dict
 # AST imports
 from lmn.compiler.ast.expressions.anonymous_function_expression import AnonymousFunctionExpression
 from lmn.compiler.ast.expressions.variable_expression import VariableExpression
+from lmn.compiler.ast.expressions.fn_expression import FnExpression  # Make sure FnExpression is accessible
 
 # Base checker and utils
 from lmn.compiler.typechecker.statements.base_statement_checker import BaseStatementChecker
@@ -65,14 +66,15 @@ class LetStatementChecker(BaseStatementChecker):
             param_names, param_types = [], []
             for (p_name, p_type) in expr.parameters:
                 param_names.append(p_name)
-                param_types.append(p_type or "int")  # default fallback
+                # Provide a fallback if p_type isn't specified
+                param_types.append(p_type or "int")
 
             # Create child scope
             function_scope = dict(scope)
             function_scope["__current_function_return_type__"] = expr.return_type or "void"
             assigned_vars = function_scope.get("__assigned_vars__", set())
 
-            # Insert parameters
+            # Insert parameters into function_scope
             for i, p_name in enumerate(param_names):
                 function_scope[p_name] = param_types[i]
                 assigned_vars.add(p_name)
@@ -113,7 +115,6 @@ class LetStatementChecker(BaseStatementChecker):
             logger.debug(f"Checking if '{rhs_name}' is a known function/closure in scope.")
             if rhs_name in scope:
                 rhs_info = scope[rhs_name]
-
                 # Confirm it's a dict describing a function or closure
                 if (
                     isinstance(rhs_info, dict)
@@ -161,6 +162,25 @@ class LetStatementChecker(BaseStatementChecker):
         logger.debug(f"Type-checking expression for variable '{var_name}'.")
         expr_type = self.dispatcher.check_expression(expr, target_type=declared_type, local_scope=scope)
         logger.debug(f"Expression type for '{var_name}' => {expr_type}")
+
+        ### PATCH START ###
+        # If this is a FnExpression but ended up 'void', see if we can override it using the symbol_table
+        if isinstance(expr, FnExpression) and expr_type == "void":
+            fn_name_node = getattr(expr, "name", None)
+            if fn_name_node and hasattr(fn_name_node, "name"):
+                fn_name = fn_name_node.name
+                fn_info = self.symbol_table.get(fn_name, None)
+                if isinstance(fn_info, dict):
+                    # Check if there's a declared return_type
+                    fn_return = fn_info.get("return_type", None)
+                    if fn_return and fn_return != "void":
+                        logger.debug(
+                            f"[Patch] Overriding expr_type='void' => '{fn_return}' "
+                            f"for FnExpression call to '{fn_name}'"
+                        )
+                        expr_type = fn_return
+                        expr.inferred_type = fn_return
+        ### PATCH END ###
 
         # If we got a closure dictionary, store it
         if isinstance(expr_type, dict) and expr_type.get("is_closure"):
@@ -269,12 +289,11 @@ class LetStatementChecker(BaseStatementChecker):
                     self._debug_symbol_tables(var_name, f"after unify JSON -> declared_type '{declared_type}'")
                     return
 
-                # Non-array expression unifying with array type => code for arrays
+                # Non-array expression unifying with array type => unify
                 unified = unify_types(declared_type, expr_type, for_assignment=True)
                 if unified != declared_type:
                     raise TypeError(f"Cannot assign '{expr_type}' to var of type '{declared_type}'")
 
-                # We handle array scenario, then return
                 logger.debug(f"Storing array type '{declared_type}' for '{var_name}'.")
                 scope[var_name] = declared_type
                 stmt.inferred_type = declared_type
@@ -284,13 +303,12 @@ class LetStatementChecker(BaseStatementChecker):
                 self._debug_symbol_tables(var_name, f"after unify declared array type '{declared_type}'")
                 return
 
-            # ---------------------------------------------------
             # declared_type is NOT an array => unify
             unified = unify_types(declared_type, expr_type, for_assignment=True)
             if unified != declared_type:
                 raise TypeError(f"Cannot assign '{expr_type}' to var of type '{declared_type}'")
 
-            # === NEW CODE: Insert a ConversionExpression for string->numeric ===
+            # === Insert a ConversionExpression for string->numeric if needed
             if declared_type in ("int", "long", "float", "double") and expr_type == "string":
                 from lmn.compiler.ast.expressions.conversion_expression import ConversionExpression
 
@@ -302,7 +320,6 @@ class LetStatementChecker(BaseStatementChecker):
                 )
                 stmt.expression = conversion_expr
                 logger.debug(f"Inserted ConversionExpression for string->'{declared_type}'")
-            # === END NEW CODE
 
             logger.debug(f"Storing declared type '{declared_type}' for '{var_name}'.")
             scope[var_name] = declared_type
@@ -372,7 +389,7 @@ class LetStatementChecker(BaseStatementChecker):
                 self._debug_symbol_tables(var_name, f"after inferring json-based type '{final_type}'")
 
             else:
-                # Just store it as final_type
+                # Just store it as final_type (whatever expr_type was)
                 logger.debug(f"Inferring type '{expr_type}' for '{var_name}'.")
                 scope[var_name] = expr_type
                 stmt.inferred_type = expr_type

@@ -4,12 +4,12 @@
     {
       "type": "LetStatement",
       "variable": {
-        "inferred_type": "i32",
+        "inferred_type": "i32_string",
         "type": "VariableExpression",
         "name": "a_joke"
       },
       "expression": {
-        "inferred_type": "i32",
+        "inferred_type": "i32_string",
         "type": "FnExpression",
         "name": {
           "inferred_type": null,
@@ -18,13 +18,13 @@
         },
         "arguments": []
       },
-      "inferred_type": "i32"
+      "inferred_type": "i32_string"
     },
     {
       "type": "PrintStatement",
       "expressions": [
         {
-          "inferred_type": "i32",
+          "inferred_type": "i32_string",
           "type": "VariableExpression",
           "name": "a_joke"
         }
