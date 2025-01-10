@@ -2,132 +2,26 @@
   "type": "Program",
   "body": [
     {
-      "type": "FunctionDefinition",
-      "name": "main",
-      "params": [],
-      "body": [
+      "type": "PrintStatement",
+      "expressions": [
         {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "string",
+          "inferred_type": "string",
+          "type": "FnExpression",
+          "name": {
             "type": "VariableExpression",
-            "name": "poem"
+            "name": "call_tools"
           },
-          "expression": {
-            "inferred_type": "string",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "Write me a short limerick about the sunrise.",
-                "literal_type": "string"
-              },
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "llama3.2",
-                "literal_type": "string"
-              }
-            ]
-          },
-          "inferred_type": "string"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
+          "arguments": [
             {
               "inferred_type": "string",
               "type": "LiteralExpression",
-              "value": "=== Poem about Sunrise (llama) ===",
+              "value": "tell me a joke",
               "literal_type": "string"
             }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "VariableExpression",
-              "name": "poem"
-            }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "",
-              "literal_type": "string"
-            }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "LetStatement",
-          "variable": {
-            "inferred_type": "string",
-            "type": "VariableExpression",
-            "name": "story"
-          },
-          "expression": {
-            "inferred_type": "string",
-            "type": "FnExpression",
-            "name": {
-              "type": "VariableExpression",
-              "name": "llm"
-            },
-            "arguments": [
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "Write me a short limerick about the sunrise.",
-                "literal_type": "string"
-              },
-              {
-                "inferred_type": "string",
-                "type": "LiteralExpression",
-                "value": "granite3.1-dense:latest",
-                "literal_type": "string"
-              }
-            ]
-          },
-          "inferred_type": "string"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "LiteralExpression",
-              "value": "=== Poem about Sunrise (granite) ===",
-              "literal_type": "string"
-            }
-          ],
-          "inferred_type": "void"
-        },
-        {
-          "type": "PrintStatement",
-          "expressions": [
-            {
-              "inferred_type": "string",
-              "type": "VariableExpression",
-              "name": "story"
-            }
-          ],
-          "inferred_type": "void"
+          ]
         }
       ],
-      "return_type": "void"
+      "inferred_type": "void"
     }
   ]
 }
