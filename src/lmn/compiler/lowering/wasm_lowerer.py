@@ -124,6 +124,19 @@ def lower_node(node: Any) -> None:
     node_type = getattr(node, "type", None)
     logger.debug("lower_node: visiting node type=%r", node_type)
 
+    # ---------------------------------------------------------
+    # (A) Handle BreakStatement or ContinueStatement
+    # ---------------------------------------------------------
+    if node_type == "BreakStatement":
+        node.inferred_type = "void"
+        logger.debug("lower_node: BreakStatement => set inferred_type='void'")
+        return
+
+    if node_type == "ContinueStatement":
+        node.inferred_type = "void"
+        logger.debug("lower_node: ContinueStatement => set inferred_type='void'")
+        return
+
     # ------------------ A) If it's a LiteralExpression ------------------
     if node_type == "LiteralExpression":
         # 1) Check existing .inferred_type and .literal_type

@@ -1,13 +1,17 @@
 # file: lmn/compiler/emitter/wasm/statements/for_emitter.py
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class ForEmitter:
     def __init__(self, controller):
         """
         'controller' is typically a WasmEmitter instance, which provides:
           - request_local(var_name, local_type)
-          - emit_expression(...)
-          - emit_statement(...)
-          - _normalize_local_name(...)
+          - emit_expression(expr, out_lines)
+          - emit_statement(stmt, out_lines)
+          - _normalize_local_name(name)
         """
         self.controller = controller
 
@@ -16,93 +20,112 @@ class ForEmitter:
         node = {
           "type": "ForStatement",
           "variable":  { "type": "VariableExpression", "name": "i" },
-          "start_expr": <expression node>,
-          "end_expr":   <expression node> or None,
-          "step_expr":  <expression node> or None,
+          "start_expr": <expression>,
+          "end_expr":   <expression> or None,
+          "step_expr":  <expression> or None,
           "body":       [ ... statements ... ]
         }
 
-        We emit roughly:
+        We'll generate WAT shaped like this:
 
+          ;; (local $i i32)  declared by request_local(...)
           ;; i = start_expr
           local.set $i
 
           block $for_exit
             loop $for_loop
+              ;; top-of-loop condition
               local.get $i
-              ;; push end_expr
-              i32.lt_s   ;; or i32.le_s, etc.
-              if
-                ;; then => loop body
-                ;; step => i += (step_expr or 1)
-                br $for_loop
-              else
-                ;; exit loop
-              end
+              (end_expr or sentinel)
+              i32.lt_s
+              i32.eqz
+              br_if $for_exit     ;; exit if !(i < end_expr)
+
+              ;; Now a nested block for 'continue':
+              block $for_continue
+                ;; body statements
+                ;;   if BreakStatement => br $for_exit
+                ;;   if ContinueStatement => br $for_continue
+
+                ;; normal path => fallthrough
+              end $for_continue
+
+              ;; increment step
+              local.get $i
+              [step_expr or i32.const 1]
+              i32.add
+              local.set $i
+
+              br $for_loop
             end
           end
         """
 
-        # 1) Extract and normalize the variable name
         raw_var_name = node["variable"]["name"]
-        var_name = self.controller._normalize_local_name(raw_var_name)
+        var_name     = self.controller._normalize_local_name(raw_var_name)
 
-        # 2) Request local declaration from the emitter
-        #    This used to be 'collect_local_declaration'. Now we do:
+        # 1) Ensure local i is declared as i32
         self.controller.request_local(var_name, "i32")
 
-        # 3) Emit code to initialize i = start_expr
+        # 2) Initialize i = start_expr
         self.controller.emit_expression(node["start_expr"], out_lines)
-        out_lines.append(f'  local.set {var_name}')
+        out_lines.append(f"  local.set {var_name}")
 
-        # 4) Emit the block/loop structure
-        out_lines.append('  block $for_exit')
-        out_lines.append('    loop $for_loop')
+        # 3) Emit the block and loop
+        out_lines.append("  block $for_exit")
+        out_lines.append("    loop $for_loop")
 
-        # 5) Condition check => i < end_expr (or <=)
-        #    a) push i
-        self.controller.emit_expression(
-            {"type": "VariableExpression", "name": raw_var_name},
-            out_lines
-        )
-        #    b) push end_expr
-        if node["end_expr"] is not None:
+        # 4) Top-of-loop condition check
+        out_lines.append(f"  local.get {var_name}")
+        if node.get("end_expr") is not None:
             self.controller.emit_expression(node["end_expr"], out_lines)
         else:
-            # In case there's no end_expr, default to something or handle an error
-            out_lines.append('  i32.const 9999')  # Example default or raise an exception
+            # No end_expr => pick a large sentinel
+            out_lines.append("  i32.const 999999")
 
-        #    c) compare => i32.lt_s or i32.le_s
-        out_lines.append('  i32.lt_s')   # or i32.le_s if you want i <= end_expr
+        # i < end_expr => i32.lt_s => if false => i >= end_expr => br_if $for_exit
+        out_lines.append("  i32.lt_s")
+        out_lines.append("  i32.eqz")
+        out_lines.append("  br_if $for_exit")
 
-        # 6) Use blockless if for the loop body
-        out_lines.append('  if')  # Condition is on stack
+        # 5) We open a nested block for "continue" label
+        out_lines.append("  block $for_continue")
 
-        # 6a) Then branch => emit body statements
-        for st in node["body"]:
-            self.controller.emit_statement(st, out_lines)
+        # 6) Emit the loop body statements
+        #    - If BreakStatement => br $for_exit
+        #    - If ContinueStatement => br $for_continue
+        #    - Otherwise => normal
 
-        # 6b) Step => i += step_expr (default 1 if step_expr is None)
-        self.controller.emit_expression(
-            {"type": "VariableExpression", "name": raw_var_name},
-            out_lines
-        )
-        if node["step_expr"] is None:
-            out_lines.append('  i32.const 1')
+        for stmt in node["body"]:
+            stype = stmt["type"]
+
+            if stype == "BreakStatement":
+                out_lines.append("    br $for_exit")
+
+            elif stype == "ContinueStatement":
+                out_lines.append("    br $for_continue")
+
+            else:
+                self.controller.emit_statement(stmt, out_lines)
+
+        # 7) End of the block for continue
+        #    (if none of the statements jumped with br $for_continue,
+        #     we fall through to here)
+        out_lines.append("  end $for_continue")
+
+        # 8) After the body, we do the increment step
+        out_lines.append(f"  local.get {var_name}")
+        step_expr = node.get("step_expr")
+        if step_expr:
+            self.controller.emit_expression(step_expr, out_lines)
         else:
-            self.controller.emit_expression(node["step_expr"], out_lines)
-        out_lines.append('  i32.add')
-        out_lines.append(f'  local.set {var_name}')
+            out_lines.append("  i32.const 1")
+        out_lines.append("  i32.add")
+        out_lines.append(f"  local.set {var_name}")
 
-        # 6c) Jump back to loop
-        out_lines.append('  br $for_loop')
+        # 9) Jump back to the top
+        out_lines.append("  br $for_loop")
 
-        # 6d) Else => do nothing, exit loop
-        out_lines.append('  else')
-
-        # 6e) End the if
-        out_lines.append('  end')
-
-        # 7) End loop and block
-        out_lines.append('  end')  # loop $for_loop
-        out_lines.append('  end')  # block $for_exit
+        # 10) Close the loop and the outer block
+        out_lines.append("  end")  # end of loop $for_loop
+        out_lines.append("  end")  # end of block $for_exit

@@ -17,6 +17,8 @@ from lmn.compiler.emitter.wasm.expressions.json_literal_expression_emitter impor
 from lmn.compiler.emitter.wasm.expressions.postfix_expression_emitter import PostfixExpressionEmitter
 
 from lmn.compiler.emitter.wasm.program_emitter import ProgramEmitter
+from lmn.compiler.emitter.wasm.statements.break_emitter import BreakEmitter
+from lmn.compiler.emitter.wasm.statements.continue_emitter import ContinueEmitter
 from lmn.compiler.emitter.wasm.statements.if_emitter import IfEmitter
 from lmn.compiler.emitter.wasm.statements.let_emitter import LetEmitter
 from lmn.compiler.emitter.wasm.statements.assignment_emitter import AssignmentEmitter
@@ -74,6 +76,8 @@ class WasmEmitter:
         self.print_emitter = PrintEmitter(self)
         self.return_emitter = ReturnEmitter(self)
         self.for_emitter = ForEmitter(self)
+        self.break_emitter = BreakEmitter(self)
+        self.continue_emitter = ContinueEmitter(self)
         self.call_emitter = CallEmitter(self)
         self.function_emitter = FunctionEmitter(self)
 
@@ -134,6 +138,10 @@ class WasmEmitter:
             self.return_emitter.emit_return(stmt, out_lines)
         elif stype == "ForStatement":
             self.for_emitter.emit_for(stmt, out_lines)
+        elif stype == "BreakStatement":  
+            self.break_emitter.emit_break(stmt, out_lines)
+        elif stype == "ContinueStatement":  
+            self.continue_emitter.emit_continue(stmt, out_lines)
         elif stype == "CallStatement":
             self.call_emitter.emit_call(stmt, out_lines)
         elif stype == "AssignmentStatement":

@@ -82,7 +82,7 @@
                 },
                 {
                   "type": "BreakStatement",
-                  "inferred_type": "i32"
+                  "inferred_type": "void"
                 }
               ],
               "elseif_clauses": [],
@@ -138,7 +138,7 @@
                 },
                 {
                   "type": "ContinueStatement",
-                  "inferred_type": "i32"
+                  "inferred_type": "void"
                 }
               ],
               "elseif_clauses": [],

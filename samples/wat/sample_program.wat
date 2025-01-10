@@ -26,7 +26,9 @@
     local.get $i
     local.get $n
     i32.lt_s
-    if
+    i32.eqz
+    br_if $for_exit
+    block $for_continue
     local.get $i
     i32.const 3
     i32.eq
@@ -35,6 +37,7 @@
     call $print_string
     i32.const 1074
     call $print_string
+    br $for_exit
     end
     local.get $i
     i32.const 2
@@ -48,6 +51,7 @@
     call $print_i32
     i32.const 1074
     call $print_string
+    br $for_continue
     end
     i32.const 1113
     call $print_string
@@ -55,13 +59,12 @@
     call $print_i32
     i32.const 1074
     call $print_string
+    end $for_continue
     local.get $i
     i32.const 1
     i32.add
     local.set $i
     br $for_loop
-    else
-    end
     end
     end
     i32.const 0
